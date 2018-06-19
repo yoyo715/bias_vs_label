@@ -33,7 +33,7 @@ if __name__ == '__main__':
                  'there', 'being', 'how', 'very', 'o', 'mustn', 'itself', 'their', 'u', 'ur']
     
     train = open('../data/query_gender_subset_train.txt', encoding='utf8').readlines()  
-    train_cleaned = open('../cleaned_train2.txt', 'w')
+    train_cleaned = open('./cleaned_train.txt', 'w')
     
     # gets rid up unknown characters
     cleanedtrain1 = []
