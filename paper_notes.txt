@@ -1,0 +1,13 @@
+Simple Queries as Distant Labels for Predicting Gender on Twitter
+https://noisy-text.github.io/2017/pdf/WNUT07.pdf
+
+Overview:
+Introduction:
+Related Work:
+Data Collection:
+	- Distant Labels:
+	- Manual Evaluations:
+	- Preparation:
+Experiment:
+Results:
+Conclusion:
