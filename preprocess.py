@@ -32,8 +32,9 @@ if __name__ == '__main__':
                  'it', 'been', 'only', 'have', 'which', 'themselves', 'few', 'once',
                  'there', 'being', 'how', 'very', 'o', 'mustn', 'itself', 'their', 'u', 'ur']
     
-    train = open('../data/query_gender_subset_train.txt', encoding='utf8').readlines()  
-    train_cleaned = open('./cleaned_train.txt', 'w')
+    #train = open('../data/query_gender_subset_train.txt', encoding='utf8').readlines() 
+    train = open('/home/mcooley/Desktop/temp/query_gender_subset_train.txt').readlines() 
+    train_cleaned = open('./cleaned_train_withstopwords.txt', 'w')
     
     # gets rid up unknown characters
     cleanedtrain1 = []
@@ -49,7 +50,7 @@ if __name__ == '__main__':
             if letter == ' ':
                 if "label" in word:
                     word = '\n'+"__label__"+word[-1]
-                if "http" not in word and word != "RT" and word != "rt" and word not in stop_words:
+                if "http" not in word and word != "RT" and word != "rt": #and word not in stop_words:
                     sentence += word + ' '
                 word = ''
             elif letter == "\t":
