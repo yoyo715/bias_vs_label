@@ -1,13 +1,113 @@
 Simple Queries as Distant Labels for Predicting Gender on Twitter
 https://noisy-text.github.io/2017/pdf/WNUT07.pdf
 
+Citation:
+Emmery, Chris & Chrupała, Grzegorz & Daelemans, Walter. (2017). Simple Queries as Distant Labels for Predicting Gender on Twitter. 50-55. 10.18653/v1/W17-4407. 
+
+
 Overview:
+	- This paper shows the effectiveness of gathering distant labels for self-reported gender on Twitter using simple queries. 
+	- Compare query heuristic to manual annotations
+	- Use labels for distant supervision
+	- Demonstrate competitive model performance on same data as models trained on manual annotations.
+	- Cheap, extensible, fast alternative
+
+
 Introduction:
+	- Much data on most social media platforms (Facebook, LinkedIn) are off-limits to scientific research (due to data only being available to direct connections)
+	- Twitter is different -- allows only a restricted amount of structured personal information by design, more profiles are publicly available.
+	- Inferning user attributes is used to compensate for lack of user info on Twitter.
+	- Previous research has proven to be effective at this task using models trained on manual annotations.
+	- Process of hand-labeling is costly.
+	- Hand labeling a Twitter user's gender is subject to stereotypical biases.
+	- Query for self-reports of gender (“I’m a male, female, man, woman” etc.) provides distant
+labels for 6,610 profiles with high confidence in one week worth of data.
+	- Using distant supervision, show competitive performance with models trained on hand-annotations.
+	- The Novelty:
+		- Demonstrate a simple, extensible method for gathering self-reports on Twitter, that 			  competes with expensive manual annotation.
+		- Publish the IDs, manual annotations, as well as the distant labels for 6.6K Twitter  			  profiles, spanning 16.8M tweets.
+
 Related Work:
+	- Author profiling applies machine learning to linguistic features within a piece of writing to make inferences regarding its author.
+
+	- Ability to make such inferences Koppel et al. (2002)
+	- Applied to blogs by (Argamon et al., 2007; Rosenthal and McKeown, 2011; Nguyen et al., 2011)
+	- Extended to social media to infer a wide variety of attributes (such as gender, age, personality, location, education, income, religion, and political polarity), (Eisenstein et al., 2011; Alowibdi et al., 2013; Volkova et al., 2014; Plank and Hovy, 2015; Volkova and Bachrach, 2016). 
+	- Gender profiling using bow, and bag of n-grams features (Alowibdi et al., 2013; Ciot et al., 2013; Verhoeven et al., 2016) applying supervised classification using manually annotated profiles. 
+	- Distant supervision: For gender classification, Burger et al. (2011) and Li et al. (2014) collected links to external profiles
+	- Distant supervision: Al Zamal et al. (2012) and Li et al. (2015) use a list with gender-associated names.
+
+
 Data Collection:
-	- Distant Labels:
+  	- To compare distant labels to manual annotations, need hand-labeled datasets for comparison.	
+
+	- Distant Labels: 
+		- Profiles collected using Twitter Search API (retrieves tweets from past week)
+		- Querie messages for self-reporting gender
+		- timeline was collected for each associated author
+		- Collected 19,307 profiles (just in one week)
+		- Advantages of this method:
+			- Primarily English profiles
+			- Collects data from active users
+
 	- Manual Evaluations:
+		- Random sub-sample of distants labels were manually labelled for gender 
+		- Resulted in 1,456 agreed on labels.
+		- Filtered out specific profiles, which increased agreement with manual annotations. (Table 1)
+		- Decreased number of profiles from 19,307 to 6,610.
+		- Constructed rules to flip gender when indicated. (Table 2)
+
 	- Preparation:
+		- Included Volkova et al. (2014)’s crowd-sourced corpus  	(Volkova)
+		- And the manually labelled corpus by Plank and Hovy (2015)	(Plank)
+		- All corpora were divide into batches of 200 tweets (most related work follows this setup)
+			- Users with less than 200 tweets were excluded
+			- Consecutive tweets past 200 were not included
+		- Divided into train and test sets by user ID (gender stratified) (Table 3)
+		- Preprocessing: tokenisation (spaCy), removed primarily non-English batches (langdetect), removed original query tweets containing self-reports. (the latter was done to avoid our queries being most characteristic for some batches.)
+
+
 Experiment:
-Results:
+	- Document classification using fastText
+	- simple linear model with one hidden embedding layer that learns sentence representations using bag of words or ngram input, producing a probability distribution over the given classes using the softmax function.
+	- gender predictions made using n-gram features as input (token uni-grams/bi-grams, character tri-grams)
+	- Include grams that occurs more than three times during training
+	- Embeddings with 30 dimensions, learning rate of 0.1, bucket size of 1M, trained for 10 epochs.
+	- Ran each experiment 20 times to find standard deviation.
+	- To compare:
+		- trained all models in same configuration for all three corpora
+		- each model was then evaluated on the test set for each corpora
+
+
+
+Results:	
+	- (Table 4)
+	- Shows that distant labels to be comparable with hand labels, also, model seems to yield favourable performance over state of the art
+
+
+
 Conclusion:
+	- Use simple queries for self-reports to train a gender classifier for Twitter that has competitive performance to those trained on costly hand annotated labels — showing minimal differences.
+	- BUT...
+		- Labelling Twitter users with our set of queries yields up to 45,000 hits per 15 minutes, and therefore finishes in several minutes
+		- Retrieving the timelines for the initial 19,307 users took roughly 21 hours.
+		- preprocessing ~ 3 hours
+		- running fastText ~ few minutes
+	- the entire pipeline is encouragingly cheap, even considering time, and can feasibly be repeated on a weekly basis.
+	- Hence, through manual analysis, as well as experimental evidence, we demonstrate our distantly supervised method to be a reliable and cheap alternative.
+
+
+
+Things to explain:
+	- distant labels - labels obtained using heuristics
+	- distant supervision
+	- The filtering rules that were used to filter out profiles (Manual Annotation section)
+	- Tokenisation (spaCy)
+	- token uni-grams/bi-grams, character tri-grams
+	- Text embeddings
+	
+
+
+
+
+
