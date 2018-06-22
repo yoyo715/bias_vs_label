@@ -1,0 +1,71 @@
+INtro:
+
+- explain problem
+- then why twitter
+- why predict gender in first place
+- no info - gender important for other research
+- get rid of the 6610 profiles
+
+What so special?:
+- hand labeled costly
+- dont introduce what they did yet
+
+Related Work:
+one slide
+	- gender prediction
+	- distance supervision
+		- label colleciton methods:
+			- manual label	
+			- distance
+				- expalin the limitations of the related work
+	- get rid of the first three points
+
+Methodology:3 slides ( new way to generate, gender prediction model/instances, hypothesis)
+- what did they do?
+- they poropose a new way to generate labels
+- slide for what model they use and what instances look like
+- move model archi to methodolgy
+
+Hypothesis: -- in methodolgy part
+- more efficien
+- same amount of accuracy model
+- labels collected are still acurate also
+
+Experiments:
+	-"data collection"
+		- rather than distant labels - say self-reported
+	- clarify what they mean by collecting tweets within one week
+	- create figure?
+	- move "advantages of this method" to methodolgy part - maybe jsut get rid of it
+
+	- change "manual evalustion" to data cleaning + manual eval on self-reports of gnere
+	- explain why and how filters
+		- split to two slides
+		- evaluate accuracy 
+		- filter
+		- flipping gender
+
+- colect data
+- data cleaning
+
+- experimental design:
+	- split to trina and test
+	- how did they split?
+	- did they run mult times?
+
+	- prepocessint 
+
+	- then comparing datasets
+	- how to compare (evaluation metrics)
+
+	- ran 20 times
+	- ran one model on three datasets
+	- add the majority and lexicon 
+
+Results:
+- make figure larger -- accuracy of dataset- show accuracy of label sets 
+
+- how efficinet 
+
+Conclusiot: -- move overview to the conclusion
+
