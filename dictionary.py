@@ -3,11 +3,14 @@
 from sklearn.feature_extraction.text import CountVectorizer
 
 class Dictionary:
-    def __init__(self, file_, args):
+    def __init__(self, file_, ngrams, mincount):
         self.file_ = file_
-        self.args = args
+        self.ngrams = ngrams
+        self.mincount = mincount
+
         self.create_instances()
         self.create_bagngrams()
+    
 
 
     # adds each instance a separate element in list
@@ -39,12 +42,24 @@ class Dictionary:
     
 
     def create_bagngrams(self): 
-        vectorizer = CountVectorizer(ngram_range=(1,self.args.get_ngrams()), min_df=self.args.get_mincount(), max_df=self.args.get_maxcount()) 
-        data_features = vectorizer.fit_transform(self.instances)
+        vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount) 
+        data_features = vectorizer.fit_transform(self.instances)    
         self.bag_ngrams = data_features
+
+
+    def get_nwords(self):
+        self.nwords = self.bag_ngrams.shape[1]
+        return self.nwords
+
+
+    def get_ninstances(self):
+        self.ninstances = self.bag_ngrams.shape[0]
+        return self.ninstances
+
 
     def get_labels(self):
         return self.labels
+
 
     def get_bagngram(self):
         return self.bag_ngrams

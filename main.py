@@ -1,33 +1,24 @@
+#main.py
 
 from dictionary import Dictionary
-from args import Args
-import argparse
+import numpy as np
 
 
-# Method to get arguments user inputs
-def get_args():
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--ngrams', action='store', help="Input number of desired ngrams", required=True)
-    
-    parser.add_argument('--mincount', action='store',
-        help=" float in range [0.0, 1.0] or int, default=1 When building the vocabulary ignore terms that have a document frequency strictly lower than the given threshold. This value is also called cut-off in the literature. If float, the parameter represents a proportion of documents, integer absolute counts.",  required=True)
+# calculates softmax value
+def softmax(x, A, B, nlabels):
+    product = np.dot(B.T,A)
+    product2 = np.dot(product, x)
+ 
+    print(product2.shape)
 
-    parser.add_argument('--maxcount', action='store',
-        help="float in range [0.0, 1.0] or int, default=1.0 When building the vocabulary ignore terms that have a document frequency strictly higher than the given threshold (corpus-specific stop words). If float, the parameter represents a proportion of documents, integer absolute counts.", required=True)
 
-    parser.add_argument('--dimension', action='store',
-        help="Dimension of word embeddings.", required=True)
-
-    parser.add_argument('--bucket', action='store',
-        help="Bucket size.", required=True)
-
-    args = vars(parser.parse_args())
-
-    return args
+# calculates log-likelihood
+def log_likelihood():
+    return 1
 
 
 def main():
-    #args = Args(get_args())
+
     # args from Simple Queries paper
     DIM=30
     LR=0.1
@@ -35,18 +26,49 @@ def main():
     MINCOUNT=2
     MINN=3
     MAXN=3
-    BUCKET=1000000
+    BUCKET=1 #000000
     EPOCH=20
 
     train = open('../cleaned_train_withstopwords.txt', 'r')
-    dictionary = Dictionary(train, args)
+    dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
     input_ = dictionary.get_bagngram()
     labels = dictionary.get_labels()
+    nwords = dictionary.get_nwords()
+    nlabels = len(set(labels))
+    N = dictionary.get_ninstances()
 
-    #dimension = args.get_dimension()
-    #bucket = args.get_bucket()          # 
-    #print(dimension)
+
+    ##### instantiations #######################################
+
+    
+
+    # A
+    A_n = DIM
+    A_m = nwords + BUCKET
+    uniform_val = 1.0 / DIM
+    A = np.random.uniform(-uniform_val, uniform_val, (A_n,A_m))
+
+    # B
+    B_n = DIM
+    B_m = nlabels
+    B = np.zeros((B_n, B_m))
+
+
+    #### train ################################################
+
+    # loop through each instance for SGD
+    for x in input_:
+        #print(instance.shape)
+        softmax(x, A, B, nlabels)
+    
+
 
 
 if __name__ == '__main__':
 	main()
+
+
+
+
+
+
