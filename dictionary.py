@@ -1,6 +1,7 @@
 # Dictionary class
 
 from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
 
 class Dictionary:
     def __init__(self, file_, ngrams, mincount):
@@ -11,7 +12,10 @@ class Dictionary:
         self.create_instances()
         self.create_bagngrams()
     
-
+        self.nwords = self.bag_ngrams.shape[1]
+        self.ninstances = self.bag_ngrams.shape[0]
+        self.nlabels = len(set(self.labels))
+        
 
     # adds each instance a separate element in list
     # each 'tweet' is separated by tab
@@ -42,27 +46,41 @@ class Dictionary:
     
 
     def create_bagngrams(self): 
-        vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount) 
+        #vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount)
+        vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
         data_features = vectorizer.fit_transform(self.instances)    
         self.bag_ngrams = data_features
 
 
     def get_nwords(self):
-        self.nwords = self.bag_ngrams.shape[1]
         return self.nwords
 
 
     def get_ninstances(self):
-        self.ninstances = self.bag_ngrams.shape[0]
         return self.ninstances
 
 
+    # index 0: label 0
+    # index 1: label 1
     def get_labels(self):
-        return self.labels
+        labels = np.zeros((self.ninstances, self.nlabels))
+        i = 0
+        for label in labels:
+            if self.labels[i] == 0:
+                label[0] = 1
+            elif self.labels[i] == 1:
+                label[1] = 1
+            
+            i += 1
+            
+        self.label_vec = labels
+        return self.label_vec
 
 
     def get_bagngram(self):
         return self.bag_ngrams
 
 
+    def get_nlabels(self):
+        return self.nlabels
         

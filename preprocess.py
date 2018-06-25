@@ -32,8 +32,8 @@ if __name__ == '__main__':
                  'it', 'been', 'only', 'have', 'which', 'themselves', 'few', 'once',
                  'there', 'being', 'how', 'very', 'o', 'mustn', 'itself', 'their', 'u', 'ur']
     
-    train = open('/local_d/RESEARCH/fastTextRecreation/data/query_gender_subset_train.txt', encoding='utf8').readlines() 
-    #train = open('../data/query_gender_subset_train.txt', encoding='utf8').readlines() 
+    #train = open('/local_d/RESEARCH/fastTextRecreation/data/query_gender_subset_train.txt', encoding='utf8').readlines() 
+    train = open('../data/query_gender_subset_train.txt', encoding='utf8').readlines() 
     #train = open('/home/mcooley/Desktop/temp/query_gender_subset_train.txt').readlines() 
     train_cleaned = open('../cleaned_train_withstopwords.txt', 'w')
     
