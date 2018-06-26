@@ -5,11 +5,20 @@ import numpy as np
 from scipy import sparse
 
 
+# update rule for weight matrix B
+def update_b():
+    return 1
+
+
+# update rule for weight matrix A
+def update_a():
+    return 1
+
+
 # calculates softmax value
 def softmax(x, A, B, nlabels):
     temp = sparse.csr_matrix.dot(A, x.T)
     product2 = np.dot(B.T, temp)
-    
     exp = np.exp(product2)
     return exp / nlabels * exp
     
@@ -70,6 +79,8 @@ def main():
         loglike = log_likelihood(x, A, B, nlabels)
         loss += loss_function(labels[l], loglike)
         
+        B_new = update_b()
+        
         l += 1
         
     
@@ -77,7 +88,7 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+    main()
 
 
 
