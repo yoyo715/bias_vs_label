@@ -6,9 +6,29 @@ from scipy import sparse
 
 
 # update rule for weight matrix B
-def update_b():
-    return 1
+# 
+def update_b(B, A, x, labels, nlabels):
+    # create S
+    k =1 
+    Sn = 0
+    A_xn = sparse.csr_matrix.dot(A, x.T)  
+    while k <= nlabels:
+        product = np.dot(B[:, k-1].T, A_xn)
+        Sn += np.dot(product, nlabels)
+        k += 1
 
+    K = 1
+    BAxn = np.dot(B.T, A_xn)
+    while K <= nlabels:
+        # create I_k
+        I_k = np.ones(nlabels)
+        I_k[K-1] = 0    # kth element set to 0
+
+        num = np.dot(I_k, BAxn) 
+        denom = np.dot(B[:, K-1].T, A_xn)
+        
+        K += 1
+        
 
 # update rule for weight matrix A
 def update_a():
@@ -17,9 +37,9 @@ def update_a():
 
 # calculates softmax value
 def softmax(x, A, B, nlabels):
-    temp = sparse.csr_matrix.dot(A, x.T)
-    product2 = np.dot(B.T, temp)
-    exp = np.exp(product2)
+    temp = sparse.csr_matrix.dot(A, x.T)  
+    product = np.dot(B.T, temp)
+    exp = np.exp(product)
     return exp / nlabels * exp
     
 
@@ -68,18 +88,19 @@ def main():
     B_m = nlabels           # cols
     B = np.zeros((B_n, B_m))
 
-
     #### train ################################################
 
+    total_loss = 0
     #for i in range(EPOCH):
     # loop through each instance for SGD
     loss = 0
     l = 0
     for x in input_:
         loglike = log_likelihood(x, A, B, nlabels)
-        loss += loss_function(labels[l], loglike)
-        
-        B_new = update_b()
+        loss = loss_function(labels[l], loglike)
+        total_loss += loss        
+
+        B_new = update_b(B, A, x, labels[l], nlabels)
         
         l += 1
         
