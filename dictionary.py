@@ -29,14 +29,12 @@ class Dictionary:
             for letter in inst:
                 if letter == ' ':
                     if "label" in word:
-                        print( word)
-                        if word[-1] == 'l':
-                            print('*', word[-1])
-                            w = list(word)
-                            w[-1] = '1'
-                            word = ''.join(w)
-                        self.labels.append(int(word[-1]))
-                        word = ''
+                        if word[-1] == '1' or word[-1] == '0':
+                            self.labels.append(int(word[-1]))
+                            word = ''
+                        else:
+                            sentence += word + ' '
+                            word = ''
                     else:
                         sentence += word + ' '
                         word = ''
@@ -89,4 +87,6 @@ class Dictionary:
 
     def get_nlabels(self):
         return self.nlabels
+
+
         

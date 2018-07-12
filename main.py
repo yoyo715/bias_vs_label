@@ -65,17 +65,32 @@ def main():
     MAXN=3
     #BUCKET=1 #000000
     BUCKET = 0
-    EPOCH=20
+    EPOCH=5
 
-    train = open('../cleaned_train_withstopwords_FULL.txt', 'r')
+    NUMTRAIN_INST = 100
+    NUMTEST_INST = 50
+
+    train = open('../cleaned_train_withstopwords_FULL2.txt', 'r')
+    test = open('../cleaned_test_withstopwords_FULL.txt', 'r')
     #train = open('../cleaned_train_withstopwords.txt', 'r')
+    print("starting TRAIN dictionary creation")
     dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
     input_ = dictionary.get_bagngram()
     labels = dictionary.get_labels()
     nwords = dictionary.get_nwords()
     nlabels = dictionary.get_nlabels()
     N = dictionary.get_ninstances()
-
+    print("finished creating dictionary for TRAIN")
+    
+    #print()
+    #print("starting TEST dictionary creation")
+    #dictionary_test = Dictionary(test, WORDGRAMS, MINCOUNT)
+    #input_test = dictionary.get_bagngram()
+    #labels_test = dictionary.get_labels()
+    #nwords_test = dictionary.get_nwords()
+    #nlabels_test = dictionary.get_nlabels()
+    #N_test = dictionary.get_ninstances()
+    #print("finished creating dictionary for TEST")
     
     ##### instantiations #######################################
 
@@ -98,11 +113,14 @@ def main():
     losses = []
     
     for i in range(EPOCH):
+        print("EPOCH: ", i)
         # loop through each instance for SGD
         alpha = LR
         loss = 0
         l = 0
         total_loss = 0
+        
+        train_inst = 0
         for x in input_:
             label = labels[l]
             B_old = B
@@ -117,12 +135,16 @@ def main():
             
             total_loss += loss        
             l += 1
+
+            train_inst += 1
+            if train_inst == NUMTRAIN_INST:
+                break
             
         losses.append(total_loss/N * -1)
         i += 1
 
     #print(losses)
-    epochs = [i for i in range(EPOCH)]
+    epochs = [l for l in range(EPOCH)]
     plt.plot(epochs, losses)
     plt.ylabel('loss')
     plt.xlabel('epoch')
