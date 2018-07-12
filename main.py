@@ -67,8 +67,8 @@ def main():
     BUCKET = 0
     EPOCH=5
 
-    NUMTRAIN_INST = 100
-    NUMTEST_INST = 50
+    NUMTRAIN_INST = 10
+    NUMTEST_INST = 5
 
     train = open('../cleaned_train_withstopwords_FULL2.txt', 'r')
     test = open('../cleaned_test_withstopwords_FULL.txt', 'r')
@@ -80,17 +80,17 @@ def main():
     nwords = dictionary.get_nwords()
     nlabels = dictionary.get_nlabels()
     N = dictionary.get_ninstances()
-    print("finished creating dictionary for TRAIN")
+    print("finished creating dictionary for TRAIN: ", N, " number of Train instances")
     
-    #print()
-    #print("starting TEST dictionary creation")
-    #dictionary_test = Dictionary(test, WORDGRAMS, MINCOUNT)
-    #input_test = dictionary.get_bagngram()
-    #labels_test = dictionary.get_labels()
-    #nwords_test = dictionary.get_nwords()
-    #nlabels_test = dictionary.get_nlabels()
-    #N_test = dictionary.get_ninstances()
-    #print("finished creating dictionary for TEST")
+    print()
+    print("starting TEST dictionary creation")
+    dictionary_test = Dictionary(test, WORDGRAMS, MINCOUNT)
+    input_test = dictionary.get_bagngram()
+    labels_test = dictionary.get_labels()
+    nwords_test = dictionary.get_nwords()
+    nlabels_test = dictionary.get_nlabels()
+    N_test = dictionary.get_ninstances()
+    print("finished creating dictionary for TEST: ", N_test, " number of Test instances")
     
     ##### instantiations #######################################
 
@@ -111,6 +111,7 @@ def main():
     #### train ################################################
 
     losses = []
+    losses_test = []
     
     for i in range(EPOCH):
         print("EPOCH: ", i)
@@ -121,6 +122,8 @@ def main():
         total_loss = 0
         
         train_inst = 0
+        
+        # TRAINING
         for x in input_:
             label = labels[l]
             B_old = B
@@ -140,12 +143,29 @@ def main():
             if train_inst == NUMTRAIN_INST:
                 break
             
+            
+        #TESTING 
+        q = 0
+        total_loss_test = 0
+        test_inst = 0
+        for xtest in input_test:
+            label_test = labels_test[q]
+            loss_test = loss_function(xtest, A, B, label_test) 
+            total_loss_test += loss_test
+            q += 1
+            
+            test_inst += 1
+            if test_inst == NUMTEST_INST:
+                break
+            
+            
+        losses_test.append(total_loss_test/N_test * -1)
         losses.append(total_loss/N * -1)
         i += 1
 
-    #print(losses)
     epochs = [l for l in range(EPOCH)]
     plt.plot(epochs, losses)
+    plt.plot(epochs, losses_test)
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.show()
