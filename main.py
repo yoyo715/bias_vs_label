@@ -8,8 +8,10 @@ from matplotlib import pyplot as plt
 
 # computes the hidden layer
 def compute_hidden(x, A):
-    hidden = sparse.csr_matrix.dot(x, A)
+    #hidden = sparse.csr_matrix.dot(x, A)
+    hidden = sparse.csr_matrix.dot(A, x.T)
     return hidden / np.linalg.norm(hidden)
+
 
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nlabels, alpha):
@@ -21,10 +23,12 @@ def gradient_B(B, A, x, label, nlabels, alpha):
         yj_hat = y_hat[j]
         yj = label[j]
         
-        Bj_new = (yj_hat - yj) * hidden
-        #Bj_new = Bj_new / np.linalg.norm(Bj_new)
+        Bj_new = alpha*((yj_hat - yj) * hidden)
+        Bj_new = np.reshape(Bj_new, (30))
+        Bj_new = np.subtract(Bj, Bj_new)
         
-        B[j,:] = B[j,:] + alpha * Bj_new
+        B[j, :] = Bj_new
+            
         j += 1
     
     #B = B / np.linalg.norm(B)
@@ -38,15 +42,16 @@ def gradient_A():
 
 def stable_softmax(x, A, B):
     hidden = compute_hidden(x, A) 
-    X = np.dot(hidden, B.T)
+    #X = np.dot(hidden, B.T)
+    X = np.dot(B, hidden)
     exps = np.exp(X - np.max(X))
-    return (exps / np.sum(exps))[0]
+    return (exps / np.sum(exps))
 
 
 # finds the loss
 def loss_function(x, A, B, label):
     loglike = np.log(stable_softmax(x, A, B))
-    return np.dot(label, loglike.T)
+    return np.dot(label, loglike)
 
 
 def main():
@@ -62,8 +67,8 @@ def main():
     BUCKET = 0
     EPOCH=20
 
-    #train = open('../cleaned_train_withstopwords_FULL.txt', 'r')
-    train = open('../cleaned_train_withstopwords.txt', 'r')
+    train = open('../cleaned_train_withstopwords_FULL.txt', 'r')
+    #train = open('../cleaned_train_withstopwords.txt', 'r')
     dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
     input_ = dictionary.get_bagngram()
     labels = dictionary.get_labels()
@@ -75,11 +80,10 @@ def main():
     ##### instantiations #######################################
 
     # A
-    A_n = DIM               # cols
-    A_m = nwords + BUCKET   # rows
+    A_n = nwords + BUCKET   # cols
+    A_m = DIM               # rows
     uniform_val = 1.0 / DIM
     A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
-    #A = np.ones((A_m, A_n))
     #print(A.shape)
 
     # B

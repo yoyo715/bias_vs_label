@@ -36,7 +36,7 @@ if __name__ == '__main__':
     #train = open('../data/query_gender_subset_train.txt', encoding='utf8').readlines() 
     train = open('../data/query_gender.train', encoding='utf8').readlines() # full training dataset
     #train = open('/home/mcooley/Desktop/temp/query_gender_subset_train.txt').readlines() 
-    train_cleaned = open('../cleaned_train_withstopwords_FULL.txt', 'w')
+    train_cleaned = open('../cleaned_train_withstopwords_FULL2.txt', 'w')
     
     # gets rid up unknown characters
     cleanedtrain1 = []
@@ -51,6 +51,8 @@ if __name__ == '__main__':
         for letter in inst:
             if letter == ' ':
                 if "label" in word:
+                    if word[-1] != '1' or word[-1] != '0':
+                        print("ERROR writing labels: ", word[-1])
                     word = '\n'+"__label__"+word[-1]
                 if "http" not in word and word != "RT" and word != "rt": #and word not in stop_words:
                     sentence += word + ' '
