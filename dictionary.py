@@ -47,13 +47,53 @@ class Dictionary:
         
         del combined[0]
         self.instances = combined
+      
+      
+    # adds each instance a separate element in list
+    # each 'tweet' is separated by tab
+    def create_test_instances(self, test):
+        combined = []
+        self.test_labels = []
+        for inst in test:
+            word = ''
+            sentence = ''
+            instance = ''
+            for letter in inst:
+                if letter == ' ':
+                    if "label" in word:
+                        if word[-1] == '1' or word[-1] == '0':
+                            self.test_labels.append(int(word[-1]))
+                            word = ''
+                        else:
+                            sentence += word + ' '
+                            word = ''
+                    else:
+                        sentence += word + ' '
+                        word = ''
+                elif letter == "\t":    
+                    instance = instance + "\t" + sentence
+                    sentence = ''
+                else:
+                    word += letter
+            combined.append(instance)  
+        
+        del combined[0]
+        self.test_instances = combined
     
 
     def create_bagngrams(self): 
         #vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount)
-        vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
-        data_features = vectorizer.fit_transform(self.instances)    
+        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        data_features = self.vectorizer.fit_transform(self.instances)    
         self.bag_ngrams = data_features
+        
+        
+    #creates a bagngrams for testing instances
+    def create_test_bagngrams(self): 
+        data_features = self.vectorizer.transform(self.test_instances)    
+        self.test_bag_ngrams = data_features
+        self.test_ninstances = self.test_bag_ngrams.shape[0]
+        return self.test_bag_ngrams
 
 
     def get_nwords(self):
@@ -62,12 +102,17 @@ class Dictionary:
 
     def get_ninstances(self):
         return self.ninstances
+    
+    
+    def get_test_ninstances(self):
+        return self.test_ninstances
 
 
     # index 0: label 0
     # index 1: label 1
     def get_labels(self):
         labels = np.zeros((self.ninstances, self.nlabels))
+        print(labels.shape)
         i = 0
         for label in labels:
             if self.labels[i] == 0:
@@ -79,6 +124,25 @@ class Dictionary:
             
         self.label_vec = labels
         return self.label_vec
+    
+    
+    # index 0: label 0
+    # index 1: label 1
+    def get_test_labels(self):
+        self.test_nlabels = len(set(self.test_labels))
+        labels = np.zeros((self.test_ninstances, self.test_nlabels))
+        print(labels.shape)
+        i = 0
+        for label in labels:
+            if self.test_labels[i] == 0:
+                label[0] = 1
+            elif self.test_labels[i] == 1:
+                label[1] = 1
+            
+            i += 1
+            
+        self.test_label_vec = labels
+        return self.test_label_vec
 
 
     def get_bagngram(self):

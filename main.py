@@ -6,6 +6,8 @@ from scipy import sparse
 from numpy.linalg import inv
 from matplotlib import pyplot as plt
 
+np.seterr(divide='ignore', invalid='ignore')  # for RuntimeWarning: invalid value encountered in true_divide error
+
 # computes the hidden layer
 def compute_hidden(x, A):
     #hidden = sparse.csr_matrix.dot(x, A)
@@ -36,8 +38,25 @@ def gradient_B(B, A, x, label, nlabels, alpha):
         
 
 # update rule for weight matrix A
-def gradient_A():
-    return 1
+def gradient_A(B, A, x, nlabels, alpha):
+    i = 0
+    
+    #print(len(x.toarray()))
+    while i < A.shape[1]:
+        Ai = A[:, i]
+        j = 0
+        
+        Bj_new = np.zeros((30))
+        #print(Bj_new.shape)
+        while j < nlabels:
+            #Bj = B[j, :] * x[i]
+            #Bj = sparse.csr_matrix.dot(B[j, :], x[i])
+            xi = x.data[i]
+            #print(xi)
+            
+            j += 1
+        i += 1
+            
 
 
 def stable_softmax(x, A, B):
@@ -58,39 +77,39 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.001
+    LR=0.01
     WORDGRAMS=2
     MINCOUNT=2
     MINN=3
     MAXN=3
     #BUCKET=1 #000000
     BUCKET = 0
-    EPOCH=5
+    EPOCH=10
 
-    NUMTRAIN_INST = 10
-    NUMTEST_INST = 5
-
-    train = open('../cleaned_train_withstopwords_FULL2.txt', 'r')
-    test = open('../cleaned_test_withstopwords_FULL.txt', 'r')
-    #train = open('../cleaned_train_withstopwords.txt', 'r')
-    print("starting TRAIN dictionary creation")
+    #train = open('../cleaned_train_withstopwords_FULL2.txt', 'r')
+    #test = open('../cleaned_test_withstopwords_FULL.txt', 'r')
+    
+    train = open('../cleaned_train_subset.txt', 'r')
+    test = open('../cleaned_test_subset.txt', 'r')
+    
+    print("starting dictionary creation") 
+    
+    # initialize training
     dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
     input_ = dictionary.get_bagngram()
     labels = dictionary.get_labels()
     nwords = dictionary.get_nwords()
     nlabels = dictionary.get_nlabels()
     N = dictionary.get_ninstances()
-    print("finished creating dictionary for TRAIN: ", N, " number of Train instances")
     
-    print()
-    print("starting TEST dictionary creation")
-    dictionary_test = Dictionary(test, WORDGRAMS, MINCOUNT)
-    input_test = dictionary.get_bagngram()
-    labels_test = dictionary.get_labels()
-    nwords_test = dictionary.get_nwords()
-    nlabels_test = dictionary.get_nlabels()
-    N_test = dictionary.get_ninstances()
-    print("finished creating dictionary for TEST: ", N_test, " number of Test instances")
+    #initialize testing
+    dictionary.create_test_instances(test)
+    input_test = dictionary.create_test_bagngrams()
+    N_test = dictionary.get_test_ninstances()
+    labels_test = dictionary.get_test_labels()
+    
+    print(N, " number of Train instances. ", N_test, " number of Test instances")
+    
     
     ##### instantiations #######################################
 
@@ -112,19 +131,22 @@ def main():
 
     losses = []
     losses_test = []
+    print()
     
     for i in range(EPOCH):
         print("EPOCH: ", i)
         # loop through each instance for SGD
-        alpha = LR
         loss = 0
         l = 0
         total_loss = 0
         
-        train_inst = 0
+        # linearly decaying lr alpha
+        alpha = LR * ( 1 - i / EPOCH)
         
         # TRAINING
         for x in input_:
+            #print(len(x.data))
+            
             label = labels[l]
             B_old = B
             A_old = A
@@ -134,43 +156,41 @@ def main():
             
             # back prop
             B = gradient_B(B_old, A, x, label, nlabels, alpha)  
-            #A = gradient_A()
+            #A = gradient_A(B_old, A_old, x, nlabels, alpha)
+            #gradient_A(B_old, A_old, x, nlabels, alpha)
             
             total_loss += loss        
             l += 1
-
-            train_inst += 1
-            if train_inst == NUMTRAIN_INST:
-                break
             
             
-        #TESTING 
+        # TESTING 
         q = 0
         total_loss_test = 0
-        test_inst = 0
         for xtest in input_test:
             label_test = labels_test[q]
             loss_test = loss_function(xtest, A, B, label_test) 
             total_loss_test += loss_test
             q += 1
             
-            test_inst += 1
-            if test_inst == NUMTEST_INST:
-                break
-            
             
         losses_test.append(total_loss_test/N_test * -1)
         losses.append(total_loss/N * -1)
         i += 1
-
+        
+        
+    print("train: ", losses)
+    print("test: ", losses_test)
+    
     epochs = [l for l in range(EPOCH)]
-    plt.plot(epochs, losses)
-    plt.plot(epochs, losses_test)
+    plt.plot(epochs, losses, 'r', label="training loss")
+    plt.plot(epochs, losses_test, 'b', label="testing loss")
     plt.ylabel('loss')
     plt.xlabel('epoch')
+    plt.legend(loc='upper left')
     plt.show()
         
-    
+ 
+ 
 if __name__ == '__main__':
     main()
 
