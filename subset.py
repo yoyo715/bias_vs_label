@@ -14,7 +14,7 @@ MINCOUNT=2
 
 
 NUMTRAIN_INST = 1000
-NUMTEST_INST = 200
+NUMTEST_INST = 500
 
 
 train_subset = open('../cleaned_train_subset.txt', 'w')

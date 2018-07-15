@@ -39,23 +39,16 @@ def gradient_B(B, A, x, label, nlabels, alpha):
 
 # update rule for weight matrix A
 def gradient_A(B, A, x, nlabels, alpha):
-    i = 0
-    
-    #print(len(x.toarray()))
-    while i < A.shape[1]:
-        Ai = A[:, i]
-        j = 0
+    j = 0
+    p = A.shape[1]
+    A_new = np.zeros((30, p))
+    while j < nlabels:
+        Bj = np.reshape(B[j, :], (30, 1))
+        A_new = np.add(A_new, sparse.csr_matrix.dot(Bj, x))
+        j += 1
         
-        Bj_new = np.zeros((30))
-        #print(Bj_new.shape)
-        while j < nlabels:
-            #Bj = B[j, :] * x[i]
-            #Bj = sparse.csr_matrix.dot(B[j, :], x[i])
-            xi = x.data[i]
-            #print(xi)
-            
-            j += 1
-        i += 1
+    A = A - alpha * A_new
+    return A
             
 
 
@@ -84,7 +77,7 @@ def main():
     MAXN=3
     #BUCKET=1 #000000
     BUCKET = 0
-    EPOCH=10
+    EPOCH=8
 
     #train = open('../cleaned_train_withstopwords_FULL2.txt', 'r')
     #test = open('../cleaned_test_withstopwords_FULL.txt', 'r')
@@ -156,7 +149,7 @@ def main():
             
             # back prop
             B = gradient_B(B_old, A, x, label, nlabels, alpha)  
-            #A = gradient_A(B_old, A_old, x, nlabels, alpha)
+            A = gradient_A(B_old, A_old, x, nlabels, alpha)
             #gradient_A(B_old, A_old, x, nlabels, alpha)
             
             total_loss += loss        
@@ -182,6 +175,7 @@ def main():
     print("test: ", losses_test)
     
     epochs = [l for l in range(EPOCH)]
+    
     plt.plot(epochs, losses, 'r', label="training loss")
     plt.plot(epochs, losses_test, 'b', label="testing loss")
     plt.ylabel('loss')
