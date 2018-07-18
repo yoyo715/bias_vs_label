@@ -38,13 +38,18 @@ def gradient_B(B, A, x, label, nlabels, alpha):
         
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, nlabels, alpha):
+def gradient_A(B, A, x, label, nlabels, alpha):
     j = 0
     p = A.shape[1]
+    y_hat = stable_softmax(x, A, B)
     A_new = np.zeros((30, p))
     while j < nlabels:
         Bj = np.reshape(B[j, :], (30, 1))
-        A_new = np.add(A_new, sparse.csr_matrix.dot(Bj, x))
+        yj_hat = y_hat[j]
+        yj = label[j]
+        
+        a = (yj_hat - yj)* sparse.csr_matrix.dot(Bj, x)
+        A_new = np.add(A_new, a)
         j += 1
         
     A = A - alpha * A_new
@@ -79,8 +84,8 @@ def main():
     BUCKET = 0
     EPOCH=8
 
-    #train = open('../cleaned_train_withstopwords_FULL2.txt', 'r')
-    #test = open('../cleaned_test_withstopwords_FULL.txt', 'r')
+    #train = open('/local_d/RESEARCH/simple-queries/data/query_gender.train', 'r')
+    #test = open('/local_d/RESEARCH/simple-queries/data/query_gender.test', 'r')
     
     train = open('../cleaned_train_subset.txt', 'r')
     test = open('../cleaned_test_subset.txt', 'r')
@@ -102,6 +107,8 @@ def main():
     labels_test = dictionary.get_test_labels()
     
     print(N, " number of Train instances. ", N_test, " number of Test instances")
+    print("Train: F,M ", dictionary.get_nlabels_eachclass_train())
+    print("Test: F,M ", dictionary.get_nlabels_eachclass_test())
     
     
     ##### instantiations #######################################
@@ -149,8 +156,7 @@ def main():
             
             # back prop
             B = gradient_B(B_old, A, x, label, nlabels, alpha)  
-            A = gradient_A(B_old, A_old, x, nlabels, alpha)
-            #gradient_A(B_old, A_old, x, nlabels, alpha)
+            A = gradient_A(B_old, A_old, x, label, nlabels, alpha)
             
             total_loss += loss        
             l += 1

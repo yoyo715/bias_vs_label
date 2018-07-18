@@ -22,10 +22,17 @@ class Dictionary:
     def create_instances(self):
         combined = []
         self.labels = []
+        numsents = 0
+        
         for inst in self.file_:
             word = ''
             sentence = ''
             instance = ''
+            
+            if numsents != 199:
+                print("ERROR (train) instances does not have 200 tweets: ", numsents)
+            numsents = 0 
+            
             for letter in inst:
                 if letter == ' ':
                     if "label" in word:
@@ -41,12 +48,15 @@ class Dictionary:
                 elif letter == "\t":    
                     instance = instance + "\t" + sentence
                     sentence = ''
+                    numsents += 1
                 else:
                     word += letter
             combined.append(instance)  
-        
+            
         del combined[0]
         self.instances = combined
+        
+        
       
       
     # adds each instance a separate element in list
@@ -54,10 +64,17 @@ class Dictionary:
     def create_test_instances(self, test):
         combined = []
         self.test_labels = []
+        numsents = 0
+        
         for inst in test:
             word = ''
             sentence = ''
             instance = ''
+            
+            if numsents != 199:
+                print("ERROR: (test) instances does not have 200 tweets", numsents)
+            numsents = 0      
+            
             for letter in inst:
                 if letter == ' ':
                     if "label" in word:
@@ -73,9 +90,11 @@ class Dictionary:
                 elif letter == "\t":    
                     instance = instance + "\t" + sentence
                     sentence = ''
+                    numsents += 1
                 else:
                     word += letter
             combined.append(instance)  
+            
         
         del combined[0]
         self.test_instances = combined
@@ -113,12 +132,17 @@ class Dictionary:
     def get_labels(self):
         labels = np.zeros((self.ninstances, self.nlabels))
         print(labels.shape)
+        self.train_males = 0
+        self.train_females = 0
+        
         i = 0
         for label in labels:
             if self.labels[i] == 0:
                 label[0] = 1
+                self.train_males += 1
             elif self.labels[i] == 1:
                 label[1] = 1
+                self.train_females += 1
             
             i += 1
             
@@ -132,12 +156,17 @@ class Dictionary:
         self.test_nlabels = len(set(self.test_labels))
         labels = np.zeros((self.test_ninstances, self.test_nlabels))
         print(labels.shape)
+        self.test_males = 0
+        self.test_females = 0
+        
         i = 0
         for label in labels:
             if self.test_labels[i] == 0:
                 label[0] = 1
+                self.test_males += 1        #NOTE: need to double check 
             elif self.test_labels[i] == 1:
                 label[1] = 1
+                self.test_females += 1      #NOTE: need to double check 
             
             i += 1
             
@@ -152,5 +181,32 @@ class Dictionary:
     def get_nlabels(self):
         return self.nlabels
 
+
+    def get_nlabels_eachclass_train(self):
+        return self.train_females, self.train_males
+    
+    
+    def get_nlabels_eachclass_test(self):
+        return self.test_females, self.test_males
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
         
