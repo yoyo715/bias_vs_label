@@ -87,32 +87,34 @@ def main():
     BUCKET = 0
     EPOCH=20
 
-    train = open('/local_d/RESEARCH/simple-queries/data/query_gender.train', 'r')
-    test = open('/local_d/RESEARCH/simple-queries/data/query_gender.test', 'r')
+    #train = open('/local_d/RESEARCH/simple-queries/data/query_gender.train', 'r')
+    #test = open('/local_d/RESEARCH/simple-queries/data/query_gender.test', 'r')
     
-    #train = open('../cleaned_train_subset.txt', 'r')
+    train = open('../cleaned_train_subset.txt', 'r')
     #test = open('../cleaned_test_subset.txt', 'r')
     
     print("starting dictionary creation") 
     
     # initialize training
     dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
-    input_ = dictionary.get_bagngram()
-    labels = dictionary.get_labels()
+    #input_ = dictionary.get_bagngram()
+    #labels = dictionary.get_labels()
     nwords = dictionary.get_nwords()
     nlabels = dictionary.get_nlabels()
-    N = dictionary.get_ninstances()
+    #N = dictionary.get_ninstances()
     
     #initialize testing
-    #dictionary.train_and_testsplit()
-    dictionary.create_test_instances(test)
-    input_test = dictionary.create_test_bagngrams()
-    N_test = dictionary.get_test_ninstances()
-    labels_test = dictionary.get_test_labels()
+    X_train, X_test, y_train, y_test = dictionary.train_and_testsplit()
+    N = X_train.shape[0]
+    N_test = X_test.shape[0]
+    #dictionary.create_test_instances(test)
+    #input_test = dictionary.create_test_bagngrams()
+    #N_test = dictionary.get_test_ninstances()
+    #labels_test = dictionary.get_test_labels()
     
     print(N, " number of Train instances. ", N_test, " number of Test instances")
-    print("Train: F,M ", dictionary.get_nlabels_eachclass_train())
-    print("Test: F,M ", dictionary.get_nlabels_eachclass_test())
+    #print("Train: F,M ", dictionary.get_nlabels_eachclass_train())
+    #print("Test: F,M ", dictionary.get_nlabels_eachclass_test())
     
     
     ##### instantiations #######################################
@@ -148,10 +150,12 @@ def main():
         alpha = LR * ( 1 - i / EPOCH)
         
         # TRAINING
-        for x in input_:
+        #for x in input_:
+        for x in X_train:
             #print(len(x.data))
             
-            label = labels[l]
+            #label = labels[l]
+            label = y_train[l]
             B_old = B
             A_old = A
             
@@ -169,8 +173,10 @@ def main():
         # TESTING 
         q = 0
         total_loss_test = 0
-        for xtest in input_test:
-            label_test = labels_test[q]
+        #for xtest in input_test:
+        for xtest in X_test:
+            #label_test = labels_test[q]
+            label_test = y_test[q]
             loss_test = loss_function(xtest, A, B, label_test) 
             total_loss_test += loss_test
             q += 1

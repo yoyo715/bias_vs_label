@@ -1,6 +1,7 @@
 # Dictionary class
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.cross_validation import train_test_split
 import numpy as np
 
 class Dictionary:
@@ -15,6 +16,8 @@ class Dictionary:
         self.nwords = self.bag_ngrams.shape[1]
         self.ninstances = self.bag_ngrams.shape[0]
         self.nlabels = len(set(self.labels))
+        
+        self.get_labels()
         
 
     # adds each instance a separate element in list
@@ -147,7 +150,7 @@ class Dictionary:
             i += 1
             
         self.label_vec = labels
-        return self.label_vec
+        #return self.label_vec
     
     
     # index 0: label 0
@@ -191,7 +194,10 @@ class Dictionary:
         
     
     def train_and_testsplit(self):
-        print(type(self.bag_ngrams))
+        X_train, X_test, y_train, y_test = train_test_split(self.bag_ngrams, self.label_vec, test_size=0.33)
+        #print(type(self.bag_ngrams))
+        print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+        return X_train, X_test, y_train, y_test
     
     
     
