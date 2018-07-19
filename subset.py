@@ -13,8 +13,8 @@ MINCOUNT=2
 #train_inst = dictionary.get_bagngram()
 
 
-NUMTRAIN_INST = 500
-NUMTEST_INST = 200
+NUMTRAIN_INST = 1000
+NUMTEST_INST = 500
 
 
 train_subset = open('../cleaned_train_subset.txt', 'w')

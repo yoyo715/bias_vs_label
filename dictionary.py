@@ -29,8 +29,8 @@ class Dictionary:
             sentence = ''
             instance = ''
             
-            if numsents != 199:
-                print("ERROR (train) instances does not have 200 tweets: ", numsents)
+            #if numsents != 199:
+                #print("ERROR (train) instances does not have 200 tweets: ", numsents)
             numsents = 0 
             
             for letter in inst:
@@ -71,8 +71,8 @@ class Dictionary:
             sentence = ''
             instance = ''
             
-            if numsents != 199:
-                print("ERROR: (test) instances does not have 200 tweets", numsents)
+            #if numsents != 199:
+                #print("ERROR: (test) instances does not have 200 tweets", numsents)
             numsents = 0      
             
             for letter in inst:
@@ -190,6 +190,8 @@ class Dictionary:
         return self.test_females, self.test_males
         
     
+    def train_and_testsplit(self):
+        print(type(self.bag_ngrams))
     
     
     

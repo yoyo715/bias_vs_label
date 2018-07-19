@@ -6,13 +6,17 @@ from scipy import sparse
 from numpy.linalg import inv
 from matplotlib import pyplot as plt
 
-np.seterr(divide='ignore', invalid='ignore')  # for RuntimeWarning: invalid value encountered in true_divide error
+#np.seterr(divide='ignore', invalid='ignore')  # for RuntimeWarning: invalid value encountered in true_divide error
 
 # computes the hidden layer
 def compute_hidden(x, A):
     #hidden = sparse.csr_matrix.dot(x, A)
     hidden = sparse.csr_matrix.dot(A, x.T)
-    return hidden / np.linalg.norm(hidden)
+    
+    norm = np.linalg.norm(hidden)
+    if norm == 0: 
+       return hidden
+    return hidden / norm 
 
 
 # finds gradient of B and returns an up
@@ -56,7 +60,6 @@ def gradient_A(B, A, x, label, nlabels, alpha):
     return A
             
 
-
 def stable_softmax(x, A, B):
     hidden = compute_hidden(x, A) 
     #X = np.dot(hidden, B.T)
@@ -82,13 +85,13 @@ def main():
     MAXN=3
     #BUCKET=1 #000000
     BUCKET = 0
-    EPOCH=8
+    EPOCH=20
 
-    #train = open('/local_d/RESEARCH/simple-queries/data/query_gender.train', 'r')
-    #test = open('/local_d/RESEARCH/simple-queries/data/query_gender.test', 'r')
+    train = open('/local_d/RESEARCH/simple-queries/data/query_gender.train', 'r')
+    test = open('/local_d/RESEARCH/simple-queries/data/query_gender.test', 'r')
     
-    train = open('../cleaned_train_subset.txt', 'r')
-    test = open('../cleaned_test_subset.txt', 'r')
+    #train = open('../cleaned_train_subset.txt', 'r')
+    #test = open('../cleaned_test_subset.txt', 'r')
     
     print("starting dictionary creation") 
     
@@ -101,6 +104,7 @@ def main():
     N = dictionary.get_ninstances()
     
     #initialize testing
+    #dictionary.train_and_testsplit()
     dictionary.create_test_instances(test)
     input_test = dictionary.create_test_bagngrams()
     N_test = dictionary.get_test_ninstances()
