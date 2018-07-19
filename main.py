@@ -90,13 +90,16 @@ def main():
     #train = open('/local_d/RESEARCH/simple-queries/data/query_gender.train', 'r')
     #test = open('/local_d/RESEARCH/simple-queries/data/query_gender.test', 'r')
     
-    train = open('../cleaned_train_subset.txt', 'r')
+    #train = open('../cleaned_train_subset.txt', 'r')
     #test = open('../cleaned_test_subset.txt', 'r')
+    
+    dataset = open('../cleaned_subset.txt', 'r')
     
     print("starting dictionary creation") 
     
     # initialize training
-    dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
+    #dictionary = Dictionary(train, WORDGRAMS, MINCOUNT)
+    dictionary = Dictionary(dataset, WORDGRAMS, MINCOUNT)
     #input_ = dictionary.get_bagngram()
     #labels = dictionary.get_labels()
     nwords = dictionary.get_nwords()
