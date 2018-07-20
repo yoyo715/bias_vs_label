@@ -3,7 +3,7 @@
 import random 
 
 
-NUMINST = 10000
+NUMINST = 1000
 
 dataset = open('../cleaned_combined_FULL.txt', 'r').readlines()
 random.shuffle(dataset)
