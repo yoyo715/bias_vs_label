@@ -7,33 +7,43 @@ from numpy.linalg import inv
 from matplotlib import pyplot as plt
 
 
-# computes the hidden layer
-def compute_hidden(x, A):
+
+# computes the normalized hidden layer
+# NOTE: only for computing gradient?
+def compute_normalized_hidden(x, A):
     hidden = sparse.csr_matrix.dot(A, x.T)
+    
     norm = np.linalg.norm(hidden)
     if norm == 0: 
        return hidden
     return hidden / norm 
 
 
+# computes the hidden layer
+def compute_hidden(x, A):
+    hidden = sparse.csr_matrix.dot(A, x.T)
+    return hidden
+    
+
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nclasses, alpha, DIM):
-    j = 0
-    hidden = compute_hidden(x, A)
+    #hidden = compute_normalized_hidden(x, A)
+    hidden = compute_hidden(x, A)  # this one im pretty sure
     y_hat = stable_softmax(x, A, B)
+    
+    j = 0
     while j < nclasses:
         Bj = B[j, :]
         yj_hat = y_hat[j]
         yj = label[j]
-        
-        Bj_new = alpha*( (yj_hat - yj) * hidden )
-        Bj_new = np.reshape(Bj_new, (DIM))
+
+        Bj_new = alpha * np.dot( hidden, (yj_hat - yj))
         Bj_new = np.subtract(Bj, Bj_new)
         
         B[j, :] = Bj_new
-            
         j += 1
     
+    #print(B)
     return B
         
 
@@ -53,18 +63,13 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM):
         A_new = np.add(A_new, a)
         j += 1
         
-    #norm = np.linalg.norm(A_new)
-    #if norm != 0: 
-        ##A_new = A_new / norm
-        #A_new = np.divide(A_new, norm)
-    
-    #A = A - (alpha * A_new)
     A = np.subtract(A, (alpha * A_new))
     return A
             
 
 def stable_softmax(x, A, B):
     hidden = compute_hidden(x, A) 
+    #hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
     exps = np.exp(X - np.max(X))
     return (exps / np.sum(exps))
@@ -74,6 +79,50 @@ def stable_softmax(x, A, B):
 def loss_function(x, A, B, label):
     loglike = np.log(stable_softmax(x, A, B))
     return np.dot(label, loglike)
+
+
+# computes the loss over entire dataset
+def total_loss_function(X, Y, A, B, N):
+    i = 0
+    total_loss = 0
+    for x in X:
+        label = Y[i]
+        loss = loss_function(x, A, B, label)
+        #print(loss)
+        total_loss += loss
+        i += 1
+        
+    return -1.0/N * total_loss
+    
+    
+    
+# function to return prediction ACCURACY
+def prediction_accuracy(X, Y, A, B, N):
+    correct = 0
+    i = 0
+    for x in X:
+        prediction = np.argmax(stable_softmax(x, A, B))
+        label = np.argmax(Y[i])
+        if prediction == label:
+            correct += 1
+        i += 1
+        
+    return correct / N
+
+
+# function to return prediction ACCURACY
+def prediction_error(X, Y, A, B, N):
+    incorrect = 0
+    i = 0
+    for x in X:
+        prediction = np.argmax(stable_softmax(x, A, B))
+        label = np.argmax(Y[i])
+        if prediction != label:
+            incorrect += 1
+        i += 1
+        
+    return incorrect / N
+    
 
 
 def main():
@@ -116,6 +165,7 @@ def main():
     A_n = p
     A_m = DIM               # rows
     uniform_val = 1.0 / DIM
+    np.random.seed(0)
     A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
     #print(A.shape)
 
@@ -128,7 +178,7 @@ def main():
 
     #### train ################################################
 
-    losses = []
+    losses_train = []
     losses_test = []
     print()
     
@@ -136,52 +186,50 @@ def main():
         print()
         print("EPOCH: ", i)
         
-        loss = 0
-        l = 0
-        total_loss = 0
-        
         # linearly decaying lr alpha
         alpha = LR * ( 1 - i / EPOCH)
+        #alpha = LR
         
+        l = 0
         # TRAINING
         for x in X_train:
             label = y_train[l]
             B_old = B
             A_old = A
             
-            # forward prop
-            loss = loss_function(x, A, B, label) 
-            
             # back prop
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
-            
-            total_loss += loss        
+            #A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+                  
             l += 1
             
             
-        # TESTING 
-        q = 0
-        total_loss_test = 0
-        for xtest in X_test:
-            label_test = y_test[q]
-            loss_test = loss_function(xtest, A, B, label_test) 
-            total_loss_test += loss_test
-            q += 1
+        # TRAINING LOSS
+        train_loss = total_loss_function(X_train, y_train, A, B, N)
+        print("Train: ", train_loss)
             
-        print("train: ", total_loss/N * -1)
-        print("test: ", total_loss_test/N_test * -1)
-            
-            
-        losses_test.append(total_loss_test/N_test * -1)
-        losses.append(total_loss/N * -1)
+        # TESTING LOSS
+        test_loss = total_loss_function(X_test, y_test, A, B, N_test)
+        print("Test: ", test_loss)
+        
+        
+        losses_train.append(train_loss)
+        losses_test.append(test_loss)
+        
         i += 1
         
+        
+    train_pred_acc = prediction_accuracy(X_train, y_train, A, B, N)
+    test_pred_acc = prediction_accuracy(X_test, y_test, A, B, N_test)
     
+    train_pred_err = prediction_error(X_train, y_train, A, B, N)
+    test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
+    print("Train prediction accuracy: ", train_pred_acc, " Error: ", train_pred_err)
+    print("Test prediction accuracy: ", test_pred_acc, " Error: ", test_pred_err)
     
     # for plotting
     epochs = [l for l in range(EPOCH)]
-    plt.plot(epochs, losses, 'r', label="training loss")
+    plt.plot(epochs, losses_train, 'r', label="training loss")
     plt.plot(epochs, losses_test, 'b', label="testing loss")
     plt.ylabel('loss')
     plt.xlabel('epoch')

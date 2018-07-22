@@ -3,7 +3,7 @@
 import random 
 
 
-NUMINST = 200
+NUMINST = 400
 
 dataset = open('../cleaned_combined_FULL.txt', 'r').readlines()
 
