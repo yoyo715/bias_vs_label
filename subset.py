@@ -3,9 +3,10 @@
 import random 
 
 
-NUMINST = 1000
+NUMINST = 200
 
 dataset = open('../cleaned_combined_FULL.txt', 'r').readlines()
+
 random.shuffle(dataset)
 
 subset = open('../cleaned_subset.txt', 'w')

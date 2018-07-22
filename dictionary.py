@@ -37,9 +37,8 @@ class Dictionary:
             sentence = ''
             instance = ''
             
-            #if numsents != 199:
-                #print("ERROR (train) instances does not have 200 tweets: ", numsents)
-            numsents = 0 
+            #sentence = []
+            #instance = []
             
             for letter in inst:
                 if letter == ' ':
@@ -49,20 +48,53 @@ class Dictionary:
                             word = ''
                         else:
                             sentence += word + ' '
+                            #sentence.append(word)
                             word = ''
                     else:
                         sentence += word + ' '
+                        #sentence.append(word)
                         word = ''
                 elif letter == "\t":    
                     instance = instance + "\t" + sentence
+                    #instance.append(sentence)
                     sentence = ''
-                    numsents += 1
+                    #sentence = []
                 else:
                     word += letter
             combined.append(instance)  
             
-        #del combined[0]
         self.instances = combined
+        
+        #print(self.instances[0][0])
+        #self.create_ngrams(2)
+        #self.create_char_ngrams(3)
+        
+        
+    def create_ngrams(self, n):
+        for inst in self.instances:
+            for sentence in inst:
+                ngrams = zip(*[sentence[i:] for i in range(n)])
+                
+                for gram in ngrams:
+                    sentence.append(gram)
+                
+        print()
+        print(self.instances[0][0])
+                
+                
+    
+    def create_char_ngrams(self, n):
+        for inst in self.instances:
+            for sentence in inst:
+                for word in sentence:
+                    #char_ngrams = [word[i:i+n] for i in range(len(word)-n+1)]
+                    
+                    #for gram in char_ngrams:
+                        #sentence.append(gram)
+                        
+                    print(word)
+        print()
+        print(self.instances[0][0])
         
         
     def train_and_testsplit(self):

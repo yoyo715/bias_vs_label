@@ -26,7 +26,7 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
         yj_hat = y_hat[j]
         yj = label[j]
         
-        Bj_new = alpha*((yj_hat - yj) * hidden)
+        Bj_new = alpha*( (yj_hat - yj) * hidden )
         Bj_new = np.reshape(Bj_new, (DIM))
         Bj_new = np.subtract(Bj, Bj_new)
         
@@ -53,7 +53,13 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM):
         A_new = np.add(A_new, a)
         j += 1
         
-    A = A - (alpha * A_new)
+    #norm = np.linalg.norm(A_new)
+    #if norm != 0: 
+        ##A_new = A_new / norm
+        #A_new = np.divide(A_new, norm)
+    
+    #A = A - (alpha * A_new)
+    A = np.subtract(A, (alpha * A_new))
     return A
             
 
@@ -75,7 +81,7 @@ def main():
     # args from Simple Queries paper
     DIM=30
     LR=0.01
-    WORDGRAMS=2
+    WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
@@ -148,7 +154,7 @@ def main():
             
             # back prop
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            #A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
             
             total_loss += loss        
             l += 1
