@@ -48,36 +48,48 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
         
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM):
+def gradient_A1(B, A, x, label, nclasses, alpha, DIM):
     p = A.shape[1]
-    y_hat = stable_softmax(x, A, B)
-    A = A.T
+    Y_hat = stable_softmax(x, A, B)
     
-    Y = np.subtract(y_hat.T, label)
-    print(Y.shape)
+    Y = np.subtract(Y_hat.T, label)
+    YB = np.dot(Y, B)
+    A_new = np.dot(alpha, sparse.csr_matrix.dot(YB.T, x))
+
+    A = np.subtract(A, A_new)
     
-    test = np.zeros((1,p))
+    return A
+
+
+# update rule for weight matrix A
+def gradient_A(B, A, x, label, nclasses, alpha, DIM):
+    Y_hat = stable_softmax(x, A, B)
+    
     i = 0
     while i < DIM:
-        Bi = B[:, i]
-        YBi = np.dot(Y, Bi)
-
-        #print(np.array_equal(x, test), test.shape, x.shape)
-        Ai_new = np.zeros((p))
-        Ai_new = alpha * sparse.csr_matrix.dot(YBi, x)
+        j = 0
+        sum_ = 0
+        while j < nclasses:
+            yhat_nj = Y_hat[j]
+            yn = label[j]
+            b_ji = B[j, i]
         
-        test = A[:, i]
-        A[:, i] = np.subtract(A[:, i], Ai_new)
-       
-        i += 1
+            sum_ += ((yhat_nj - yn) * b_ji) 
+            j += 1
 
-    return A.T
+        Ai_new = alpha * sparse.csr_matrix.dot(sum_, x)
+        A[i, :] = np.subtract(A[i, :], Ai_new)
+
+        i += 1    
+    
+    return A
             
 
 def stable_softmax(x, A, B):
     hidden = compute_hidden(x, A) 
     #hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
+    #print(X)
     exps = np.exp(X - np.max(X))
     #print(exps / np.sum(exps))
     return (exps / np.sum(exps))
@@ -85,6 +97,10 @@ def stable_softmax(x, A, B):
 
 # finds the loss
 def loss_function(x, A, B, label):
+    #print(A)
+    #print(stable_softmax(x, A, B))
+    #print()
+    #print()
     loglike = np.log(stable_softmax(x, A, B))
     return np.dot(label, loglike)
 
@@ -136,14 +152,14 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.01
+    LR=0.0001
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
     BUCKET=1000000
     #BUCKET = 0
-    EPOCH=6
+    EPOCH=50
 
     dataset = open('../cleaned_subset.txt', 'r').readlines()
     
@@ -212,12 +228,22 @@ def main():
             
             
         # TRAINING LOSS
+        #print("***************** Finding loss *************************")
         train_loss = total_loss_function(X_train, y_train, A, B, N)
         print("Train: ", train_loss)
             
         # TESTING LOSS
         test_loss = total_loss_function(X_test, y_test, A, B, N_test)
         print("Test: ", test_loss)
+
+
+        train_pred_acc = prediction_accuracy(X_train, y_train, A, B, N)
+        test_pred_acc = prediction_accuracy(X_test, y_test, A, B, N_test)
+
+        train_pred_err = prediction_error(X_train, y_train, A, B, N)
+        test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
+        print("Train prediction accuracy: ", train_pred_acc, " Error: ", train_pred_err)
+        print("Test prediction accuracy: ", test_pred_acc, " Error: ", test_pred_err)
         
         
         losses_train.append(train_loss)
@@ -226,13 +252,12 @@ def main():
         i += 1
         
         
-    train_pred_acc = prediction_accuracy(X_train, y_train, A, B, N)
-    test_pred_acc = prediction_accuracy(X_test, y_test, A, B, N_test)
     
-    train_pred_err = prediction_error(X_train, y_train, A, B, N)
-    test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
-    print("Train prediction accuracy: ", train_pred_acc, " Error: ", train_pred_err)
-    print("Test prediction accuracy: ", test_pred_acc, " Error: ", test_pred_err)
+    
+    #train_pred_err = prediction_error(X_train, y_train, A, B, N)
+    #test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
+    #print("Train prediction accuracy: ", train_pred_acc, " Error: ", train_pred_err)
+    #print("Test prediction accuracy: ", test_pred_acc, " Error: ", test_pred_err)
     
     # for plotting
     epochs = [l for l in range(EPOCH)]
