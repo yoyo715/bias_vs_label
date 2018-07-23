@@ -49,22 +49,29 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
 
 # update rule for weight matrix A
 def gradient_A(B, A, x, label, nclasses, alpha, DIM):
-    j = 0
     p = A.shape[1]
     y_hat = stable_softmax(x, A, B)
-    A_new = np.zeros((DIM, p))
+    A = A.T
     
-    while j < nclasses:
-        Bj = np.reshape(B[j, :], (DIM, 1))
-        yj_hat = y_hat[j]
-        yj = label[j]
+    Y = np.subtract(y_hat.T, label)
+    print(Y.shape)
+    
+    test = np.zeros((1,p))
+    i = 0
+    while i < DIM:
+        Bi = B[:, i]
+        YBi = np.dot(Y, Bi)
+
+        #print(np.array_equal(x, test), test.shape, x.shape)
+        Ai_new = np.zeros((p))
+        Ai_new = alpha * sparse.csr_matrix.dot(YBi, x)
         
-        a = (yj_hat - yj)* sparse.csr_matrix.dot(Bj, x)
-        A_new = np.add(A_new, a)
-        j += 1
-        
-    A = np.subtract(A, (alpha * A_new))
-    return A
+        test = A[:, i]
+        A[:, i] = np.subtract(A[:, i], Ai_new)
+       
+        i += 1
+
+    return A.T
             
 
 def stable_softmax(x, A, B):
@@ -72,6 +79,7 @@ def stable_softmax(x, A, B):
     #hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
     exps = np.exp(X - np.max(X))
+    #print(exps / np.sum(exps))
     return (exps / np.sum(exps))
 
 
@@ -88,7 +96,6 @@ def total_loss_function(X, Y, A, B, N):
     for x in X:
         label = Y[i]
         loss = loss_function(x, A, B, label)
-        #print(loss)
         total_loss += loss
         i += 1
         
@@ -136,7 +143,7 @@ def main():
     MAXN=3
     BUCKET=1000000
     #BUCKET = 0
-    EPOCH=10
+    EPOCH=6
 
     dataset = open('../cleaned_subset.txt', 'r').readlines()
     
@@ -199,7 +206,7 @@ def main():
             
             # back prop
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            #A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
                   
             l += 1
             

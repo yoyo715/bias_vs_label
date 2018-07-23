@@ -18,5 +18,6 @@ for inst in dataset:
     
     i += 1
     if i == NUMINST:
+        print(i)
         break
 
