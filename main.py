@@ -152,7 +152,7 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.0001
+    LR=0.00001
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
@@ -196,6 +196,7 @@ def main():
     B_n = DIM               # cols
     B_m = nclasses          # rows
     B = np.zeros((B_m, B_n))
+    #B = np.random.uniform(-uniform_val, uniform_val, (B_m, B_n))
     #print(B.shape)
 
 
