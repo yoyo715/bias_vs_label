@@ -27,8 +27,8 @@ def compute_hidden(x, A):
 
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nclasses, alpha, DIM):
-    #hidden = compute_normalized_hidden(x, A)
-    hidden = compute_hidden(x, A)  # this one im pretty sure
+    hidden = compute_normalized_hidden(x, A)
+    #hidden = compute_hidden(x, A)  # this one im pretty sure
     y_hat = stable_softmax(x, A, B)
     
     j = 0
@@ -89,18 +89,12 @@ def stable_softmax(x, A, B):
     hidden = compute_hidden(x, A) 
     #hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
-    #print(X)
     exps = np.exp(X - np.max(X))
-    #print(exps / np.sum(exps))
     return (exps / np.sum(exps))
 
 
 # finds the loss
 def loss_function(x, A, B, label):
-    #print(A)
-    #print(stable_softmax(x, A, B))
-    #print()
-    #print()
     loglike = np.log(stable_softmax(x, A, B))
     return np.dot(label, loglike)
 
@@ -115,7 +109,7 @@ def total_loss_function(X, Y, A, B, N):
         total_loss += loss
         i += 1
         
-    return -1.0/N * total_loss
+    return -(1.0/N) * total_loss
     
     
     
@@ -145,6 +139,16 @@ def prediction_error(X, Y, A, B, N):
         i += 1
         
     return incorrect / N
+
+
+# finds the precision
+def precision():
+    return 1
+
+
+# finds the recall
+def recall():
+    return 1
     
 
 
@@ -152,14 +156,14 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.00001
+    LR=0.001
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
     BUCKET=1000000
     #BUCKET = 0
-    EPOCH=50
+    EPOCH=40
 
     dataset = open('../cleaned_subset.txt', 'r').readlines()
     
@@ -177,7 +181,9 @@ def main():
     N_test = dictionary.get_n_test_instances()
     
     print("Number of Train instances: ", N, " Number of Test instances: ", N_test)
-    
+    ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
+    ntest_eachclass = dictionary.get_nlabels_eachclass_test()
+    print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
     
     ##### instantiations #######################################
 
@@ -204,6 +210,10 @@ def main():
 
     losses_train = []
     losses_test = []
+
+    pred_error_train = []  
+    pred_error_test = []
+
     print()
     
     for i in range(EPOCH):
@@ -215,16 +225,25 @@ def main():
         #alpha = LR
         
         l = 0
+        
+        if i % 2 == 0:
+            alt = 0
+        elif i % 2 != 0:
+            alt = 1   
+        
         # TRAINING
         for x in X_train:
             label = y_train[l]
             B_old = B
             A_old = A
             
-            # back prop
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
-                  
+            # back prop with alt optimization
+            if alt % 2 == 0:
+                B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
+            elif alt % 2 != 0:
+                A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+   
+            alt += 1
             l += 1
             
             
@@ -238,27 +257,20 @@ def main():
         print("Test: ", test_loss)
 
 
-        train_pred_acc = prediction_accuracy(X_train, y_train, A, B, N)
-        test_pred_acc = prediction_accuracy(X_test, y_test, A, B, N_test)
-
         train_pred_err = prediction_error(X_train, y_train, A, B, N)
         test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
-        print("Train prediction accuracy: ", train_pred_acc, " Error: ", train_pred_err)
-        print("Test prediction accuracy: ", test_pred_acc, " Error: ", test_pred_err)
-        
+        print("Train Classification Error: ", train_pred_err)
+        print("Test Classification Error: ", test_pred_err)
         
         losses_train.append(train_loss)
         losses_test.append(test_loss)
+
+        pred_error_train.append(train_pred_err)
+        pred_error_test.append(test_pred_err)
         
         i += 1
         
         
-    
-    
-    #train_pred_err = prediction_error(X_train, y_train, A, B, N)
-    #test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
-    #print("Train prediction accuracy: ", train_pred_acc, " Error: ", train_pred_err)
-    #print("Test prediction accuracy: ", test_pred_acc, " Error: ", test_pred_err)
     
     # for plotting
     epochs = [l for l in range(EPOCH)]
@@ -269,6 +281,12 @@ def main():
     plt.legend(loc='upper left')
     plt.show()
         
+    plt.plot(epochs, pred_error_train, 'm', label="training prediction error")
+    plt.plot(epochs, pred_error_test, 'c', label="testing prediction error")
+    plt.ylabel('% Classificatin Error')
+    plt.xlabel('epoch')
+    plt.legend(loc='upper left')
+    plt.show()
  
  
  
