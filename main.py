@@ -1,6 +1,7 @@
 # main.py
 
 from dictionary import Dictionary
+from dictionary_updated import Dictionary2
 import numpy as np
 from scipy import sparse
 from numpy.linalg import inv
@@ -28,7 +29,7 @@ def compute_hidden(x, A):
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nclasses, alpha, DIM):
     hidden = compute_normalized_hidden(x, A)
-    #hidden = compute_hidden(x, A)  # this one im pretty sure
+    #hidden = compute_hidden(x, A)  # this one im pretty sure?
     y_hat = stable_softmax(x, A, B)
     
     j = 0
@@ -37,13 +38,13 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
         yj_hat = y_hat[j]
         yj = label[j]
 
-        Bj_new = alpha * np.dot( hidden, (yj_hat - yj))
+        #Bj_new = alpha * np.dot( hidden, (yj_hat - yj))
+        Bj_new = np.multiply( (alpha *(yj_hat - yj)), hidden.T )
         Bj_new = np.subtract(Bj, Bj_new)
         
         B[j, :] = Bj_new
         j += 1
     
-    #print(B)
     return B
         
 
@@ -62,7 +63,7 @@ def gradient_A1(B, A, x, label, nclasses, alpha, DIM):
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM):
+def gradient_A2(B, A, x, label, nclasses, alpha, DIM):
     Y_hat = stable_softmax(x, A, B)
     
     i = 0
@@ -81,6 +82,28 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM):
         A[i, :] = np.subtract(A[i, :], Ai_new)
 
         i += 1    
+    
+    return A
+
+
+# update rule for weight matrix A
+def gradient_A(B, A, x, label, nclasses, alpha, DIM):
+    Y_hat = stable_softmax(x, A, B)
+    
+    j = 0
+    sum_ = np.zeros((DIM))
+    while j < nclasses:
+        yhat_nj = Y_hat[j][0]
+        yn = label[j]
+        b_j = B[j, :]
+        
+        #sum_ = np.add(sum_, np.dot((alpha * (yhat_nj - yn)), b_j))
+        sum_ = np.add(sum_, np.dot((alpha * (yhat_nj - yn)), b_j))
+        j += 1
+
+    sum_ = np.reshape( sum_, (DIM, 1)) 
+    Ai_new = sparse.csr_matrix.dot(sum_, x)
+    A = np.subtract(A, Ai_new)    
     
     return A
             
@@ -163,14 +186,15 @@ def main():
     MAXN=3
     BUCKET=1000000
     #BUCKET = 0
-    EPOCH=40
+    EPOCH=20
 
-    dataset = open('../cleaned_subset.txt', 'r').readlines()
+    #dataset = open('../cleaned_subset.txt', 'r').readlines()
     
     print("starting dictionary creation") 
     
     # initialize training
-    dictionary = Dictionary(dataset, WORDGRAMS, MINCOUNT, BUCKET)
+    #dictionary = Dictionary(dataset, WORDGRAMS, MINCOUNT, BUCKET)
+    dictionary = Dictionary2(WORDGRAMS, MINCOUNT, BUCKET)
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
     
@@ -222,33 +246,23 @@ def main():
         
         # linearly decaying lr alpha
         alpha = LR * ( 1 - i / EPOCH)
-        #alpha = LR
         
         l = 0
         
-        if i % 2 == 0:
-            alt = 0
-        elif i % 2 != 0:
-            alt = 1   
-        
         # TRAINING
-        for x in X_train:
+        for x in X_train:         
             label = y_train[l]
             B_old = B
             A_old = A
             
             # back prop with alt optimization
-            if alt % 2 == 0:
-                B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            elif alt % 2 != 0:
-                A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
+            A = gradient_A2(B_old, A_old, x, label, nclasses, alpha, DIM)
    
-            alt += 1
             l += 1
             
             
         # TRAINING LOSS
-        #print("***************** Finding loss *************************")
         train_loss = total_loss_function(X_train, y_train, A, B, N)
         print("Train: ", train_loss)
             

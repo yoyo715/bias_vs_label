@@ -3,15 +3,26 @@
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.cross_validation import train_test_split
 import numpy as np
+import random
 
-class Dictionary:
-    def __init__(self, file_, ngrams, mincount, bucket):
-        self.file_ = file_
+class Dictionary2:
+    def __init__(self, ngrams, mincount, bucket):
+
+        self.subset_value = 1000       
+
+        self.file_train = open('../data/query_gender.train', encoding='utf8').readlines() 
+        del self.file_train[0]
+
+        self.file_test = open('../data/query_gender.test', encoding='utf8').readlines() 
+        self.file_train.extend(self.file_test)
+        self.dataset = self.file_train
+        random.shuffle(self.dataset)
+
         self.ngrams = ngrams
         self.mincount = mincount
         self.bucket = bucket
 
-        self.create_instances()
+        self.create_instances_and_labels()
         self.train_and_testsplit()
         self.create_bagngrams()
         self.create_test_bagngrams()
@@ -27,47 +38,45 @@ class Dictionary:
 
     # adds each instance a separate element in list
     # each 'tweet' is separated by tab
-    def create_instances(self):
-        combined = []
-        self.labels = []
-        numsents = 0
-        
-        for inst in self.file_:
+    def create_instances_and_labels(self):
+        words =  []
+        labels = []
+        documents = []
+        whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
+
+        # loop through each instance in training data, gets labels
+        for x in self.dataset[0:self.subset_value]:
+            i = 0
+            inst = ''
+            label = x[0:10]
+            if label[0:9] != '__label__':
+                print("ERROR in label creation")
+                break
+            else:
+                labels.append(float(label[-1]))
+                
+            sent = ''
             word = ''
-            sentence = ''
-            instance = ''
-            
-            #sentence = []
-            #instance = []
-            
-            for letter in inst:
-                if letter == ' ':
-                    if "label" in word:
-                        if word[-1] == '1' or word[-1] == '0':
-                            self.labels.append(int(word[-1]))
+            for w in x[10:]:
+                if w in whitelist:
+                    if w == '\t':
+                        #inst.append(sent)
+                        inst = inst + '\t' + sent
+                        sent = ''
+                        word = ''
+                        i += 1
+                    elif w != ' ':
+                        word = word + w
+                    else:
+                        if "http" not in word and word != "RT" and word != "rt":
+                            sent = sent + ' ' + word
                             word = ''
                         else:
-                            sentence += word + ' '
-                            #sentence.append(word)
                             word = ''
-                    else:
-                        sentence += word + ' '
-                        #sentence.append(word)
-                        word = ''
-                elif letter == "\t":    
-                    instance = instance + "\t" + sentence
-                    #instance.append(sentence)
-                    sentence = ''
-                    #sentence = []
-                else:
-                    word += letter
-            combined.append(instance)  
             
-        self.instances = combined
-        
-        #print(self.instances[0][0])
-        #self.create_ngrams(2)
-        #self.create_char_ngrams(3)
+            documents.append(inst)
+        self.instances = documents
+        self.labels = labels
         
         
     def create_ngrams(self, n):
@@ -104,13 +113,11 @@ class Dictionary:
         self.n_test_instances = len(self.X_test)
         self.n_train_labels = len(self.y_train)
         self.n_test_labels = len(self.y_test)
-        
-        #print(len(self.X_train), len(self.X_test), len(self.y_train), len(self.y_test))
     
 
     def create_bagngrams(self): 
-        #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
+        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
         data_features = self.vectorizer.fit_transform(self.X_train)    
         self.train_bag_ngrams = data_features
         
@@ -134,10 +141,10 @@ class Dictionary:
         i = 0
         for label in labels:
             if self.y_train[i] == 0:
-                label[0] = 1
+                label[0] = 1.0
                 self.train_males += 1
-            elif self.y_train[i] == 1:
-                label[1] = 1
+            elif self.y_train[i] == 1.:
+                label[1] = 1.0
                 self.train_females += 1
             
             i += 1
@@ -157,10 +164,10 @@ class Dictionary:
         i = 0
         for label in labels:
             if self.y_test[i] == 0:
-                label[0] = 1
+                label[0] = 1.0
                 self.test_males += 1        #NOTE: need to double check 
             elif self.y_test[i] == 1:
-                label[1] = 1
+                label[1] = 1.0
                 self.test_females += 1      #NOTE: need to double check 
             
             i += 1
