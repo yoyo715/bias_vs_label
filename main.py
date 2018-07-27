@@ -31,7 +31,7 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
     hidden = compute_normalized_hidden(x, A)
     #hidden = compute_hidden(x, A)  # this one im pretty sure?
     y_hat = stable_softmax(x, A, B)
-    
+
     j = 0
     while j < nclasses:
         Bj = B[j, :]
@@ -49,21 +49,7 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
         
 
 # update rule for weight matrix A
-def gradient_A1(B, A, x, label, nclasses, alpha, DIM):
-    p = A.shape[1]
-    Y_hat = stable_softmax(x, A, B)
-    
-    Y = np.subtract(Y_hat.T, label)
-    YB = np.dot(Y, B)
-    A_new = np.dot(alpha, sparse.csr_matrix.dot(YB.T, x))
-
-    A = np.subtract(A, A_new)
-    
-    return A
-
-
-# update rule for weight matrix A
-def gradient_A2(B, A, x, label, nclasses, alpha, DIM):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM):
     Y_hat = stable_softmax(x, A, B)
     
     i = 0
@@ -82,35 +68,12 @@ def gradient_A2(B, A, x, label, nclasses, alpha, DIM):
         A[i, :] = np.subtract(A[i, :], Ai_new)
 
         i += 1    
-    
-    return A
 
-
-# update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM):
-    Y_hat = stable_softmax(x, A, B)
-    
-    j = 0
-    sum_ = np.zeros((DIM))
-    while j < nclasses:
-        yhat_nj = Y_hat[j][0]
-        yn = label[j]
-        b_j = B[j, :]
-        
-        #sum_ = np.add(sum_, np.dot((alpha * (yhat_nj - yn)), b_j))
-        sum_ = np.add(sum_, np.dot((alpha * (yhat_nj - yn)), b_j))
-        j += 1
-
-    sum_ = np.reshape( sum_, (DIM, 1)) 
-    Ai_new = sparse.csr_matrix.dot(sum_, x)
-    A = np.subtract(A, Ai_new)    
-    
     return A
             
 
 def stable_softmax(x, A, B):
     hidden = compute_hidden(x, A) 
-    #hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
     exps = np.exp(X - np.max(X))
     return (exps / np.sum(exps))
@@ -133,45 +96,48 @@ def total_loss_function(X, Y, A, B, N):
         i += 1
         
     return -(1.0/N) * total_loss
-    
-    
-    
-# function to return prediction ACCURACY
-def prediction_accuracy(X, Y, A, B, N):
-    correct = 0
-    i = 0
-    for x in X:
-        prediction = np.argmax(stable_softmax(x, A, B))
-        label = np.argmax(Y[i])
-        if prediction == label:
-            correct += 1
-        i += 1
-        
-    return correct / N
 
 
-# function to return prediction ACCURACY
-def prediction_error(X, Y, A, B, N):
+# function to return prediction error, precision, recall, F1 score
+def metrics(X, Y, A, B, N):
     incorrect = 0
+    true_pos = 0
+    false_pos = 0
+    true_neg = 0
+    false_neg = 0    
+
     i = 0
     for x in X:
         prediction = np.argmax(stable_softmax(x, A, B))
-        label = np.argmax(Y[i])
-        if prediction != label:
+        true_label = np.argmax(Y[i])
+
+        if prediction != true_label:
             incorrect += 1
+
+        if prediction == 1 and true_label == 1:
+            true_pos += 1
+
+        if prediction == 1 and true_label == 0:
+            false_pos += 1
+
+        if prediction == 0 and true_label == 0:
+            true_neg += 1
+
+        if prediction == 0 and true_label == 1:
+            false_neg += 1
+    
         i += 1
         
-    return incorrect / N
+    print("confusion matrix: ")
+    print("[ ", true_neg, false_pos, " ]")
+    print("[ ", false_neg, true_pos, " ]")
 
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+    F1 = 2 * ((precision * recall) / (precision + recall))
+    classification_error = incorrect / N
 
-# finds the precision
-def precision():
-    return 1
-
-
-# finds the recall
-def recall():
-    return 1
+    return classification_error, precision, recall, F1
     
 
 
@@ -211,6 +177,7 @@ def main():
     
     ##### instantiations #######################################
 
+
     p = X_train.shape[1]
     
     # A
@@ -235,9 +202,19 @@ def main():
     losses_train = []
     losses_test = []
 
-    pred_error_train = []  
-    pred_error_test = []
+    class_error_train = []  
+    class_error_test = []
 
+    prec_train = [] 
+    prec_test = []
+
+    recall_train = []
+    recall_test = []
+
+    F1_train = []
+    F1_test = []
+
+    print()
     print()
     
     for i in range(EPOCH):
@@ -257,30 +234,50 @@ def main():
             
             # back prop with alt optimization
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            A = gradient_A2(B_old, A_old, x, label, nclasses, alpha, DIM)
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
    
             l += 1
             
             
         # TRAINING LOSS
         train_loss = total_loss_function(X_train, y_train, A, B, N)
-        print("Train: ", train_loss)
+        print("Train:   ", train_loss)
             
         # TESTING LOSS
         test_loss = total_loss_function(X_test, y_test, A, B, N_test)
-        print("Test: ", test_loss)
+        print("Test:    ", test_loss)
 
 
-        train_pred_err = prediction_error(X_train, y_train, A, B, N)
-        test_pred_err = prediction_error(X_test, y_test, A, B, N_test)
-        print("Train Classification Error: ", train_pred_err)
-        print("Test Classification Error: ", test_pred_err)
+        train_class_error, train_precision, train_recall, train_F1 = metrics(X_train, y_train, A, B, N)
+        test_class_error, test_precision, test_recall, test_F1 = metrics(X_test, y_test, A, B, N_test)
+        
+        print()
+        print("TRAIN:")
+        print("         Classification Err: ", train_class_error)
+        print("         Precision:          ", train_precision)
+        print("         Recall:             ", train_recall)
+        print("         F1:                 ", train_F1)
+
+        print("TEST:")
+        print("         Classification Err: ", test_class_error)
+        print("         Precision:          ", test_precision)
+        print("         Recall:             ", test_recall)
+        print("         F1:                 ", test_F1)
         
         losses_train.append(train_loss)
         losses_test.append(test_loss)
 
-        pred_error_train.append(train_pred_err)
-        pred_error_test.append(test_pred_err)
+        class_error_train.append(train_class_error)
+        class_error_test.append(test_class_error)
+
+        prec_train.append(train_precision)
+        prec_test.append(test_precision)
+
+        recall_train.append(train_recall)
+        recall_test.append(test_recall)
+
+        F1_train.append(train_F1)
+        F1_test.append(test_F1)
         
         i += 1
         
@@ -288,6 +285,7 @@ def main():
     
     # for plotting
     epochs = [l for l in range(EPOCH)]
+
     plt.plot(epochs, losses_train, 'r', label="training loss")
     plt.plot(epochs, losses_test, 'b', label="testing loss")
     plt.ylabel('loss')
@@ -295,10 +293,17 @@ def main():
     plt.legend(loc='upper left')
     plt.show()
         
-    plt.plot(epochs, pred_error_train, 'm', label="training prediction error")
-    plt.plot(epochs, pred_error_test, 'c', label="testing prediction error")
-    plt.ylabel('% Classificatin Error')
+    plt.plot(epochs,  F1_train, 'm', label="training F1 score")
+    plt.plot(epochs, F1_test, 'c', label="testing F1 score")
+    plt.ylabel('F1 Score')
     plt.xlabel('epoch')
+    plt.legend(loc='upper left')
+    plt.show()
+
+    plt.plot(recall_train, prec_train, 'm', label="training")
+    plt.plot(recall_test, prec_test, 'c', label="testing")
+    plt.ylabel('Precision')
+    plt.xlabel('Recall')
     plt.legend(loc='upper left')
     plt.show()
  
