@@ -28,25 +28,71 @@ def compute_hidden(x, A):
 
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nclasses, alpha, DIM):
-    hidden = compute_normalized_hidden(x, A)
-    #hidden = compute_hidden(x, A)  # this one im pretty sure?
-    y_hat = stable_softmax(x, A, B)
+    #hidden = compute_normalized_hidden(x, A)
+    hidden = compute_hidden(x, A)  # this one im pretty sure?
+    Y_hat = stable_softmax(x, A, B)
 
     j = 0
     while j < nclasses:
         Bj = B[j, :]
-        yj_hat = y_hat[j]
+        yj_hat = Y_hat[j]
         yj = label[j]
 
         #Bj_new = alpha * np.dot( hidden, (yj_hat - yj))
         Bj_new = np.multiply( (alpha *(yj_hat - yj)), hidden.T )
+        #Bj_new = np.multiply( (yj_hat - yj), hidden.T )
         Bj_new = np.subtract(Bj, Bj_new)
         
         B[j, :] = Bj_new
         j += 1
     
     return B
+
+
+# this fuction checks the gradient of B
+def check_B_gradient(B, A, label, x, nclasses):
+    #print("**Checking B gradient")
+    
+    #find backprop derivative of B
+    #hidden = compute_normalized_hidden(x, A)
+    hidden = compute_hidden(x, A)  # this one im pretty sure?
+    Y_hat = stable_softmax(x, A, B)
+
+    j = 0
+    
+    B_grad = B.copy()
+    while j < nclasses:
+        Bj = B[j, :]
+        yj_hat = Y_hat[j]
+        yj = label[j]
+
+        Bj_new = np.multiply( (yj_hat - yj), hidden.T )
+        #Bj_new = np.multiply( (yj_hat - yj), hidden.T )
+        #Bj_new = np.subtract(Bj, Bj_new)
         
+        B_grad[j, :] = Bj_new
+        j += 1
+    
+    eps = 0.0001
+    
+    for row in range(B.shape[0]):
+        for col in range(B.shape[1]):
+            
+            # Copy the parameter matrix and change the current parameter slightly
+            B_matrix_min = B.copy()
+            B_matrix_min[row,col] -= eps
+            B_matrix_plus = B.copy()
+            B_matrix_plus[row,col] += eps
+            
+            # Compute the numerical gradient
+            grad_num = (loss_function(x, A, B_matrix_plus, label) - loss_function(x, A, B_matrix_min, label))/(2*eps)
+            
+            # Raise error if the numerical grade is not close to the backprop gradient
+            if not np.isclose(grad_num, B_grad[row,col]):
+                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(B_grad[row,col])))
+            
+    print('No B gradient errors found')
+
 
 # update rule for weight matrix A
 def gradient_A(B, A, x, label, nclasses, alpha, DIM):
@@ -70,10 +116,56 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM):
         i += 1    
 
     return A
+
+
+# this fuction checks the gradient of A
+def check_A_gradient(B, A, label, x, nclasses, DIM):
+    print("**Checking A gradient")
+    
+    # find backprop derivative of A
+    Y_hat = stable_softmax(x, A, B)
+    
+    i = 0
+    A_grad = A.copy()
+    while i < DIM:
+        j = 0
+        sum_ = 0
+        while j < nclasses:
+            yhat_nj = Y_hat[j]
+            yn = label[j]
+            b_ji = B[j, i]
+        
+            sum_ += ((yhat_nj - yn) * b_ji) 
+            j += 1
+
+        Ai_new = sparse.csr_matrix.dot(sum_, x)
+        A_grad[i, :] =  Ai_new
+
+        i += 1    
+
+    
+    eps = 0.0001
+    
+    for row in range(A.shape[0]):
+        for col in range(A.shape[1]):
+            # Copy the parameter matrix and change the current parameter slightly
+            A_matrix_min = A.copy()
+            A_matrix_min[row,col] -= eps
+            A_matrix_plus = A.copy()
+            A_matrix_plus[row,col] += eps
+            
+            # Compute the numerical gradient
+            grad_num = (loss_function(x, A_matrix_plus, B, label) - loss_function(x, A_matrix_min, B, label))/(2*eps)
+            
+            # Raise error if the numerical grade is not close to the backprop gradient
+            if not np.isclose(grad_num, A_grad[row,col]):
+                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(A_grad[row,col])))
+            
+    print('No A gradient errors found')
             
 
 def stable_softmax(x, A, B):
-    hidden = compute_hidden(x, A) 
+    hidden = compute_hidden(x, A)  
     X = np.dot(B, hidden)
     exps = np.exp(X - np.max(X))
     return (exps / np.sum(exps))
@@ -82,7 +174,7 @@ def stable_softmax(x, A, B):
 # finds the loss
 def loss_function(x, A, B, label):
     loglike = np.log(stable_softmax(x, A, B))
-    return np.dot(label, loglike)
+    return - np.dot(label, loglike)
 
 
 # computes the loss over entire dataset
@@ -95,7 +187,7 @@ def total_loss_function(X, Y, A, B, N):
         total_loss += loss
         i += 1
         
-    return -(1.0/N) * total_loss
+    return (1.0/N) * total_loss
 
 
 # function to return prediction error, precision, recall, F1 score
@@ -151,15 +243,11 @@ def main():
     MINN=3
     MAXN=3
     BUCKET=1000000
-    #BUCKET = 0
     EPOCH=20
 
-    #dataset = open('../cleaned_subset.txt', 'r').readlines()
-    
     print("starting dictionary creation") 
     
     # initialize training
-    #dictionary = Dictionary(dataset, WORDGRAMS, MINCOUNT, BUCKET)
     dictionary = Dictionary2(WORDGRAMS, MINCOUNT, BUCKET)
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
@@ -187,14 +275,12 @@ def main():
     uniform_val = 1.0 / DIM
     np.random.seed(0)
     A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
-    #print(A.shape)
 
     # B
     B_n = DIM               # cols
     B_m = nclasses          # rows
     B = np.zeros((B_m, B_n))
     #B = np.random.uniform(-uniform_val, uniform_val, (B_m, B_n))
-    #print(B.shape)
 
 
     #### train ################################################
@@ -232,9 +318,24 @@ def main():
             B_old = B
             A_old = A
             
+            # Forward Propogation
+            #hidden = sparse.csr_matrix.dot(A, x.T)
+            #norm = np.linalg.norm(hidden)
+            #if norm == 0: 
+                #a1 = hidden
+            #else:
+                #a1 = hidden / norm 
+            #z2 = np.dot(B, a1)
+            #exps = np.exp(z2 - np.max(z2))
+            #Y_hat = exps / np.sum(exps)
+            
+            
             # back prop with alt optimization
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
             A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+            
+            #check_B_gradient(B_old, A_old, label, x, nclasses)
+            check_A_gradient(B_old, A_old, label, x, nclasses, DIM)
    
             l += 1
             
