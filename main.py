@@ -27,10 +27,11 @@ def compute_hidden(x, A):
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM):
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
     #hidden = compute_normalized_hidden(x, A)
-    hidden = compute_hidden(x, A)  # this one im pretty sure?
-    Y_hat = stable_softmax(x, A, B)
+    
+    #hidden = compute_hidden(x, A)  # this one im pretty sure?
+    #Y_hat = stable_softmax(x, A, B)
 
     j = 0
     while j < nclasses:
@@ -38,9 +39,7 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM):
         yj_hat = Y_hat[j]
         yj = label[j]
 
-        #Bj_new = alpha * np.dot( hidden, (yj_hat - yj))
         Bj_new = np.multiply( (alpha *(yj_hat - yj)), hidden.T )
-        #Bj_new = np.multiply( (yj_hat - yj), hidden.T )
         Bj_new = np.subtract(Bj, Bj_new)
         
         B[j, :] = Bj_new
@@ -95,8 +94,8 @@ def check_B_gradient(B, A, label, x, nclasses):
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM):
-    Y_hat = stable_softmax(x, A, B)
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
+    #Y_hat = stable_softmax(x, A, B)
     
     i = 0
     while i < DIM:
@@ -313,29 +312,34 @@ def main():
         l = 0
         
         # TRAINING
-        for x in X_train:         
+        for x in X_train:       
+            #print(x.toarray())
+            
             label = y_train[l]
             B_old = B
             A_old = A
             
             # Forward Propogation
-            #hidden = sparse.csr_matrix.dot(A, x.T)
-            #norm = np.linalg.norm(hidden)
-            #if norm == 0: 
-                #a1 = hidden
-            #else:
-                #a1 = hidden / norm 
-            #z2 = np.dot(B, a1)
-            #exps = np.exp(z2 - np.max(z2))
-            #Y_hat = exps / np.sum(exps)
+            hidden = sparse.csr_matrix.dot(A, x.T)
+            norm = np.linalg.norm(hidden)
+            if norm == 0: 
+                a1 = hidden
+            else:
+                a1 = hidden / norm 
+                
+            z2 = np.dot(B, hidden)
+            exps = np.exp(z2 - np.max(z2))
+            Y_hat = exps / np.sum(exps)
             
             
-            # back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM)
+            # Back prop with alt optimization
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
             
+            
+            # verify gradients
             #check_B_gradient(B_old, A_old, label, x, nclasses)
-            check_A_gradient(B_old, A_old, label, x, nclasses, DIM)
+            #check_A_gradient(B_old, A_old, label, x, nclasses, DIM)
    
             l += 1
             
@@ -390,6 +394,13 @@ def main():
     plt.plot(epochs, losses_train, 'r', label="training loss")
     plt.plot(epochs, losses_test, 'b', label="testing loss")
     plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(loc='upper left')
+    plt.show()
+    
+    plt.plot(epochs, class_error_train, 'r', label="training classification err")
+    plt.plot(epochs, class_error_test, 'b', label="testing classification err")
+    plt.ylabel('error')
     plt.xlabel('epoch')
     plt.legend(loc='upper left')
     plt.show()
