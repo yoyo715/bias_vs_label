@@ -28,11 +28,6 @@ def compute_hidden(x, A):
 
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
-    #hidden = compute_normalized_hidden(x, A)
-    
-    #hidden = compute_hidden(x, A)  # this one im pretty sure?
-    #Y_hat = stable_softmax(x, A, B)
-
     j = 0
     while j < nclasses:
         Bj = B[j, :]
@@ -53,8 +48,8 @@ def check_B_gradient(B, A, label, x, nclasses):
     #print("**Checking B gradient")
     
     #find backprop derivative of B
-    #hidden = compute_normalized_hidden(x, A)
-    hidden = compute_hidden(x, A)  # this one im pretty sure?
+    hidden = compute_normalized_hidden(x, A)
+    #hidden = compute_hidden(x, A)  # this one im pretty sure?
     Y_hat = stable_softmax(x, A, B)
 
     j = 0
@@ -66,8 +61,6 @@ def check_B_gradient(B, A, label, x, nclasses):
         yj = label[j]
 
         Bj_new = np.multiply( (yj_hat - yj), hidden.T )
-        #Bj_new = np.multiply( (yj_hat - yj), hidden.T )
-        #Bj_new = np.subtract(Bj, Bj_new)
         
         B_grad[j, :] = Bj_new
         j += 1
@@ -95,8 +88,6 @@ def check_B_gradient(B, A, label, x, nclasses):
 
 # update rule for weight matrix A
 def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
-    #Y_hat = stable_softmax(x, A, B)
-    
     i = 0
     while i < DIM:
         j = 0
@@ -109,8 +100,9 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
             sum_ += ((yhat_nj - yn) * b_ji) 
             j += 1
 
-        Ai_new = alpha * sparse.csr_matrix.dot(sum_, x)
-        A[i, :] = np.subtract(A[i, :], Ai_new)
+        #x_2 = x / np.sum(x)
+        Ai_new =  sparse.csr_matrix.dot(sum_, x)
+        A[i, :] = alpha * np.subtract(A[i, :], Ai_new)
 
         i += 1    
 
@@ -137,6 +129,7 @@ def check_A_gradient(B, A, label, x, nclasses, DIM):
             sum_ += ((yhat_nj - yn) * b_ji) 
             j += 1
 
+        #x_2 = x / np.sum(x)
         Ai_new = sparse.csr_matrix.dot(sum_, x)
         A_grad[i, :] =  Ai_new
 
@@ -321,13 +314,17 @@ def main():
             
             # Forward Propogation
             hidden = sparse.csr_matrix.dot(A, x.T)
-            norm = np.linalg.norm(hidden)
-            if norm == 0: 
-                a1 = hidden
-            else:
-                a1 = hidden / norm 
+            #norm = np.linalg.norm(hidden)
+            #if norm == 0: 
+                #a1 = hidden
+            #else:
+                #sumtest = np.sum(x)
+                ##print("** ", sumtest, norm)
+                #a1 = hidden / sumtest 
                 
-            z2 = np.dot(B, hidden)
+            a1 = hidden  #/ np.sum(x)
+                
+            z2 = np.dot(B, a1)
             exps = np.exp(z2 - np.max(z2))
             Y_hat = exps / np.sum(exps)
             

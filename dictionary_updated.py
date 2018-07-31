@@ -121,8 +121,8 @@ class Dictionary2:
     
 
     def create_bagngrams(self): 
-        self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
+        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
         
         #self.vectorizer = TfidfVectorizer(ngram_range=(1,1), min_df=self.mincount)
         #self.vectorizer = TfidfVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
