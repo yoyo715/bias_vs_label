@@ -13,12 +13,6 @@ from matplotlib import pyplot as plt
 # NOTE: only for computing gradient?
 def compute_normalized_hidden(x, A):
     hidden = sparse.csr_matrix.dot(A, x.T)
-    
-    #norm = np.linalg.norm(hidden)
-    #if norm == 0: 
-       #return hidden
-    #return hidden / norm 
-    
     return hidden / np.sum(x)
 
 
@@ -29,20 +23,7 @@ def compute_hidden(x, A):
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
-    a3j = 0
-    #while j < nclasses:
-        #Bj = B[j, :]
-        #yj_hat = Y_hat[j]
-        #yj = label[j]
-
-        #Bj_new = np.multiply( (alpha *(yj_hat - yj)), hidden.T )
-        #Bj_new = np.subtract(Bj, Bj_new)
-        ##print(Bj_new)
-        
-        #B[j, :] = Bj_new
-        #j += 1
-    
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
     gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     B_new = np.subtract(B, gradient)
 
@@ -50,26 +31,10 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
 
 
 # this fuction checks the gradient of B
-def check_B_gradient(B, A, label, x, nclasses):
-    #print("**Checking B gradient")
+def check_B_gradient(B, A, label, x, Y_hat, hidden):
+    print("**Checking B gradient")
     
-    #find backprop derivative of B
-    hidden = compute_normalized_hidden(x, A)
-    #hidden = compute_hidden(x, A)  # this one im pretty sure?
-    Y_hat = stable_softmax(x, A, B)
-
-    j = 0
-    
-    B_grad = B.copy()
-    while j < nclasses:
-        Bj = B[j, :]
-        yj_hat = Y_hat[j]
-        yj = label[j]
-
-        Bj_new = np.multiply( (yj_hat - yj), hidden.T )
-        
-        B_grad[j, :] = Bj_new
-        j += 1
+    gradient = np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     
     eps = 0.0001
     
@@ -86,64 +51,15 @@ def check_B_gradient(B, A, label, x, nclasses):
             grad_num = (loss_function(x, A, B_matrix_plus, label) - loss_function(x, A, B_matrix_min, label))/(2*eps)
             
             # Raise error if the numerical grade is not close to the backprop gradient
-            if not np.isclose(grad_num, B_grad[row,col]):
-                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(B_grad[row,col])))
+            if not np.isclose(grad_num, gradient[row,col]):
+                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(gradient[row,col])))
             
     print('No B gradient errors found')
 
 
 # update rule for weight matrix A
-def gradient_A2(B, A, x, label, nclasses, alpha, DIM, Y_hat):
-    i = 0
-    #print("STARTING")
-    while i < DIM:
-        j = 0
-        sum_ = 0
-        while j < nclasses:
-            yhat_nj = Y_hat[j]
-            yn = label[j]
-            b_ji = B[j, i]
-        
-            sum_ += ((yhat_nj - yn) * b_ji) 
-            j += 1
-
-        Ai_new = alpha * sparse.csr_matrix.dot(sum_, x)
-        #Ai_new = sparse.csr_matrix.dot(Ai_new, (1.0/np.sum(x)))
-        print(A[i,:])
-        print(np.sum(Ai_new))
-        A[i, :] =  np.add(A[i, :], Ai_new)
-        print(A[i,:])
-        print()
-
-        i += 1    
-
-    return A
-
-
-# update rule for weight matrix A
 def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
     A_old = A
-    #j = 0
-    #gradient = np.zeros((1, DIM))
-    #while j < nclasses:
-        #yhat_nj = Y_hat[j]
-        #yn = label[j]
-        #b_j = B[j, :].reshape((DIM, 1))
-        
-        #gradient = alpha * (yhat_nj - yn) * np.add(b_j.T, gradient)
-        #j += 1
-
-    #gradient = gradient * (1.0/np.sum(x))
-    
-    ##i = 0
-    ##while i < A.shape[1]:
-        ##if
-        ##A[:,i] -= gradient.T
-        ##i += 1
-
-    #A = np.subtract(A, sparse.csr_matrix.dot(gradient.T, x))
-
-    
     first = np.dot(np.subtract(Y_hat.T, label), B)
     sec = x * (1.0/np.sum(x))
 
@@ -154,31 +70,13 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
 
 
 # this fuction checks the gradient of A
-def check_A_gradient(B, A, label, x, nclasses, DIM):
+def check_A_gradient(B, A, label, x, Y_hat):
     print("**Checking A gradient")
-    
-    # find backprop derivative of A
-    Y_hat = stable_softmax(x, A, B)
-    
-    i = 0
-    A_grad = A.copy()
-    while i < DIM:
-        j = 0
-        sum_ = 0
-        while j < nclasses:
-            yhat_nj = Y_hat[j]
-            yn = label[j]
-            b_ji = B[j, i]
-        
-            sum_ += ((yhat_nj - yn) * b_ji) 
-            j += 1
 
-        Ai_new = sparse.csr_matrix.dot(sum_, x) 
-        A_grad[i, :] =  sparse.csr_matrix.dot(Ai_new, (1.0/np.sum(x)))
-
-        i += 1    
-
-    
+    first = np.dot(np.subtract(Y_hat.T, label), B)
+    #sec = x * (1.0/np.sum(x))
+    gradient = sparse.csr_matrix.dot(first.T, x)
+   
     eps = 0.0001
     
     for row in range(A.shape[0]):
@@ -193,8 +91,8 @@ def check_A_gradient(B, A, label, x, nclasses, DIM):
             grad_num = (loss_function(x, A_matrix_plus, B, label) - loss_function(x, A_matrix_min, B, label))/(2*eps)
             
             # Raise error if the numerical grade is not close to the backprop gradient
-            if not np.isclose(grad_num, A_grad[row,col]):
-                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(A_grad[row,col])))
+            if not np.isclose(grad_num, gradient[row,col]):
+                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(gradient[row,col])))
             
     print('No A gradient errors found')
             
@@ -262,10 +160,6 @@ def metrics(X, Y, A, B, N):
 
     if true_pos == 0 and false_pos == 0:
         print("WARNING::True pos and False pos both zero")
-        precision = 1
-        recall = 1
-        F1 = 2 * ((precision * recall) / (precision + recall))
-        classification_error = incorrect / N
     else:
         precision = true_pos / (true_pos + false_pos)
         recall = true_pos / (true_pos + false_neg)
@@ -364,13 +258,6 @@ def main():
             
             # Forward Propogation
             hidden = sparse.csr_matrix.dot(A, x.T)
-            #norm = np.linalg.norm(hidden)
-            #if norm == 0: 
-                #a1 = hidden
-            #else:
-                #sumtest = np.sum(x)
-                ##print("** ", sumtest, norm)
-                #a1 = hidden / sumtest 
             
             a1 = hidden / np.sum(x)
             z2 = np.dot(B, a1)
@@ -383,8 +270,8 @@ def main():
             
             
             # verify gradients
-            #check_B_gradient(B_old, A_old, label, x, nclasses)
-            #check_A_gradient(B_old, A_old, label, x, nclasses, DIM)
+            #check_B_gradient(B_old, A_old, label, x, Y_hat, hidden)
+            check_A_gradient(B_old, A_old, label, x, Y_hat)
    
             l += 1
             
