@@ -13,7 +13,11 @@ from matplotlib import pyplot as plt
 # NOTE: only for computing gradient?
 def compute_normalized_hidden(x, A):
     hidden = sparse.csr_matrix.dot(A, x.T)
-    return hidden / np.sum(x)
+    
+    if np.sum(x) > 0:
+        return hidden / np.sum(x)
+    else:
+        return hidden
 
 
 # computes the hidden layer
@@ -61,7 +65,11 @@ def check_B_gradient(B, A, label, x, Y_hat, hidden):
 def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
     A_old = A
     first = np.dot(np.subtract(Y_hat.T, label), B)
-    sec = x * (1.0/np.sum(x))
+    
+    if np.sum(x) > 0:
+        sec = x * (1.0/np.sum(x))
+    else:
+        sec = x
 
     gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
     A = np.subtract(A_old, gradient)
@@ -74,12 +82,13 @@ def check_A_gradient(B, A, label, x, Y_hat):
     print("**Checking A gradient")
 
     first = np.dot(np.subtract(Y_hat.T, label), B)
-    #sec = x * (1.0/np.sum(x))
-    gradient = sparse.csr_matrix.dot(first.T, x)
+    sec = x * (1.0/np.sum(x))
+    gradient = sparse.csr_matrix.dot(first.T, sec)
    
     eps = 0.0001
     
     for row in range(A.shape[0]):
+        print("row ", row)
         for col in range(A.shape[1]):
             # Copy the parameter matrix and change the current parameter slightly
             A_matrix_min = A.copy()
@@ -174,7 +183,7 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.4
+    LR=0.05
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
@@ -257,9 +266,13 @@ def main():
             A_old = A
             
             # Forward Propogation
-            hidden = sparse.csr_matrix.dot(A, x.T)
+            hidden = sparse.csr_matrix.dot(A_old, x.T)
             
-            a1 = hidden / np.sum(x)
+            if np.sum(x) > 0:
+                a1 = hidden / np.sum(x)
+            else:
+                a1 = hidden
+                
             z2 = np.dot(B, a1)
             exps = np.exp(z2 - np.max(z2))
             Y_hat = exps / np.sum(exps)
@@ -270,8 +283,8 @@ def main():
             
             
             # verify gradients
-            #check_B_gradient(B_old, A_old, label, x, Y_hat, hidden)
-            check_A_gradient(B_old, A_old, label, x, Y_hat)
+            #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
+            #check_A_gradient(B_old, A_old, label, x, Y_hat)
    
             l += 1
             

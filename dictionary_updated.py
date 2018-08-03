@@ -11,14 +11,14 @@ import random
 class Dictionary2:
     def __init__(self, ngrams, mincount, bucket):
 
-        self.subset_value = 500
+        self.subset_value = 3000
 
-        self.file_train = open('../data/query_gender.train', encoding='utf8').readlines()  
-        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() 
+        #self.file_train = open('../data/query_gender.train', encoding='utf8').readlines()  
+        self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() 
         del self.file_train[0]
 
-        self.file_test = open('../data/query_gender.test', encoding='utf8').readlines() 
-        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() 
+        #self.file_test = open('../data/query_gender.test', encoding='utf8').readlines() 
+        self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() 
         self.file_train.extend(self.file_test)
         self.dataset = self.file_train
         random.shuffle(self.dataset)
@@ -121,8 +121,8 @@ class Dictionary2:
     
 
     def create_bagngrams(self): 
-        #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
+        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
         
         #self.vectorizer = TfidfVectorizer(ngram_range=(1,1), min_df=self.mincount)
         #self.vectorizer = TfidfVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
