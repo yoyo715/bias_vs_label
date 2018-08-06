@@ -10,18 +10,6 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 
-
-
-# computes the normalized hidden layer
-# NOTE: only for computing gradient?
-def compute_normalized_hidden(x, A, b1):
-    hidden = sparse.csr_matrix.dot(A, x.T)
-    #hidden = np.add(sparse.csr_matrix.dot(A, x.T), b1)
-    
-    if np.sum(x) > 0:
-        return hidden / np.sum(x)
-    else:
-        return hidden
     
 
 # finds gradient of B and returns an up
@@ -36,110 +24,37 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
 def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, drop1):
     A_old = A
     first = np.dot(np.subtract(Y_hat.T, label), B)
-    
-    if np.sum(x) > 0:
-        sec = x * (1.0/np.sum(x))
-    else:
-        sec = x
-
     gradient = alpha * sparse.csr_matrix.dot(first.T, sec) * drop1
     A = np.subtract(A_old, gradient) 
     
     return A
 
 
-def gradient_b1(B, b1, label, Y_hat, alpha):
-    gradient = alpha * np.dot(np.subtract(Y_hat.T, label), B)
-    return np.subtract(b1, gradient.T) 
-
-
-def gradient_b2(b2, label, Y_hat, alpha):
-    gradient = np.subtract(Y_hat.T, label)
-    return np.subtract(b2, gradient.T)
-
-
-def stable_softmax(x, A, B, b1, b2): 
-    hidden = compute_normalized_hidden(x, A, b1) 
+def stable_softmax(x, A, B): 
+    hidden = sparse.csr_matrix.dot(A, x.T)
     X = np.dot(B, hidden)
-    #X = np.add(np.dot(B, hidden), b2)
     exps = np.exp(X - np.max(X))
     return (exps / np.sum(exps))
 
 
 # finds the loss
-def loss_function(x, A, B, label, b1, b2):
-    loglike = np.log(stable_softmax(x, A, B, b1, b2))
+def loss_function(x, A, B, label):
+    loglike = np.log(stable_softmax(x, A, B))
     return -np.dot(label, loglike)
 
 
 # computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N, b1, b2):
+def total_loss_function(X, Y, A, B, N):
     i = 0
     total_loss = 0
     for x in X:
         label = Y[i]
-        loss = loss_function(x, A, B, label, b1, b2)
+        loss = loss_function(x, A, B, label)
         total_loss += loss
         i += 1
         
     return (1.0/N) * total_loss
 
-
-# this fuction checks the gradient of B
-def check_B_gradient(B, A, label, x, Y_hat, hidden):
-    print("**Checking B gradient")
-    
-    gradient = np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
-    
-    eps = 0.0001
-    
-    for row in range(B.shape[0]):
-        for col in range(B.shape[1]):
-            
-            # Copy the parameter matrix and change the current parameter slightly
-            B_matrix_min = B.copy()
-            B_matrix_min[row,col] -= eps
-            B_matrix_plus = B.copy()
-            B_matrix_plus[row,col] += eps
-            
-            # Compute the numerical gradient
-            grad_num = (loss_function(x, A, B_matrix_plus, label) - loss_function(x, A, B_matrix_min, label))/(2*eps)
-            
-            # Raise error if the numerical grade is not close to the backprop gradient
-            if not np.isclose(grad_num, gradient[row,col]):
-                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(gradient[row,col])))
-            
-    print('No B gradient errors found')
-
-
-# this fuction checks the gradient of A
-def check_A_gradient(B, A, label, x, Y_hat):
-    print("**Checking A gradient")
-
-    first = np.dot(np.subtract(Y_hat.T, label), B)
-    sec = x * (1.0/np.sum(x))
-    gradient = sparse.csr_matrix.dot(first.T, sec)
-   
-    eps = 0.0001
-    
-    for row in range(A.shape[0]):
-        print("row ", row)
-        for col in range(A.shape[1]):
-            # Copy the parameter matrix and change the current parameter slightly
-            A_matrix_min = A.copy()
-            A_matrix_min[row,col] -= eps
-            A_matrix_plus = A.copy()
-            A_matrix_plus[row,col] += eps
-            
-            # Compute the numerical gradient
-            grad_num = (loss_function(x, A_matrix_plus, B, label) - loss_function(x, A_matrix_min, B, label))/(2*eps)
-            
-            # Raise error if the numerical grade is not close to the backprop gradient
-            if not np.isclose(grad_num, gradient[row,col]):
-                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(gradient[row,col])))
-            
-    print('No A gradient errors found')
-            
 
 
 # function to return prediction error, precision, recall, F1 score
@@ -207,15 +122,13 @@ def metrics(X, Y, A, B, N, b1, b2):
     print()
 
     return classification_error, precision, recall, F1, roc_auc, fpr, tpr
-    
-    
 
 
 def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.4
+    LR=0.1
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
@@ -260,13 +173,6 @@ def main():
     B_n = DIM               # cols
     B_m = nclasses          # rows
     B = np.zeros((B_m, B_n))
-    #B = np.random.uniform(-uniform_val, uniform_val, (B_m, B_n))
-    
-    # bias term 1
-    b1 = np.random.uniform(-uniform_val, uniform_val, (DIM, 1))
-    
-    # bias term 2
-    b2 = np.random.uniform(-uniform_val, uniform_val, (nclasses, 1))
 
 
     #### train ################################################
@@ -300,6 +206,7 @@ def main():
         alpha = LR * ( 1 - i / EPOCH)
         
         l = 0
+        train_loss = 0
         
         # TRAINING
         for x in X_train:       
@@ -310,55 +217,46 @@ def main():
             
             # Forward Propogation
             hidden = sparse.csr_matrix.dot(A_old, x.T)
-            #hidden = np.add(sparse.csr_matrix.dot(A_old, x.T), b1)
-            
-            drop0 = np.random.binomial([np.ones((p, DIM))], 1-dropout_percent)[0] * (1.0/(1-dropout_percent))
-            
-            if np.sum(x) > 0:
-                a1 = hidden / np.sum(x)
-            else:
-                a1 = hidden
-                
-            
-            #drop1 = np.random.binomial(1, dropout_percent, size=a1.shape) / dropout_percent
-            drop1 = (np.random.rand(*a1.shape) < dropout_percent) / dropout_percent
-            a1 *= drop1
-                
-            #z2 = np.add(np.dot(B, a1), b2)
-            z2 = np.dot(B, a1)
+            z2 = np.dot(B, hidden)
             exps = np.exp(z2 - np.max(z2))
-            Y_hat = exps / np.sum(exps)
+            Y_hat = exps / exps.sum(axis=0)
             
+            # Error
+            error = np.subtract(Y_hat.T, label)
+            
+            d1_dw2 = np.outer(hidden, error)
+            d1_dw1 = sparse.csr_matrix.dot(np.dot(error, B).T, x)
+            #d1_dw1 = np.outer(x, np.dot(B.T, error.T))
+            
+            A = A - (alpha * d1_dw1)
+            B = B - (alpha * d1_dw2).T
+            
+
+            #loglike = np.log(exps)
+            print(label)
             print(Y_hat)
+            loss = -np.dot(label, Y_hat)
+            print(loss)
             
-            # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, drop1)
+            train_loss += loss
             
-            
-            b1 = gradient_b1(B, b1, label, Y_hat, alpha)
-            b2 = gradient_b2(b2, label, Y_hat, alpha)
-            
-            # verify gradients
-            #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
-            #check_A_gradient(B_old, A_old, label, x, Y_hat)
    
             l += 1
             
             
-        # TRAINING LOSS
-        train_loss = total_loss_function(X_train, y_train, A, B, N, b1, b2)
+        ## TRAINING LOSS
+        #train_loss = total_loss_function(X_train, y_train, A, B, N)
         print("Train:   ", train_loss)
             
         # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A, B, N_test, b1, b2)
+        test_loss = total_loss_function(X_test, y_test, A, B, N_test)
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)
 
 
-        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N, b1, b2)
-        test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, b1, b2)
+        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N)
+        test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
         
         print()
         print("TRAIN:")
