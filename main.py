@@ -42,7 +42,7 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, drop1):
     else:
         sec = x
 
-    gradient = alpha * sparse.csr_matrix.dot(first.T, sec) * drop1
+    gradient = alpha * sparse.csr_matrix.dot(first.T, sec) #* drop1
     A = np.subtract(A_old, gradient) 
     
     return A
@@ -83,63 +83,6 @@ def total_loss_function(X, Y, A, B, N, b1, b2):
         i += 1
         
     return (1.0/N) * total_loss
-
-
-# this fuction checks the gradient of B
-def check_B_gradient(B, A, label, x, Y_hat, hidden):
-    print("**Checking B gradient")
-    
-    gradient = np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
-    
-    eps = 0.0001
-    
-    for row in range(B.shape[0]):
-        for col in range(B.shape[1]):
-            
-            # Copy the parameter matrix and change the current parameter slightly
-            B_matrix_min = B.copy()
-            B_matrix_min[row,col] -= eps
-            B_matrix_plus = B.copy()
-            B_matrix_plus[row,col] += eps
-            
-            # Compute the numerical gradient
-            grad_num = (loss_function(x, A, B_matrix_plus, label) - loss_function(x, A, B_matrix_min, label))/(2*eps)
-            
-            # Raise error if the numerical grade is not close to the backprop gradient
-            if not np.isclose(grad_num, gradient[row,col]):
-                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(gradient[row,col])))
-            
-    print('No B gradient errors found')
-
-
-# this fuction checks the gradient of A
-def check_A_gradient(B, A, label, x, Y_hat):
-    print("**Checking A gradient")
-
-    first = np.dot(np.subtract(Y_hat.T, label), B)
-    sec = x * (1.0/np.sum(x))
-    gradient = sparse.csr_matrix.dot(first.T, sec)
-   
-    eps = 0.0001
-    
-    for row in range(A.shape[0]):
-        print("row ", row)
-        for col in range(A.shape[1]):
-            # Copy the parameter matrix and change the current parameter slightly
-            A_matrix_min = A.copy()
-            A_matrix_min[row,col] -= eps
-            A_matrix_plus = A.copy()
-            A_matrix_plus[row,col] += eps
-            
-            # Compute the numerical gradient
-            grad_num = (loss_function(x, A_matrix_plus, B, label) - loss_function(x, A_matrix_min, B, label))/(2*eps)
-            
-            # Raise error if the numerical grade is not close to the backprop gradient
-            if not np.isclose(grad_num, gradient[row,col]):
-                raise ValueError('Numerical gradient of {:.6f} is not close to the backpropagation gradient of {:.6f}!'.format(float(grad_num), float(gradient[row,col])))
-            
-    print('No A gradient errors found')
-            
 
 
 # function to return prediction error, precision, recall, F1 score
@@ -215,13 +158,13 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.4
+    LR=0.1
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
     BUCKET=1000000
-    EPOCH=20
+    EPOCH=50
     
     dropout_percent = 0.4
 
@@ -260,7 +203,6 @@ def main():
     B_n = DIM               # cols
     B_m = nclasses          # rows
     B = np.zeros((B_m, B_n))
-    #B = np.random.uniform(-uniform_val, uniform_val, (B_m, B_n))
     
     # bias term 1
     b1 = np.random.uniform(-uniform_val, uniform_val, (DIM, 1))
@@ -322,7 +264,7 @@ def main():
             
             #drop1 = np.random.binomial(1, dropout_percent, size=a1.shape) / dropout_percent
             drop1 = (np.random.rand(*a1.shape) < dropout_percent) / dropout_percent
-            a1 *= drop1
+            #a1 *= drop1
                 
             #z2 = np.add(np.dot(B, a1), b2)
             z2 = np.dot(B, a1)

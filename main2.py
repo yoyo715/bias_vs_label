@@ -29,7 +29,7 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, lambd, drop1):
     first = np.dot(np.subtract(Y_hat.T, label), B)
 
     gradient = sparse.csr_matrix.dot(first.T, x)
-    gradient = alpha * np.subtract(gradient, lambd * A) * drop1
+    gradient = alpha * np.subtract(gradient, lambd * A) #* drop1
     A = np.subtract(A_old, gradient) 
     
     return A
@@ -146,7 +146,7 @@ def main():
     BUCKET=1000000
     EPOCH=20
     
-    lambd = .001
+    lambd = .01
     dropout_percent = 0.8
 
     print("starting dictionary creation") 
@@ -230,7 +230,7 @@ def main():
             a1 = sparse.csr_matrix.dot(A_old, x.T)
             
             drop1 = (np.random.rand(*a1.shape) < dropout_percent) / dropout_percent
-            a1 *= drop1
+            #a1 *= drop1
             
             z2 = np.dot(B, a1)
             exps = np.exp(z2 - np.max(z2))
