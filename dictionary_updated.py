@@ -11,7 +11,7 @@ import random
 class Dictionary2:
     def __init__(self, ngrams, mincount, bucket):
 
-        self.subset_value = 1000
+        self.subset_value = 4000
 
         #self.file_train = open('../data/query_gender.train', encoding='utf8').readlines()  
         self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() 

@@ -1,5 +1,7 @@
 # main.py
 
+# REGULARIZED VERSION
+
 from dictionary import Dictionary
 from dictionary_updated import Dictionary2
 import numpy as np
@@ -13,18 +15,21 @@ from sklearn.metrics import auc
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
-    gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat, lambd):    
+    gradient = np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
+    gradient = alpha * np.subtract(gradient, lambd * B)
     B_new = np.subtract(B, gradient)
 
     return B_new
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, drop1):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, lambd, drop1):
     A_old = A
     first = np.dot(np.subtract(Y_hat.T, label), B)
-    gradient = alpha * sparse.csr_matrix.dot(first.T, sec) * drop1
+
+    gradient = sparse.csr_matrix.dot(first.T, x)
+    gradient = alpha * np.subtract(gradient, lambd * A) * drop1
     A = np.subtract(A_old, gradient) 
     
     return A
@@ -39,26 +44,29 @@ def stable_softmax(x, A, B):
 
 # finds the loss
 def loss_function(x, A, B, label):
-    loglike = np.log(stable_softmax(x, A, B))
-    return -np.dot(label, loglike)
+    loglike = np.log(stable_softmax(x, A, B)) 
+    return -np.dot(label, loglike) 
 
 
 # computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N):
+def total_loss_function(X, Y, A, B, N, lambd):
+    B_fro = np.linalg.norm(B)
+    A_fro = np.linalg.norm(A)
+    
     i = 0
     total_loss = 0
     for x in X:
         label = Y[i]
-        loss = loss_function(x, A, B, label)
+        loss = loss_function(x, A, B, label) - lambd/2.0*A_fro - lambd/2.0*B_fro
         total_loss += loss
         i += 1
         
-    return (1.0/N) * total_loss
-
+    return (1.0/N) * total_loss 
+            
 
 
 # function to return prediction error, precision, recall, F1 score
-def metrics(X, Y, A, B, N, b1, b2):
+def metrics(X, Y, A, B, N):
     incorrect = 0
     true_pos = 0
     false_pos = 0
@@ -70,7 +78,7 @@ def metrics(X, Y, A, B, N, b1, b2):
 
     i = 0
     for x in X:
-        prediction = np.argmax(stable_softmax(x, A, B, b1, b2))
+        prediction = np.argmax(stable_softmax(x, A, B))
         true_label = np.argmax(Y[i])
         
         y_true.append(true_label)
@@ -122,13 +130,15 @@ def metrics(X, Y, A, B, N, b1, b2):
     print()
 
     return classification_error, precision, recall, F1, roc_auc, fpr, tpr
+    
+    
 
 
 def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.1
+    LR=0.0001
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
@@ -136,7 +146,8 @@ def main():
     BUCKET=1000000
     EPOCH=20
     
-    dropout_percent = 0.7
+    lambd = .001
+    dropout_percent = 0.8
 
     print("starting dictionary creation") 
     
@@ -216,40 +227,36 @@ def main():
             A_old = A
             
             # Forward Propogation
-            hidden = sparse.csr_matrix.dot(A_old, x.T)
-            z2 = np.dot(B, hidden)
+            a1 = sparse.csr_matrix.dot(A_old, x.T)
+            
+            drop1 = (np.random.rand(*a1.shape) < dropout_percent) / dropout_percent
+            a1 *= drop1
+            
+            z2 = np.dot(B, a1)
             exps = np.exp(z2 - np.max(z2))
-            Y_hat = exps / exps.sum(axis=0)
+            Y_hat = exps / np.sum(exps)
             
-            # Error
-            error = np.subtract(Y_hat.T, label)
-            
-            d1_dw2 = np.outer(hidden, error)
-            d1_dw1 = sparse.csr_matrix.dot(np.dot(error, B).T, x)
-            #d1_dw1 = np.outer(x, np.dot(B.T, error.T))
-            
-            A = A - (alpha * d1_dw1)
-            B = B - (alpha * d1_dw2).T
-            
+            # Back prop with alt optimization
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat, lambd)  
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, lambd, drop1)
 
-            #loglike = np.log(exps)
-            print(label)
-            print(Y_hat)
-            loss = -np.dot(label, Y_hat)
-            print(loss)
+            B_fro = np.linalg.norm(B_old)
+            A_fro = np.linalg.norm(A_old)
             
-            train_loss += loss
+            loglike = np.log(Y_hat)
             
+            # https://arxiv.org/pdf/1804.00306.pdf
+            train_loss += -np.dot(label, loglike) - lambd/2.0*A_fro - lambd/2.0*B_fro
    
             l += 1
             
             
-        ## TRAINING LOSS
-        #train_loss = total_loss_function(X_train, y_train, A, B, N)
+        # TRAINING LOSS
+        train_loss = (1.0/N) * train_loss 
         print("Train:   ", train_loss)
             
         # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A, B, N_test)
+        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test, lambd)
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)

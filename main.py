@@ -223,7 +223,7 @@ def main():
     BUCKET=1000000
     EPOCH=20
     
-    dropout_percent = 0.7
+    dropout_percent = 0.4
 
     print("starting dictionary creation") 
     
@@ -300,6 +300,7 @@ def main():
         alpha = LR * ( 1 - i / EPOCH)
         
         l = 0
+        train_loss = 0
         
         # TRAINING
         for x in X_train:       
@@ -312,7 +313,6 @@ def main():
             hidden = sparse.csr_matrix.dot(A_old, x.T)
             #hidden = np.add(sparse.csr_matrix.dot(A_old, x.T), b1)
             
-            drop0 = np.random.binomial([np.ones((p, DIM))], 1-dropout_percent)[0] * (1.0/(1-dropout_percent))
             
             if np.sum(x) > 0:
                 a1 = hidden / np.sum(x)
@@ -329,8 +329,6 @@ def main():
             exps = np.exp(z2 - np.max(z2))
             Y_hat = exps / np.sum(exps)
             
-            print(Y_hat)
-            
             # Back prop with alt optimization
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
             A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, drop1)
@@ -342,16 +340,20 @@ def main():
             # verify gradients
             #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
             #check_A_gradient(B_old, A_old, label, x, Y_hat)
+            
+            loglike = np.log(Y_hat)
+            train_loss += -np.dot(label, loglike)
    
             l += 1
             
             
         # TRAINING LOSS
-        train_loss = total_loss_function(X_train, y_train, A, B, N, b1, b2)
+        #train_loss = total_loss_function(X_train, y_train, A, B, N, b1, b2)
+        train_loss = (1.0/N) * train_loss
         print("Train:   ", train_loss)
             
         # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A, B, N_test, b1, b2)
+        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test, b1, b2)
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)
