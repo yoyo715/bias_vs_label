@@ -61,7 +61,7 @@ targets = [0.0, 1.0]
 fig = plt.figure()
 
 ax = fig.add_subplot(1,1,1, projection='3d') 
-ax.set_title('2 component PCA', fontsize = 15)
+ax.set_title('3 component PCA', fontsize = 10)
 
 
 for target, color in zip(targets,colors):

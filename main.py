@@ -158,13 +158,13 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.1
+    LR=0.08
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
     BUCKET=1000000
-    EPOCH=50
+    EPOCH=30
     
     dropout_percent = 0.4
 
