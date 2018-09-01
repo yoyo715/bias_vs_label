@@ -1,10 +1,10 @@
 # main.py
 
-from dictionary import Dictionary
+#from dictionary import Dictionary
 from dictionary_updated import Dictionary2
 import numpy as np
 from scipy import sparse
-from numpy.linalg import inv
+#from numpy.linalg import inv
 from matplotlib import pyplot as plt
 
 from sklearn.metrics import roc_curve
@@ -203,12 +203,7 @@ def main():
     B_n = DIM               # cols
     B_m = nclasses          # rows
     B = np.zeros((B_m, B_n))
-    
-    # bias term 1
-    b1 = np.random.uniform(-uniform_val, uniform_val, (DIM, 1))
-    
-    # bias term 2
-    b2 = np.random.uniform(-uniform_val, uniform_val, (nclasses, 1))
+
 
 
     #### train ################################################
