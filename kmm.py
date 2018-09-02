@@ -5,21 +5,51 @@ import numpy as np
 from scipy import sparse
 
 
-def update_beta():
-    return 1
+def update_beta(X_train, X_test, beta, n_train, n_test):
+    K = compute_gram(X_train, n_train)
+    k = compute_k(n_train, n_test, X_train, X_test)
+    return 0.5 * np.dot(np.dot(beta.T, K), beta) - np.dot(k.T, beta)
 
 
 def update_alpha():
     return 1
 
 
-def compute_K():
+def compute_gram(X, n):
+    sigma = np.std(X)  # compute standard deviation ????
+    
+    K = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            K[i,j] = gaussian_kernel(X[i], X[j], sigma)
+            
+    return K
+
+
+def compute_k(n_train, n_test, X_train, X_test):
+    k = np.zeros((n_test, n_train))
+    for i in range(n_train):
+        xi_train = X_train[i]
+        ki = compute_ki(n_train, n_test, xi_train, X_test)
+        k[i] = ki
+        
+    return k
+    
+    
+def compute_ki(n_train, n_test, xi_train, X_test):
+    _sum =  np.zeros((n_test))
+    for j in range(n_test):
+        sum[j] = gaussian_kernel(xi_train, X_test[j], sigma)
+        
+    return n_train/n_test * _sum
+
+
+def gaussian_kernel(x_i, x_j, sigma):
+    return  np.exp(-linalg.norm(x_i - x_j)**2 / (2 * (sigma ** 2)))
+
+
+def compute_loss():
     return 1
-
-
-def comput_loss():
-    return 1
-
 
 
 def main():
@@ -57,8 +87,7 @@ def main():
     p = X_train.shape[1]
     
     # A
-    #A_n = nwords + BUCKET   # cols
-    A_n = p
+    A_n = p                 # cols
     A_m = DIM               # rows
     uniform_val = 1.0 / DIM
     np.random.seed(0)

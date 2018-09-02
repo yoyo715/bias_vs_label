@@ -18,7 +18,7 @@ import random, re
 class Dictionary:
     def __init__(self, ngrams, mincount, bucket):
 
-        self.subset_value = 8000
+        self.subset_value = 500
 
         #self.file_train = open('../data/query_gender.train', encoding='utf8').readlines()  
         self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() 
@@ -139,11 +139,11 @@ class Dictionary:
 
     def create_bagngrams(self): 
         #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
-        #data_features = self.vectorizer.fit_transform(self.X_train) 
+        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        self.vectorizer = CountVectorizer(analyzer=words_and_char_ngrams, ngram_range=(1,1))
-        data_features = self.vectorizer.fit_transform(self.X_train)
+        #self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,1))
+        #data_features = self.vectorizer.fit_transform(self.X_train)
            
         self.train_bag_ngrams = data_features
         
