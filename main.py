@@ -1,10 +1,11 @@
 # main.py
 
 #from dictionary import Dictionary
-from dictionary_updated import Dictionary2
+#from dictionary_updated import Dictionary2
+from dictionary3 import Dictionary
+
 import numpy as np
 from scipy import sparse
-#from numpy.linalg import inv
 from matplotlib import pyplot as plt
 
 from sklearn.metrics import roc_curve
@@ -14,9 +15,8 @@ from sklearn.metrics import auc
 
 # computes the normalized hidden layer
 # NOTE: only for computing gradient?
-def compute_normalized_hidden(x, A, b1):
+def compute_normalized_hidden(x, A):
     hidden = sparse.csr_matrix.dot(A, x.T)
-    #hidden = np.add(sparse.csr_matrix.dot(A, x.T), b1)
     
     if np.sum(x) > 0:
         return hidden / np.sum(x)
@@ -33,7 +33,7 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, drop1):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
     A_old = A
     first = np.dot(np.subtract(Y_hat.T, label), B)
     
@@ -42,43 +42,32 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, drop1):
     else:
         sec = x
 
-    gradient = alpha * sparse.csr_matrix.dot(first.T, sec) #* drop1
+    gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
     A = np.subtract(A_old, gradient) 
     
     return A
 
 
-def gradient_b1(B, b1, label, Y_hat, alpha):
-    gradient = alpha * np.dot(np.subtract(Y_hat.T, label), B)
-    return np.subtract(b1, gradient.T) 
-
-
-def gradient_b2(b2, label, Y_hat, alpha):
-    gradient = np.subtract(Y_hat.T, label)
-    return np.subtract(b2, gradient.T)
-
-
-def stable_softmax(x, A, B, b1, b2): 
-    hidden = compute_normalized_hidden(x, A, b1) 
+def stable_softmax(x, A, B): 
+    hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
-    #X = np.add(np.dot(B, hidden), b2)
     exps = np.exp(X - np.max(X))
     return (exps / np.sum(exps))
 
 
 # finds the loss
-def loss_function(x, A, B, label, b1, b2):
-    loglike = np.log(stable_softmax(x, A, B, b1, b2))
+def loss_function(x, A, B, label):
+    loglike = np.log(stable_softmax(x, A, B))
     return -np.dot(label, loglike)
 
 
 # computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N, b1, b2):
+def total_loss_function(X, Y, A, B, N):
     i = 0
     total_loss = 0
     for x in X:
         label = Y[i]
-        loss = loss_function(x, A, B, label, b1, b2)
+        loss = loss_function(x, A, B, label)
         total_loss += loss
         i += 1
         
@@ -86,7 +75,7 @@ def total_loss_function(X, Y, A, B, N, b1, b2):
 
 
 # function to return prediction error, precision, recall, F1 score
-def metrics(X, Y, A, B, N, b1, b2):
+def metrics(X, Y, A, B, N):
     incorrect = 0
     true_pos = 0
     false_pos = 0
@@ -98,7 +87,7 @@ def metrics(X, Y, A, B, N, b1, b2):
 
     i = 0
     for x in X:
-        prediction = np.argmax(stable_softmax(x, A, B, b1, b2))
+        prediction = np.argmax(stable_softmax(x, A, B))
         true_label = np.argmax(Y[i])
         
         y_true.append(true_label)
@@ -158,20 +147,18 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.08
+    LR=0.15
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
     BUCKET=1000000
-    EPOCH=30
-    
-    dropout_percent = 0.4
+    EPOCH=20
 
     print("starting dictionary creation") 
     
     # initialize training
-    dictionary = Dictionary2(WORDGRAMS, MINCOUNT, BUCKET)
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
     
@@ -248,31 +235,20 @@ def main():
             
             # Forward Propogation
             hidden = sparse.csr_matrix.dot(A_old, x.T)
-            #hidden = np.add(sparse.csr_matrix.dot(A_old, x.T), b1)
-            
             
             if np.sum(x) > 0:
                 a1 = hidden / np.sum(x)
             else:
                 a1 = hidden
-                
             
-            #drop1 = np.random.binomial(1, dropout_percent, size=a1.shape) / dropout_percent
-            drop1 = (np.random.rand(*a1.shape) < dropout_percent) / dropout_percent
-            #a1 *= drop1
                 
-            #z2 = np.add(np.dot(B, a1), b2)
             z2 = np.dot(B, a1)
             exps = np.exp(z2 - np.max(z2))
             Y_hat = exps / np.sum(exps)
             
             # Back prop with alt optimization
             B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, drop1)
-            
-            
-            b1 = gradient_b1(B, b1, label, Y_hat, alpha)
-            b2 = gradient_b2(b2, label, Y_hat, alpha)
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
             
             # verify gradients
             #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
@@ -285,19 +261,19 @@ def main():
             
             
         # TRAINING LOSS
-        #train_loss = total_loss_function(X_train, y_train, A, B, N, b1, b2)
+        #train_loss = total_loss_function(X_train, y_train, A, B, N)
         train_loss = (1.0/N) * train_loss
         print("Train:   ", train_loss)
             
         # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test, b1, b2)
+        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)
 
 
-        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N, b1, b2)
-        test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, b1, b2)
+        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N)
+        test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
         
         print()
         print("TRAIN:")
@@ -374,12 +350,12 @@ def main():
     plt.legend(loc='upper left')
     plt.show()
 
-    #plt.plot(recall_train, prec_train, 'm', label="training")
-    #plt.plot(recall_test, prec_test, 'c', label="testing")
-    #plt.ylabel('Precision')
-    #plt.xlabel('Recall')
-    #plt.legend(loc='upper left')
-    #plt.show()
+    plt.plot(recall_train, prec_train, 'm', label="training")
+    plt.plot(recall_test, prec_test, 'c', label="testing")
+    plt.ylabel('Precision')
+    plt.xlabel('Recall')
+    plt.legend(loc='upper left')
+    plt.show()
  
  
  
