@@ -29,6 +29,10 @@ class Dictionary:
         self.file_train.extend(self.file_test)
         self.dataset = self.file_train
         random.shuffle(self.dataset)
+    
+        # This is the Kaggle dataset
+        self.manual_set = open('', encoding='utf8').readlines()
+        self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams
         self.mincount = mincount
@@ -57,6 +61,47 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
 
         # loop through each instance in training data, gets labels
+        for x in self.manual_set:
+            i = 0
+            inst = ''
+            label = x[0:10]
+            if label[0:9] != '__label__':
+                print("ERROR in label creation")
+                break
+            else:
+                labels.append(float(label[-1]))
+                
+            sent = ''
+            word = ''
+            for w in x[10:]:
+                if w in whitelist:
+                    if w == '\t':
+                        inst = inst + '\t' + sent
+                        sent = ''
+                        word = ''
+                        i += 1
+                    elif w != ' ':
+                        word = word + w
+                    else:
+                        if "http" not in word and word != "RT" and word != "rt":
+                            sent = sent + ' ' + word
+                            word = ''
+                        else:
+                            word = ''
+            
+            documents.append(inst)
+        self.manual_instances = documents
+        self.manual_labels = labels
+
+
+    # this function creates the instances of the manually labeled (Kaggle) dataset
+    def create_instances_and_labels_manset(self):
+        words =  []
+        labels = []
+        documents = []
+        whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
+
+        # loop through each instance in training data, gets labels
         for x in self.dataset[0:self.subset_value]:
             i = 0
             inst = ''
@@ -72,7 +117,6 @@ class Dictionary:
             for w in x[10:]:
                 if w in whitelist:
                     if w == '\t':
-                        #inst.append(sent)
                         inst = inst + '\t' + sent
                         sent = ''
                         word = ''
@@ -126,6 +170,11 @@ class Dictionary:
         data_features = self.vectorizer.transform(self.X_test)    
         self.test_bag_ngrams = data_features
 
+
+    # bagngrams for the manually labeled dataset
+    def create_manually_labeled_bagngrams(self):
+        data_features = self.vectorizer.transform(self.manual_instances)    
+        self.manual_test_bag_ngrams = data_features
 
 
     # index 0: label 0
@@ -191,14 +240,18 @@ class Dictionary:
     def get_train_and_test(self):
         return self.train_bag_ngrams, self.test_bag_ngrams, self.label_vec, self.test_label_vec
     
-    
+
+    def get_manual_testset(self):
+        return self.manual_test_bag_ngrams
+
+
     def get_nwords(self):
         return self.nwords
 
 
     def get_n_train_instances(self):
         return self.n_train_instances
-    
+ 
     
     def get_n_test_instances(self):
         return self.n_test_instances
@@ -206,6 +259,10 @@ class Dictionary:
     
     def get_raw_train_labels(self):
         return self.y_train
+
+
+    def get_manual_set_labesl(self):
+        return 
     
     
     
