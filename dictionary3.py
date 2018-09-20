@@ -31,7 +31,7 @@ class Dictionary:
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
-        self.manual_set = open('', encoding='utf8').readlines()
+        self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()
         self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams
@@ -42,10 +42,12 @@ class Dictionary:
         self.train_and_testsplit()
         self.create_bagngrams()
         self.create_test_bagngrams()
+        self.create_manual_bagngrams()
         
         self.nclasses = len(set(self.labels))
         self.create_train_labels()
         self.create_test_labels()
+        self.create_manual_labels()
     
         self.nwords = self.train_bag_ngrams.shape[1]
         
@@ -90,8 +92,8 @@ class Dictionary:
                             word = ''
             
             documents.append(inst)
-        self.manual_instances = documents
-        self.manual_labels = labels
+        self.instances = documents
+        self.labels = labels
 
 
     # this function creates the instances of the manually labeled (Kaggle) dataset
@@ -131,8 +133,8 @@ class Dictionary:
                             word = ''
             
             documents.append(inst)
-        self.instances = documents
-        self.labels = labels
+        self.manual_instances = documents
+        self.manual_labels = labels
         
         
     def train_and_testsplit(self):
@@ -172,9 +174,11 @@ class Dictionary:
 
 
     # bagngrams for the manually labeled dataset
-    def create_manually_labeled_bagngrams(self):
+    def create_manual_bagngrams(self):
         data_features = self.vectorizer.transform(self.manual_instances)    
         self.manual_test_bag_ngrams = data_features
+        
+        self.n_manual_instances = len(self.manual_test_bag_ngrams)
 
 
     # index 0: label 0
@@ -221,6 +225,29 @@ class Dictionary:
             i += 1
             
         self.test_label_vec = labels
+        
+        
+    # index 0: label 0
+    # index 1: label 1
+    def create_manual_labels(self):
+        labels = np.zeros((self.n_manual_instances, self.nclasses))
+        print("manual labels shape:", labels.shape)
+        
+        self.manual_males = 0
+        self.manual_females = 0
+        
+        i = 0
+        for label in labels:
+            if self.y_manual[i] == 0:
+                label[0] = 1.0
+                self.manual_males += 1        #NOTE: need to double check 
+            elif self.y_manual[i] == 1:
+                label[1] = 1.0
+                self.manual_females += 1      #NOTE: need to double check 
+            
+            i += 1
+            
+        self.manual_label_vec = labels
 
 
 
@@ -235,6 +262,10 @@ class Dictionary:
     
     def get_nlabels_eachclass_test(self):
         return self.test_females, self.test_males
+    
+    
+    def get_nlabels_eachclass_manual(self):
+        return self.manual_females, self.manual_males
         
     
     def get_train_and_test(self):
@@ -255,14 +286,18 @@ class Dictionary:
     
     def get_n_test_instances(self):
         return self.n_test_instances
-
     
-    def get_raw_train_labels(self):
-        return self.y_train
+    
+    def get_n_manual_instances(self):
+        return self.n_manual_instances
+    
+    
+    #def get_raw_train_labels(self):
+        #return self.y_train
 
 
-    def get_manual_set_labesl(self):
-        return 
+    def get_manual_set_labels(self):
+        return self.manual_label_vec
     
     
     

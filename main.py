@@ -165,13 +165,25 @@ def main():
     #initialize testing
     X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-    N = dictionary.get_n_train_instances()
+    N_train = dictionary.get_n_train_instances()
     N_test = dictionary.get_n_test_instances()
     
-    print("Number of Train instances: ", N, " Number of Test instances: ", N_test)
+    print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
     ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
     ntest_eachclass = dictionary.get_nlabels_eachclass_test()
     print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
+    
+    
+    # manual labeled set (Kaggle dataset)
+    X_manual = dictionary.get_manual_testset()
+    y_manual = dictionary.get_manual_set_labels()
+    N_manual = dictionary.get_n_manual_instances()
+    print()
+    print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+    nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
+    print("N each class Manual testing instances: ", nmanual_eachclass)
+    print("################################################################")
+    
     
     ##### instantiations #######################################
 
@@ -197,21 +209,27 @@ def main():
 
     losses_train = []
     losses_test = []
+    losses_manual = []
 
     class_error_train = []  
     class_error_test = []
+    class_error_manual = []
 
     prec_train = [] 
     prec_test = []
+    prec_manual = []
 
     recall_train = []
     recall_test = []
+    recalll_manual = []
 
     F1_train = []
     F1_test = []
+    F1_manual = []
     
     AUC_train = []
     AUC_test = []
+    AUC_manual = []
 
     print()
     print()
@@ -240,7 +258,6 @@ def main():
                 a1 = hidden / np.sum(x)
             else:
                 a1 = hidden
-            
                 
             z2 = np.dot(B, a1)
             exps = np.exp(z2 - np.max(z2))
@@ -261,8 +278,8 @@ def main():
             
             
         # TRAINING LOSS
-        #train_loss = total_loss_function(X_train, y_train, A, B, N)
-        train_loss = (1.0/N) * train_loss
+        #train_loss = total_loss_function(X_train, y_train, A, B, N_train)
+        train_loss = (1.0/N_train) * train_loss
         print("Train:   ", train_loss)
             
         # TESTING LOSS
@@ -270,10 +287,15 @@ def main():
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)
+        
+        # MANUAL SET TESTING LOSS
+        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_test)
+        print("Manual Set:    ", manual_loss)
 
 
-        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N)
+        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train)
         test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
+        manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual)
         
         print()
         print("TRAIN:")
@@ -288,23 +310,36 @@ def main():
         print("         Recall:             ", test_recall)
         print("         F1:                 ", test_F1)
         
+        print()
+        print("MANUAL:")
+        print("         Classification Err: ", manual_class_error)
+        print("         Precision:          ", manual_precision)
+        print("         Recall:             ", manual_recall)
+        print("         F1:                 ", manual_F1)
+        
         losses_train.append(train_loss)
         losses_test.append(test_loss)
+        losses_manual.append(manual_loss)
 
         class_error_train.append(train_class_error)
         class_error_test.append(test_class_error)
+        class_error_manual.append(manual_class_error)
 
         prec_train.append(train_precision)
         prec_test.append(test_precision)
+        prec_manual.append(manual_precision)
 
         recall_train.append(train_recall)
         recall_test.append(test_recall)
+        recall_manual.append(manual_recall)
 
         F1_train.append(train_F1)
         F1_test.append(test_F1)
+        F1_manual.append(manual_F1)
         
         AUC_train.append(train_AUC)
         AUC_test.append(test_AUC)
+        AUC_manual.append(manual_AUC)
         
         i += 1
         
@@ -315,6 +350,7 @@ def main():
 
     plt.plot(epochs, losses_train, 'r', label="training loss")
     plt.plot(epochs, losses_test, 'b', label="testing loss")
+    plt.plot(epochs, losses_manual, 'g', label="manual loss")
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(loc='upper left')
@@ -322,6 +358,7 @@ def main():
     
     plt.plot(epochs, class_error_train, 'r', label="training classification err")
     plt.plot(epochs, class_error_test, 'b', label="testing classification err")
+    plt.plot(epochs, class_error_manual, 'g', label="manual classification err")
     plt.ylabel('error')
     plt.xlabel('epoch')
     plt.legend(loc='upper left')
@@ -329,6 +366,7 @@ def main():
     
     plt.plot(epochs, AUC_train, 'm', label="training AUC scores")
     plt.plot(epochs, AUC_test, 'c', label="testing AUC scores")
+    plt.plot(epochs, AUC_manual, 'g', label="manual AUC scores")
     plt.ylabel('AUC Scores')
     plt.xlabel('Epoch')
     plt.legend(loc='upper left')
@@ -336,6 +374,7 @@ def main():
         
     plt.plot(epochs,  F1_train, 'm', label="training F1 score")
     plt.plot(epochs, F1_test, 'c', label="testing F1 score")
+    plt.plot(epochs, F1_manual, 'g', label="manual F1 score")
     plt.ylabel('F1 Score')
     plt.xlabel('epoch')
     plt.legend(loc='upper left')
@@ -352,6 +391,7 @@ def main():
 
     plt.plot(recall_train, prec_train, 'm', label="training")
     plt.plot(recall_test, prec_test, 'c', label="testing")
+    plt.plot(recall_manual, prec_manual, 'g', label="manual")
     plt.ylabel('Precision')
     plt.xlabel('Recall')
     plt.legend(loc='upper left')
