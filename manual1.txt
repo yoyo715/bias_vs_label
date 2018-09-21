@@ -1,0 +1,42 @@
+EPOCH:  19
+Train:    [0.56243513]
+Test:     [0.59003584]
+Difference =  [0.02760071]
+Manual Set:     [0.68614863]
+confusion matrix: 
+[  126 823  ]
+[  10 1721  ]
+AUC score:  0.5634971653703402
+
+confusion matrix: 
+[  48 424  ]
+[  9 839  ]
+AUC score:  0.5455408538535338
+
+confusion matrix: 
+[  12 294  ]
+[  8 312  ]
+AUC score:  0.5071078431372549
+
+
+TRAIN:
+         Classification Err:  0.31082089552238806
+         Precision:           0.6764937106918238
+         Recall:              0.9942229924898902
+         F1:                  0.8051461988304093
+TEST:
+         Classification Err:  0.328030303030303
+         Precision:           0.6642913697545526
+         Recall:              0.9893867924528302
+         F1:                  0.7948839412600663
+
+MANUAL:
+         Classification Err:  0.48242811501597443
+         Precision:           0.5148514851485149
+         Recall:              0.975
+         F1:                  0.673866090712743
+
+real	580m58.706s
+user	418m46.032s
+sys	257m39.200s
+

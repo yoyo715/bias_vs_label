@@ -221,7 +221,7 @@ def main():
 
     recall_train = []
     recall_test = []
-    recalll_manual = []
+    recall_manual = []
 
     F1_train = []
     F1_test = []
@@ -289,7 +289,7 @@ def main():
         print("Difference = ", test_loss - train_loss)
         
         # MANUAL SET TESTING LOSS
-        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_test)
+        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
         print("Manual Set:    ", manual_loss)
 
 

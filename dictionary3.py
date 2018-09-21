@@ -18,7 +18,7 @@ import random, re
 class Dictionary:
     def __init__(self, ngrams, mincount, bucket):
 
-        self.subset_value = 8000
+        self.subset_value = 4000
 
         #self.file_train = open('../data/query_gender.train', encoding='utf8').readlines()  
         self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() 
@@ -63,12 +63,13 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
 
         # loop through each instance in training data, gets labels
-        for x in self.manual_set:
+        for x in self.dataset[0:self.subset_value]:
             i = 0
             inst = ''
             label = x[0:10]
+            
             if label[0:9] != '__label__':
-                print("ERROR in label creation")
+                print("ERROR in label creation. label: ", label)
                 break
             else:
                 labels.append(float(label[-1]))
@@ -94,47 +95,54 @@ class Dictionary:
             documents.append(inst)
         self.instances = documents
         self.labels = labels
-
-
+        
+        
     # this function creates the instances of the manually labeled (Kaggle) dataset
     def create_instances_and_labels_manset(self):
         words =  []
         labels = []
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
-
+        num = 0
+        
+        #print(self.manual_set[358])
+    
         # loop through each instance in training data, gets labels
-        for x in self.dataset[0:self.subset_value]:
-            i = 0
-            inst = ''
-            label = x[0:10]
-            if label[0:9] != '__label__':
-                print("ERROR in label creation")
-                break
-            else:
-                labels.append(float(label[-1]))
-                
-            sent = ''
-            word = ''
-            for w in x[10:]:
-                if w in whitelist:
-                    if w == '\t':
-                        inst = inst + '\t' + sent
-                        sent = ''
-                        word = ''
-                        i += 1
-                    elif w != ' ':
-                        word = word + w
-                    else:
-                        if "http" not in word and word != "RT" and word != "rt":
-                            sent = sent + ' ' + word
+        for x in self.manual_set:
+            if num != 361 and num != 360 and num != 359:
+                i = 0
+                inst = ''
+                label = x[0:10]
+                if label[0:9] != '__label__':
+                    print("ERROR in label creation. Label: ", label)
+                    break
+                else:
+                    labels.append(float(label[-1]))
+                    
+                sent = ''
+                word = ''
+                for w in x[10:]:
+                    if w in whitelist:
+                        if w == '\t':
+                            inst = inst + '\t' + sent
+                            sent = ''
                             word = ''
+                            i += 1
+                        elif w != ' ':
+                            word = word + w
                         else:
-                            word = ''
-            
-            documents.append(inst)
+                            if "http" not in word and word != "RT" and word != "rt":
+                                sent = sent + ' ' + word
+                                word = ''
+                            else:
+                                word = ''
+                
+                documents.append(inst)
+            num += 1
         self.manual_instances = documents
-        self.manual_labels = labels
+        self.y_manual = labels
+        
+        self.n_manual_instances = len(self.manual_instances)
         
         
     def train_and_testsplit(self):
@@ -177,8 +185,6 @@ class Dictionary:
     def create_manual_bagngrams(self):
         data_features = self.vectorizer.transform(self.manual_instances)    
         self.manual_test_bag_ngrams = data_features
-        
-        self.n_manual_instances = len(self.manual_test_bag_ngrams)
 
 
     # index 0: label 0
