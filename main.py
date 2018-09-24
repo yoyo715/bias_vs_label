@@ -6,10 +6,10 @@ from dictionary3 import Dictionary
 
 import numpy as np
 from scipy import sparse
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
-from sklearn.metrics import roc_curve
-from sklearn.metrics import auc
+#from sklearn.metrics import roc_curve
+#from sklearn.metrics import auc
 
 
 
@@ -155,6 +155,8 @@ def main():
     BUCKET=1000000
     EPOCH=20
 
+    NUM_RUNS = 10       # number of test runs
+    
     print("starting dictionary creation") 
     
     # initialize training
@@ -185,217 +187,245 @@ def main():
     print("################################################################")
     
     
-    ##### instantiations #######################################
+        ##### instantiations #######################################
+
+    for run in range(NUM_RUNS)
+        p = X_train.shape[1]
+        
+        # A
+        #A_n = nwords + BUCKET   # cols
+        A_n = p
+        A_m = DIM               # rows
+        uniform_val = 1.0 / DIM
+        np.random.seed(0)
+        A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
+
+        # B
+        B_n = DIM               # cols
+        B_m = nclasses          # rows
+        B = np.zeros((B_m, B_n))
 
 
-    p = X_train.shape[1]
-    
-    # A
-    #A_n = nwords + BUCKET   # cols
-    A_n = p
-    A_m = DIM               # rows
-    uniform_val = 1.0 / DIM
-    np.random.seed(0)
-    A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
 
-    # B
-    B_n = DIM               # cols
-    B_m = nclasses          # rows
-    B = np.zeros((B_m, B_n))
+        #### train ################################################
 
+        losses_train = []
+        losses_test = []
+        losses_manual = []
 
+        class_error_train = []  
+        class_error_test = []
+        class_error_manual = []
 
-    #### train ################################################
+        prec_train = [] 
+        prec_test = []
+        prec_manual = []
 
-    losses_train = []
-    losses_test = []
-    losses_manual = []
+        recall_train = []
+        recall_test = []
+        recalll_manual = []
 
-    class_error_train = []  
-    class_error_test = []
-    class_error_manual = []
+        F1_train = []
+        F1_test = []
+        F1_manual = []
+        
+        AUC_train = []
+        AUC_test = []
+        AUC_manual = []
 
-    prec_train = [] 
-    prec_test = []
-    prec_manual = []
-
-    recall_train = []
-    recall_test = []
-    recall_manual = []
-
-    F1_train = []
-    F1_test = []
-    F1_manual = []
-    
-    AUC_train = []
-    AUC_test = []
-    AUC_manual = []
-
-    print()
-    print()
-    
-    for i in range(EPOCH):
         print()
-        print("EPOCH: ", i)
+        print()
         
-        # linearly decaying lr alpha
-        alpha = LR * ( 1 - i / EPOCH)
-        
-        l = 0
-        train_loss = 0
-        
-        # TRAINING
-        for x in X_train:       
+        for i in range(EPOCH):
+            print()
+            print("EPOCH: ", i)
             
-            label = y_train[l]
-            B_old = B
-            A_old = A
+            # linearly decaying lr alpha
+            alpha = LR * ( 1 - i / EPOCH)
             
-            # Forward Propogation
-            hidden = sparse.csr_matrix.dot(A_old, x.T)
+            l = 0
+            train_loss = 0
             
-            if np.sum(x) > 0:
-                a1 = hidden / np.sum(x)
-            else:
-                a1 = hidden
+            # TRAINING
+            for x in X_train:       
                 
-            z2 = np.dot(B, a1)
-            exps = np.exp(z2 - np.max(z2))
-            Y_hat = exps / np.sum(exps)
-            
-            # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
-            
-            # verify gradients
-            #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
-            #check_A_gradient(B_old, A_old, label, x, Y_hat)
-            
-            loglike = np.log(Y_hat)
-            train_loss += -np.dot(label, loglike)
-   
-            l += 1
-            
-            
-        # TRAINING LOSS
-        #train_loss = total_loss_function(X_train, y_train, A, B, N_train)
-        train_loss = (1.0/N_train) * train_loss
-        print("Train:   ", train_loss)
-            
-        # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
-        print("Test:    ", test_loss)
-        
-        print("Difference = ", test_loss - train_loss)
-        
-        # MANUAL SET TESTING LOSS
-        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
-        print("Manual Set:    ", manual_loss)
-
-
-        train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train)
-        test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
-        manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual)
-        
-        print()
-        print("TRAIN:")
-        print("         Classification Err: ", train_class_error)
-        print("         Precision:          ", train_precision)
-        print("         Recall:             ", train_recall)
-        print("         F1:                 ", train_F1)
-
-        print("TEST:")
-        print("         Classification Err: ", test_class_error)
-        print("         Precision:          ", test_precision)
-        print("         Recall:             ", test_recall)
-        print("         F1:                 ", test_F1)
-        
-        print()
-        print("MANUAL:")
-        print("         Classification Err: ", manual_class_error)
-        print("         Precision:          ", manual_precision)
-        print("         Recall:             ", manual_recall)
-        print("         F1:                 ", manual_F1)
-        
-        losses_train.append(train_loss)
-        losses_test.append(test_loss)
-        losses_manual.append(manual_loss)
-
-        class_error_train.append(train_class_error)
-        class_error_test.append(test_class_error)
-        class_error_manual.append(manual_class_error)
-
-        prec_train.append(train_precision)
-        prec_test.append(test_precision)
-        prec_manual.append(manual_precision)
-
-        recall_train.append(train_recall)
-        recall_test.append(test_recall)
-        recall_manual.append(manual_recall)
-
-        F1_train.append(train_F1)
-        F1_test.append(test_F1)
-        F1_manual.append(manual_F1)
-        
-        AUC_train.append(train_AUC)
-        AUC_test.append(test_AUC)
-        AUC_manual.append(manual_AUC)
-        
-        i += 1
-        
-        
+                label = y_train[l]
+                B_old = B
+                A_old = A
+                
+                # Forward Propogation
+                hidden = sparse.csr_matrix.dot(A_old, x.T)
+                
+                if np.sum(x) > 0:
+                    a1 = hidden / np.sum(x)
+                else:
+                    a1 = hidden
+                    
+                z2 = np.dot(B, a1)
+                exps = np.exp(z2 - np.max(z2))
+                Y_hat = exps / np.sum(exps)
+                
+                # Back prop with alt optimization
+                B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
+                A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
+                
+                # verify gradients
+                #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
+                #check_A_gradient(B_old, A_old, label, x, Y_hat)
+                
+                loglike = np.log(Y_hat)
+                train_loss += -np.dot(label, loglike)
     
-    # for plotting
-    epochs = [l for l in range(EPOCH)]
+                l += 1
+                
+                
+            # TRAINING LOSS
+            #train_loss = total_loss_function(X_train, y_train, A, B, N_train)
+            train_loss = (1.0/N_train) * train_loss
+            print("Train:   ", train_loss)
+                
+            # TESTING LOSS
+            test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
+            print("Test:    ", test_loss)
+            
+            print("Difference = ", test_loss - train_loss)
+            
+            # MANUAL SET TESTING LOSS
+            manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
+            print("Manual Set:    ", manual_loss)
 
-    plt.plot(epochs, losses_train, 'r', label="training loss")
-    plt.plot(epochs, losses_test, 'b', label="testing loss")
-    plt.plot(epochs, losses_manual, 'g', label="manual loss")
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(loc='upper left')
-    plt.show()
-    
-    plt.plot(epochs, class_error_train, 'r', label="training classification err")
-    plt.plot(epochs, class_error_test, 'b', label="testing classification err")
-    plt.plot(epochs, class_error_manual, 'g', label="manual classification err")
-    plt.ylabel('error')
-    plt.xlabel('epoch')
-    plt.legend(loc='upper left')
-    plt.show()
-    
-    plt.plot(epochs, AUC_train, 'm', label="training AUC scores")
-    plt.plot(epochs, AUC_test, 'c', label="testing AUC scores")
-    plt.plot(epochs, AUC_manual, 'g', label="manual AUC scores")
-    plt.ylabel('AUC Scores')
-    plt.xlabel('Epoch')
-    plt.legend(loc='upper left')
-    plt.show()
+
+            train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train)
+            test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
+            manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual)
+            
+            print()
+            print("TRAIN:")
+            print("         Classification Err: ", train_class_error)
+            print("         Precision:          ", train_precision)
+            print("         Recall:             ", train_recall)
+            print("         F1:                 ", train_F1)
+
+            print("TEST:")
+            print("         Classification Err: ", test_class_error)
+            print("         Precision:          ", test_precision)
+            print("         Recall:             ", test_recall)
+            print("         F1:                 ", test_F1)
+            
+            print()
+            print("MANUAL:")
+            print("         Classification Err: ", manual_class_error)
+            print("         Precision:          ", manual_precision)
+            print("         Recall:             ", manual_recall)
+            print("         F1:                 ", manual_F1)
+            
+            losses_train.append(train_loss)
+            losses_test.append(test_loss)
+            losses_manual.append(manual_loss)
+
+            class_error_train.append(train_class_error)
+            class_error_test.append(test_class_error)
+            class_error_manual.append(manual_class_error)
+
+            prec_train.append(train_precision)
+            prec_test.append(test_precision)
+            prec_manual.append(manual_precision)
+
+            recall_train.append(train_recall)
+            recall_test.append(test_recall)
+            recall_manual.append(manual_recall)
+
+            F1_train.append(train_F1)
+            F1_test.append(test_F1)
+            F1_manual.append(manual_F1)
+            
+            AUC_train.append(train_AUC)
+            AUC_test.append(test_AUC)
+            AUC_manual.append(manual_AUC)
+            
+            i += 1
+            
         
-    plt.plot(epochs,  F1_train, 'm', label="training F1 score")
-    plt.plot(epochs, F1_test, 'c', label="testing F1 score")
-    plt.plot(epochs, F1_manual, 'g', label="manual F1 score")
-    plt.ylabel('F1 Score')
-    plt.xlabel('epoch')
-    plt.legend(loc='upper left')
-    plt.show()
+        #### WRITING LOSSES
+        with open('output/loss_train.txt', 'a') as f:
+            for item in losses_train:
+                f.write("%s\n" % item)
+                
+        with open('output/loss_test.txt', 'a') as f:
+            for item in losses_test:
+                f.write("%s\n" % item)
+                
+        with open('output/loss_manual.txt', 'a') as f:
+            for item in losses_manual:
+                f.write("%s\n" % item)
+                
+        #### WRITING ERROR
+        with open('output/error_train.txt', 'a') as f:
+            for item in class_error_train:
+                f.write("%s\n" % item)
+        
+        with open('output/error_test.txt', 'a') as f:
+            for item in class_error_test:
+                f.write("%s\n" % item)
+                
+        with open('output/error_manual.txt', 'a') as f:
+            for item in class_error_manual:
+                f.write("%s\n" % item)
+                
+        #### WRITING PRECISION
+        with open('output/precision_train.txt', 'a') as f:
+            for item in prec_train:
+                f.write("%s\n" % item)
+                
+        with open('output/precision_test.txt', 'a') as f:
+            for item in prec_test:
+                f.write("%s\n" % item)
+                
+        with open('output/precision_manual.txt', 'a') as f:
+            for item in prec_manual:
+                f.write("%s\n" % item)
+                
+        #### WRITING RECALL
+        with open('output/recall_train.txt', 'a') as f:
+            for item in recall_train:
+                f.write("%s\n" % item)
+                
+        with open('output/recall_test.txt', 'a') as f:
+            for item in recall_test:
+                f.write("%s\n" % item)
+                
+        with open('output/recall_manual.txt', 'a') as f:
+            for item in recall_manual:
+                f.write("%s\n" % item)
+                
+        #### WRITING F1
+        with open('output/F1_train.txt', 'a') as f:
+            for item in F1_train:
+                f.write("%s\n" % item)
+                
+        with open('output/F1_test.txt', 'a') as f:
+            for item in F1_test:
+                f.write("%s\n" % item)
+                
+        with open('output/F1_manual.txt', 'a') as f:
+            for item in F1_manual:
+                f.write("%s\n" % item)
+                
+        #### WRITING AUC
+        with open('output/AUC_train.txt', 'a') as f:
+            for item in AUC_train:
+                f.write("%s\n" % item)
+                
+        with open('output/AUC_test.txt', 'a') as f:
+            for item in AUC_test:
+                f.write("%s\n" % item)
+                
+        with open('output/AUC_manual.txt', 'a') as f:
+            for item in AUC_manual:
+                f.write("%s\n" % item)
+        
+        run += 1
     
-    plt.title('FINAL Receiver Operating Characteristic (ROC curve)')
-    plt.plot([0,1],[0,1],'r--')
-    plt.plot(train_FPR, train_TPR, 'm', label="training, AUC score = %f" % train_AUC)
-    plt.plot(test_FPR, test_TPR, 'c', label="testing, AUC score = %f" % test_AUC)
-    plt.ylabel('TPR')
-    plt.xlabel('FPR')
-    plt.legend(loc='upper left')
-    plt.show()
-
-    plt.plot(recall_train, prec_train, 'm', label="training")
-    plt.plot(recall_test, prec_test, 'c', label="testing")
-    plt.plot(recall_manual, prec_manual, 'g', label="manual")
-    plt.ylabel('Precision')
-    plt.xlabel('Recall')
-    plt.legend(loc='upper left')
-    plt.show()
  
  
  
