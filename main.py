@@ -8,8 +8,8 @@ import numpy as np
 from scipy import sparse
 #from matplotlib import pyplot as plt
 
-#from sklearn.metrics import roc_curve
-#from sklearn.metrics import auc
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
 
 
 
@@ -153,9 +153,9 @@ def main():
     MINN=3
     MAXN=3
     BUCKET=1000000
-    EPOCH=20
+    EPOCH=5
 
-    NUM_RUNS = 10       # number of test runs
+    NUM_RUNS = 5       # number of test runs
     
     print("starting dictionary creation") 
     
@@ -189,7 +189,7 @@ def main():
     
         ##### instantiations #######################################
 
-    for run in range(NUM_RUNS)
+    for run in range(NUM_RUNS):
         p = X_train.shape[1]
         
         # A
@@ -223,7 +223,7 @@ def main():
 
         recall_train = []
         recall_test = []
-        recalll_manual = []
+        recall_manual = []
 
         F1_train = []
         F1_test = []
@@ -347,80 +347,80 @@ def main():
             
         
         #### WRITING LOSSES
-        with open('output/loss_train.txt', 'a') as f:
+        with open('output/loss_train.txt', '+a') as f:
             for item in losses_train:
                 f.write("%s\n" % item)
                 
-        with open('output/loss_test.txt', 'a') as f:
+        with open('output/loss_test.txt', '+a') as f:
             for item in losses_test:
                 f.write("%s\n" % item)
                 
-        with open('output/loss_manual.txt', 'a') as f:
+        with open('output/loss_manual.txt', '+a') as f:
             for item in losses_manual:
                 f.write("%s\n" % item)
                 
         #### WRITING ERROR
-        with open('output/error_train.txt', 'a') as f:
+        with open('output/error_train.txt', '+a') as f:
             for item in class_error_train:
                 f.write("%s\n" % item)
         
-        with open('output/error_test.txt', 'a') as f:
+        with open('output/error_test.txt', '+a') as f:
             for item in class_error_test:
                 f.write("%s\n" % item)
                 
-        with open('output/error_manual.txt', 'a') as f:
+        with open('output/error_manual.txt', '+a') as f:
             for item in class_error_manual:
                 f.write("%s\n" % item)
                 
         #### WRITING PRECISION
-        with open('output/precision_train.txt', 'a') as f:
+        with open('output/precision_train.txt', '+a') as f:
             for item in prec_train:
                 f.write("%s\n" % item)
                 
-        with open('output/precision_test.txt', 'a') as f:
+        with open('output/precision_test.txt', '+a') as f:
             for item in prec_test:
                 f.write("%s\n" % item)
                 
-        with open('output/precision_manual.txt', 'a') as f:
+        with open('output/precision_manual.txt', '+a') as f:
             for item in prec_manual:
                 f.write("%s\n" % item)
                 
         #### WRITING RECALL
-        with open('output/recall_train.txt', 'a') as f:
+        with open('output/recall_train.txt', '+a') as f:
             for item in recall_train:
                 f.write("%s\n" % item)
                 
-        with open('output/recall_test.txt', 'a') as f:
+        with open('output/recall_test.txt', '+a') as f:
             for item in recall_test:
                 f.write("%s\n" % item)
                 
-        with open('output/recall_manual.txt', 'a') as f:
+        with open('output/recall_manual.txt', '+a') as f:
             for item in recall_manual:
                 f.write("%s\n" % item)
                 
         #### WRITING F1
-        with open('output/F1_train.txt', 'a') as f:
+        with open('output/F1_train.txt', '+a') as f:
             for item in F1_train:
                 f.write("%s\n" % item)
                 
-        with open('output/F1_test.txt', 'a') as f:
+        with open('output/F1_test.txt', '+a') as f:
             for item in F1_test:
                 f.write("%s\n" % item)
                 
-        with open('output/F1_manual.txt', 'a') as f:
+        with open('output/F1_manual.txt', '+a') as f:
             for item in F1_manual:
                 f.write("%s\n" % item)
                 
         #### WRITING AUC
-        with open('output/AUC_train.txt', 'a') as f:
+        with open('output/AUC_train.txt', '+a') as f:
             for item in AUC_train:
                 f.write("%s\n" % item)
                 
-        with open('output/AUC_test.txt', 'a') as f:
+        with open('output/AUC_test.txt', '+a') as f:
             for item in AUC_test:
                 f.write("%s\n" % item)
                 
-        with open('output/AUC_manual.txt', 'a') as f:
+        with open('output/AUC_manual.txt', '+a') as f:
             for item in AUC_manual:
                 f.write("%s\n" % item)
         

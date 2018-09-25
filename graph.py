@@ -284,8 +284,8 @@ def main():
     graph_error(error_train, error_test, error_manual, EPOCH)
     graph_auc(AUC_train, AUC_test, AUC_manual, EPOCH)
     graph_f1(F1_train, F1_test, F1_manual, EPOCH)
-    graph_roc(train_FPR, train_TPR, test_FPR, test_TPR, manual_FPR, manual_TPR, train_AUC, test_AUC, manual_AUC)
-    graph_precrecall(recall_train, recall_test, recall_manual, prec_train, prec_test, prec_manual)
+    #graph_roc(train_FPR, train_TPR, test_FPR, test_TPR, manual_FPR, manual_TPR, train_AUC, test_AUC, manual_AUC)
+    #graph_precrecall(recall_train, recall_test, recall_manual, prec_train, prec_test, prec_manual)
     
     
 if __name__ == '__main__':
