@@ -20,18 +20,19 @@ class Dictionary:
 
         self.subset_value = 300
 
-        #self.file_train = open('../data/query_gender.train', encoding='utf8').readlines()  
-        self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() 
+        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() 
+        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        #self.file_test = open('../data/query_gender.test', encoding='utf8').readlines() 
-        self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() 
+        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() 
+        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         self.file_train.extend(self.file_test)
         self.dataset = self.file_train
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
-        self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()
+        self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()
+        #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()		# home desk comp
         self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams
