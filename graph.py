@@ -8,24 +8,29 @@ from sklearn.metrics import auc
 import pandas as pd
 import numpy as np
 
+def remove_brackets(df):
+    i = 0
+    while i < len(df.columns):
+        df[i] = df[i].str.strip("[]").astype('float64') 
+        i += 1
+    return df
 
 
-def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
+def graph_loss(losses_train, losses_test, losses_manual, EPOCH):    
     epochs = [l for l in range(EPOCH)]
     
     # train
-    print(losses_train)
+    losses_train = losses_train.drop(5, axis=1)
+    losses_train = remove_brackets(losses_train)
     summary_train = losses_train.describe()
-    print(summary_train)
-    
     mean_train = np.array(summary_train.loc[['mean']])
-    print(mean_train)
-    
     std_train = np.array(summary_train.loc[['std']])
     mean_train.resize((EPOCH))
     std_train.resize((EPOCH))
     
     # test
+    losses_test = losses_test.drop(5, axis=1)
+    losses_test = remove_brackets(losses_test)
     summary_test = losses_test.describe()
     mean_test = np.array(summary_test.loc[['mean']])
     std_test = np.array(summary_test.loc[['std']])
@@ -33,6 +38,8 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     std_test.resize((EPOCH))
     
     # manual
+    losses_manual = losses_manual.drop(5, axis=1)
+    losses_manual = remove_brackets(losses_manual)
     summary_manual = losses_manual.describe()
     mean_manual = np.array(summary_manual.loc[['mean']])
     std_manual = np.array(summary_manual.loc[['std']])
@@ -53,13 +60,17 @@ def graph_error(class_error_train, class_error_test, class_error_manual, EPOCH):
     epochs = [l for l in range(EPOCH)]
     
     # train
+    class_error_train = class_error_train.drop(5, axis=1)
     summary_train = class_error_train.describe()
+    print(class_error_train)
+    print(summary_train)
     mean_train = np.array(summary_train.loc[['mean']])
     std_train = np.array(summary_train.loc[['std']])
     mean_train.resize((EPOCH))
     std_train.resize((EPOCH))
     
     # test
+    #class_error_test = class_error_test.drop(5, axis=1)
     summary_test = class_error_test.describe()
     mean_test = np.array(summary_test.loc[['mean']])
     std_test = np.array(summary_test.loc[['std']])
@@ -67,6 +78,7 @@ def graph_error(class_error_train, class_error_test, class_error_manual, EPOCH):
     std_test.resize((EPOCH))
     
     # manual
+    #class_error_manual = class_error_manual.drop(5, axis=1)
     summary_manual = class_error_manual.describe()
     mean_manual = np.array(summary_manual.loc[['mean']])
     std_manual = np.array(summary_manual.loc[['std']])
@@ -251,38 +263,34 @@ def graph_precrecall(recall_train, recall_test, recall_manual, prec_train, prec_
     plt.show()
             
 
-def main():
-    #EPOCHS = 20
-    #NUM_RUNS = 10
-    
-    EPOCH = 6
-    NUM_RUNS = 3
+def main():    
+    EPOCH = 5   # WARNING: must match main.py
         
     df = pd.read_csv('test.txt', sep=" ", header=None)
     
-    loss_train = pd.read_csv('output/loss_train.txt', sep=" ", header=None)
-    loss_test = pd.read_csv('output/loss_test.txt', sep=" ", header=None)
-    loss_manual = pd.read_csv('output/loss_manual.txt', sep=" ", header=None)
+    loss_train = pd.read_csv('output/loss_train.txt', sep=",", header=None)
+    loss_test = pd.read_csv('output/loss_test.txt', sep=",", header=None)
+    loss_manual = pd.read_csv('output/loss_manual.txt', sep=",", header=None)
 
-    error_train = pd.read_csv('output/error_train.txt', sep=" ", header=None)
-    error_test = pd.read_csv('output/error_test.txt', sep=" ", header=None)
-    error_mnaual = pd.read_csv('output/error_manual.txt', sep=" ", header=None)
+    error_train = pd.read_csv('output/error_train.txt', sep=",", header=None)
+    error_test = pd.read_csv('output/error_test.txt', sep=",", header=None)
+    error_manual = pd.read_csv('output/error_manual.txt', sep=",", header=None)
                 
-    precision_train = pd.read_csv('output/precision_train.txt', sep=" ", header=None)
-    precision_test = pd.read_csv('output/precision_test.txt', sep=" ", header=None)
-    precision_manual = pd.read_csv('output/precision_manual.txt', sep=" ", header=None)
+    precision_train = pd.read_csv('output/precision_train.txt', sep=",", header=None)
+    precision_test = pd.read_csv('output/precision_test.txt', sep=",", header=None)
+    precision_manual = pd.read_csv('output/precision_manual.txt', sep=",", header=None)
         
-    recall_train = pd.read_csv('output/recall_train.txt', sep=" ", header=None)
-    recall_test = pd.read_csv('output/recall_test.txt', sep=" ", header=None)
-    recall_manual = pd.read_csv('output/recall_manual.txt', sep=" ", header=None)
+    recall_train = pd.read_csv('output/recall_train.txt', sep=",", header=None)
+    recall_test = pd.read_csv('output/recall_test.txt', sep=",", header=None)
+    recall_manual = pd.read_csv('output/recall_manual.txt', sep=",", header=None)
     
-    F1_train = pd.read_csv('output/F1_train.txt', sep=" ", header=None)
-    F1_test = pd.read_csv('output/F1_test.txt', sep=" ", header=None)
-    F1_manual = pd.read_csv('output/F1_manual.txt', sep=" ", header=None)
+    F1_train = pd.read_csv('output/F1_train.txt', sep=",", header=None)
+    F1_test = pd.read_csv('output/F1_test.txt', sep=",", header=None)
+    F1_manual = pd.read_csv('output/F1_manual.txt', sep=",", header=None)
         
-    AUC_train = pd.read_csv('output/AUC_train.txt', sep=" ", header=None)
-    AUC_test = pd.read_csv('output/AUC_test.txt', sep=" ", header=None)
-    AUC_manual = pd.read_csv('output/AUC_manual.txt', sep=" ", header=None)
+    AUC_train = pd.read_csv('output/AUC_train.txt', sep=",", header=None)
+    AUC_test = pd.read_csv('output/AUC_test.txt', sep=",", header=None)
+    AUC_manual = pd.read_csv('output/AUC_manual.txt', sep=",", header=None)
 
 
     graph_loss(loss_train, loss_test, loss_manual, EPOCH)

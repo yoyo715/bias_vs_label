@@ -11,3 +11,8 @@
 2. Run main program
 
 	- python3 main.py
+
+
+
+
+Neural Kernel Network https://arxiv.org/pdf/1806.04326.pdf
