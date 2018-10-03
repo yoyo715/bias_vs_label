@@ -186,8 +186,14 @@ def main():
     print("N each class Manual testing instances: ", nmanual_eachclass)
     print("################################################################")
     
+    file_names = ['output/loss_train.txt', 'output/loss_test.txt', 'output/loss_manual.txt',
+                  'output/error_train.txt', 'output/error_test.txt', 'output/error_manual.txt',
+                  'output/precision_train.txt', 'output/precision_test.txt', 'output/precision_manual.txt',
+                  'output/recall_train.txt', 'output/recall_test.txt', 'output/recall_manual.txt',
+                  'output/F1_train.txt', 'output/F1_test.txt', 'output/F1_manual.txt',
+                  'output/AUC_train.txt', 'output/AUC_test.txt', 'output/AUC_manual.txt']
     
-        ##### instantiations #######################################
+    ##### instantiations #######################################
 
     for run in range(NUM_RUNS):
         p = X_train.shape[1]
@@ -209,29 +215,29 @@ def main():
 
         #### train ################################################
 
-        losses_train = []
-        losses_test = []
-        losses_manual = []
+        #losses_train = []
+        #losses_test = []
+        #losses_manual = []
 
-        class_error_train = []  
-        class_error_test = []
-        class_error_manual = []
+        #class_error_train = []  
+        #class_error_test = []
+        #class_error_manual = []
 
-        prec_train = [] 
-        prec_test = []
-        prec_manual = []
+        #prec_train = [] 
+        #prec_test = []
+        #prec_manual = []
 
-        recall_train = []
-        recall_test = []
-        recall_manual = []
+        #recall_train = []
+        #recall_test = []
+        #recall_manual = []
 
-        F1_train = []
-        F1_test = []
-        F1_manual = []
+        #F1_train = []
+        #F1_test = []
+        #F1_manual = []
         
-        AUC_train = []
-        AUC_test = []
-        AUC_manual = []
+        #AUC_train = []
+        #AUC_test = []
+        #AUC_manual = []
 
         print()
         print()
@@ -319,110 +325,98 @@ def main():
             print("         Recall:             ", manual_recall)
             print("         F1:                 ", manual_F1)
             
-            losses_train.append(train_loss)
-            losses_test.append(test_loss)
-            losses_manual.append(manual_loss)
+            #losses_train.append(train_loss)
+            #losses_test.append(test_loss)
+            #losses_manual.append(manual_loss)
 
-            class_error_train.append(train_class_error)
-            class_error_test.append(test_class_error)
-            class_error_manual.append(manual_class_error)
+            #class_error_train.append(train_class_error)
+            #class_error_test.append(test_class_error)
+            #class_error_manual.append(manual_class_error)
 
-            prec_train.append(train_precision)
-            prec_test.append(test_precision)
-            prec_manual.append(manual_precision)
+            #prec_train.append(train_precision)
+            #prec_test.append(test_precision)
+            #prec_manual.append(manual_precision)
 
-            recall_train.append(train_recall)
-            recall_test.append(test_recall)
-            recall_manual.append(manual_recall)
+            #recall_train.append(train_recall)
+            #recall_test.append(test_recall)
+            #recall_manual.append(manual_recall)
 
-            F1_train.append(train_F1)
-            F1_test.append(test_F1)
-            F1_manual.append(manual_F1)
+            #F1_train.append(train_F1)
+            #F1_test.append(test_F1)
+            #F1_manual.append(manual_F1)
             
-            AUC_train.append(train_AUC)
-            AUC_test.append(test_AUC)
-            AUC_manual.append(manual_AUC)
+            #AUC_train.append(train_AUC)
+            #AUC_test.append(test_AUC)
+            #AUC_manual.append(manual_AUC)
+            
+            #### WRITING LOSSES
+            with open('output/loss_train.txt', '+a') as f:
+                f.write("%s," % train_loss)
+                    
+            with open('output/loss_test.txt', '+a') as f:
+                f.write("%s," % test_loss)
+                    
+            with open('output/loss_manual.txt', '+a') as f:
+                f.write("%s," % manual_loss)
+                    
+            #### WRITING ERROR
+            with open('output/error_train.txt', '+a') as f:
+                f.write("%s," % train_class_error)
+            
+            with open('output/error_test.txt', '+a') as f:
+                f.write("%s," % test_class_error)
+                    
+            with open('output/error_manual.txt', '+a') as f:
+                f.write("%s," % manual_class_error)
+                    
+            #### WRITING PRECISION
+            with open('output/precision_train.txt', '+a') as f:
+                f.write("%s," % train_precision)
+                    
+            with open('output/precision_test.txt', '+a') as f:
+                f.write("%s," % test_precision)
+                    
+            with open('output/precision_manual.txt', '+a') as f:
+                f.write("%s," % manual_precision)
+                    
+            #### WRITING RECALL
+            with open('output/recall_train.txt', '+a') as f:
+                f.write("%s," % train_recall)
+                    
+            with open('output/recall_test.txt', '+a') as f:
+                f.write("%s," % test_recall)
+                    
+            with open('output/recall_manual.txt', '+a') as f:
+                f.write("%s," % manual_recall)
+                    
+            #### WRITING F1
+            with open('output/F1_train.txt', '+a') as f:
+                f.write("%s," % train_F1)
+                    
+            with open('output/F1_test.txt', '+a') as f:
+                f.write("%s," % test_F1)
+                    
+            with open('output/F1_manual.txt', '+a') as f:
+                f.write("%s," % manual_F1)
+                    
+            #### WRITING AUC
+            with open('output/AUC_train.txt', '+a') as f:
+                f.write("%s," % train_AUC)
+                    
+            with open('output/AUC_test.txt', '+a') as f:
+                f.write("%s," % test_AUC)
+                    
+            with open('output/AUC_manual.txt', '+a') as f:
+                f.write("%s," % manual_AUC)
             
             i += 1
             
+            
+        # writing newline to file after each trial
+        for name in file_names:
+            with open(name, '+a') as f:
+                f.write('\n')
         
-        #### WRITING LOSSES
-        with open('output/loss_train.txt', '+a') as f:
-            for item in losses_train:
-                f.write("%s\n" % item)
-                
-        with open('output/loss_test.txt', '+a') as f:
-            for item in losses_test:
-                f.write("%s\n" % item)
-                
-        with open('output/loss_manual.txt', '+a') as f:
-            for item in losses_manual:
-                f.write("%s\n" % item)
-                
-        #### WRITING ERROR
-        with open('output/error_train.txt', '+a') as f:
-            for item in class_error_train:
-                f.write("%s\n" % item)
-        
-        with open('output/error_test.txt', '+a') as f:
-            for item in class_error_test:
-                f.write("%s\n" % item)
-                
-        with open('output/error_manual.txt', '+a') as f:
-            for item in class_error_manual:
-                f.write("%s\n" % item)
-                
-        #### WRITING PRECISION
-        with open('output/precision_train.txt', '+a') as f:
-            for item in prec_train:
-                f.write("%s\n" % item)
-                
-        with open('output/precision_test.txt', '+a') as f:
-            for item in prec_test:
-                f.write("%s\n" % item)
-                
-        with open('output/precision_manual.txt', '+a') as f:
-            for item in prec_manual:
-                f.write("%s\n" % item)
-                
-        #### WRITING RECALL
-        with open('output/recall_train.txt', '+a') as f:
-            for item in recall_train:
-                f.write("%s\n" % item)
-                
-        with open('output/recall_test.txt', '+a') as f:
-            for item in recall_test:
-                f.write("%s\n" % item)
-                
-        with open('output/recall_manual.txt', '+a') as f:
-            for item in recall_manual:
-                f.write("%s\n" % item)
-                
-        #### WRITING F1
-        with open('output/F1_train.txt', '+a') as f:
-            for item in F1_train:
-                f.write("%s\n" % item)
-                
-        with open('output/F1_test.txt', '+a') as f:
-            for item in F1_test:
-                f.write("%s\n" % item)
-                
-        with open('output/F1_manual.txt', '+a') as f:
-            for item in F1_manual:
-                f.write("%s\n" % item)
-                
-        #### WRITING AUC
-        with open('output/AUC_train.txt', '+a') as f:
-            for item in AUC_train:
-                f.write("%s\n" % item)
-                
-        with open('output/AUC_test.txt', '+a') as f:
-            for item in AUC_test:
-                f.write("%s\n" % item)
-                
-        with open('output/AUC_manual.txt', '+a') as f:
-            for item in AUC_manual:
-                f.write("%s\n" % item)
         
         run += 1
     

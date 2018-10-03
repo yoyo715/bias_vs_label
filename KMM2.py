@@ -1,8 +1,11 @@
 # main.py
 
+# This program includes the KMM reweighting coefficient beta
+
 #from dictionary import Dictionary
 #from dictionary_updated import Dictionary2
 from dictionary3 import Dictionary
+# from optbeta import get_optbeta
 
 import numpy as np
 from scipy import sparse
@@ -25,17 +28,17 @@ def compute_normalized_hidden(x, A):
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
-    gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat, beta):    
+    gradient = alpha * np.dot(beta, np.dot(np.subtract(Y_hat.T, label).T, hidden.T))
     B_new = np.subtract(B, gradient)
 
     return B_new
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, beta):
     A_old = A
-    first = np.dot(np.subtract(Y_hat.T, label), B)
+    first = np.dot(beta, np.dot(np.subtract(Y_hat.T, label), B))
     
     if np.sum(x) > 0:
         sec = x * (1.0/np.sum(x))
@@ -56,18 +59,18 @@ def stable_softmax(x, A, B):
 
 
 # finds the loss
-def loss_function(x, A, B, label):
+def loss_function(x, A, B, label, beta):
     loglike = np.log(stable_softmax(x, A, B))
-    return -np.dot(label, loglike)
+    return -np.dot(beta, np.dot(label, loglike))
 
 
 # computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N):
+def total_loss_function(X, Y, A, B, N, beta):
     i = 0
     total_loss = 0
     for x in X:
         label = Y[i]
-        loss = loss_function(x, A, B, label)
+        loss = loss_function(x, A, B, label, beta)
         total_loss += loss
         i += 1
         
@@ -187,6 +190,8 @@ def main():
     print("################################################################")
     
     
+    beta = get_optbeta()    # NOTE: optimal KMM reweighting coefficient
+    
     ##### instantiations #######################################
     
     p = X_train.shape[1]
@@ -265,15 +270,15 @@ def main():
             Y_hat = exps / np.sum(exps)
             
             # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat, beta)  
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, beta)
             
             # verify gradients
             #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
             #check_A_gradient(B_old, A_old, label, x, Y_hat)
             
             loglike = np.log(Y_hat)
-            train_loss += -np.dot(label, loglike)
+            train_loss += -np.dot(beta, np.dot(label, loglike))
 
             l += 1
             
@@ -284,13 +289,13 @@ def main():
         print("Train:   ", train_loss)
             
         # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
+        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test, beta)
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)
         
         # MANUAL SET TESTING LOSS
-        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
+        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual, beta)
         print("Manual Set:    ", manual_loss)
 
 

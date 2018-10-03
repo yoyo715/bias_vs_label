@@ -278,6 +278,8 @@ class Dictionary:
     def get_train_and_test(self):
         return self.train_bag_ngrams, self.test_bag_ngrams, self.label_vec, self.test_label_vec
     
+    def get_trainset(self):
+        return self.train_bag_ngrams
 
     def get_manual_testset(self):
         return self.manual_test_bag_ngrams

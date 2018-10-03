@@ -14,8 +14,13 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     epochs = [l for l in range(EPOCH)]
     
     # train
+    print(losses_train)
     summary_train = losses_train.describe()
+    print(summary_train)
+    
     mean_train = np.array(summary_train.loc[['mean']])
+    print(mean_train)
+    
     std_train = np.array(summary_train.loc[['std']])
     mean_train.resize((EPOCH))
     std_train.resize((EPOCH))
@@ -34,9 +39,9 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', 'b', marker='s', mfc='orange', barsabove=True, capsize=5, label="training loss")
-    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', 'r', marker='s', mfc='orange', barsabove=True, capsize=5, label="testing loss")
-    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', 'g', marker='s', mfc='orange', barsabove=True, capsize=5, label="manual loss")
+    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="training loss")
+    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="testing loss")
+    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="manual loss")
     
     plt.ylabel('loss')
     plt.xlabel('epoch')
@@ -68,11 +73,11 @@ def graph_error(class_error_train, class_error_test, class_error_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', 'b', marker='s',
+    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="training classification error")
-    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', 'r', marker='s',
+    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="testing classification error")
-    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', 'g', marker='s',
+    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="manual classification error")
     
     plt.ylabel('error')
@@ -105,11 +110,11 @@ def graph_auc(AUC_train, AUC_test, AUC_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', 'b', marker='s',
+    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="training AUC scores")
-    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', 'r', marker='s',
+    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="testing AUC scores")
-    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', 'g', marker='s',
+    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="manual AUC scores")
     
     plt.ylabel('AUC scores')
@@ -142,11 +147,11 @@ def graph_f1(F1_train, F1_test, F1_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', 'b', marker='s',
+    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="training F1")
-    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', 'r', marker='s',
+    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="testing F1")
-    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', 'g', marker='s',
+    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s',
                  mfc='orange', barsabove=True, capsize=5, label="manual F1")
     
     plt.ylabel('F1')
@@ -281,9 +286,9 @@ def main():
 
 
     graph_loss(loss_train, loss_test, loss_manual, EPOCH)
-    graph_error(error_train, error_test, error_manual, EPOCH)
-    graph_auc(AUC_train, AUC_test, AUC_manual, EPOCH)
-    graph_f1(F1_train, F1_test, F1_manual, EPOCH)
+    #graph_error(error_train, error_test, error_manual, EPOCH)
+    #graph_auc(AUC_train, AUC_test, AUC_manual, EPOCH)
+    #graph_f1(F1_train, F1_test, F1_manual, EPOCH)
     #graph_roc(train_FPR, train_TPR, test_FPR, test_TPR, manual_FPR, manual_TPR, train_AUC, test_AUC, manual_AUC)
     #graph_precrecall(recall_train, recall_test, recall_manual, prec_train, prec_test, prec_manual)
     
