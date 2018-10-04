@@ -20,7 +20,7 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     epochs = [l for l in range(EPOCH)]
     
     # train
-    losses_train = losses_train.drop(5, axis=1)
+    losses_train = losses_train.drop(losses_train.columns[-1],axis=1)
     losses_train = remove_brackets(losses_train)
     summary_train = losses_train.describe()
     mean_train = np.array(summary_train.loc[['mean']])
@@ -29,7 +29,7 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     std_train.resize((EPOCH))
     
     # test
-    losses_test = losses_test.drop(5, axis=1)
+    losses_test = losses_test.drop(losses_test.columns[-1],axis=1)
     losses_test = remove_brackets(losses_test)
     summary_test = losses_test.describe()
     mean_test = np.array(summary_test.loc[['mean']])
@@ -38,7 +38,7 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     std_test.resize((EPOCH))
     
     # manual
-    losses_manual = losses_manual.drop(5, axis=1)
+    losses_manual = losses_manual.drop(losses_manual.columns[-1],axis=1)
     losses_manual = remove_brackets(losses_manual)
     summary_manual = losses_manual.describe()
     mean_manual = np.array(summary_manual.loc[['mean']])
@@ -46,7 +46,8 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="training loss")
+    
+    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',  mfc='orange', barsabove=True, capsize=5, label="training loss")
     plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="testing loss")
     plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="manual loss")
     
@@ -264,7 +265,7 @@ def graph_precrecall(recall_train, recall_test, recall_manual, prec_train, prec_
             
 
 def main():    
-    EPOCH = 5   # WARNING: must match main.py
+    EPOCH = 20   # WARNING: must match main.py
         
     df = pd.read_csv('test.txt', sep=" ", header=None)
     

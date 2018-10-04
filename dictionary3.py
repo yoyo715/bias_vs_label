@@ -10,7 +10,8 @@
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from sklearn.cross_validation import train_test_split
+#from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import numpy as np
 import random, re
 
@@ -20,19 +21,19 @@ class Dictionary:
 
         self.subset_value = 300
 
-        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() 
-        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
+        #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() 
+        self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() 
-        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
+        #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() 
+        self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         self.file_train.extend(self.file_test)
         self.dataset = self.file_train
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
-        self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()
-        #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()		# home desk comp
+        #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()
+        self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()		# home desk comp
         self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams

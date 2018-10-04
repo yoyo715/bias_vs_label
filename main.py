@@ -153,38 +153,9 @@ def main():
     MINN=3
     MAXN=3
     BUCKET=1000000
-    EPOCH=5
+    EPOCH=20
 
     NUM_RUNS = 5       # number of test runs
-    
-    print("starting dictionary creation") 
-    
-    # initialize training
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
-    nwords = dictionary.get_nwords()
-    nclasses = dictionary.get_nclasses()
-    
-    #initialize testing
-    X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-    N_train = dictionary.get_n_train_instances()
-    N_test = dictionary.get_n_test_instances()
-    
-    print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
-    ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
-    ntest_eachclass = dictionary.get_nlabels_eachclass_test()
-    print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
-    
-    
-    # manual labeled set (Kaggle dataset)
-    X_manual = dictionary.get_manual_testset()
-    y_manual = dictionary.get_manual_set_labels()
-    N_manual = dictionary.get_n_manual_instances()
-    print()
-    print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
-    nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
-    print("N each class Manual testing instances: ", nmanual_eachclass)
-    print("################################################################")
     
     file_names = ['output/loss_train.txt', 'output/loss_test.txt', 'output/loss_manual.txt',
                   'output/error_train.txt', 'output/error_test.txt', 'output/error_manual.txt',
@@ -193,9 +164,74 @@ def main():
                   'output/F1_train.txt', 'output/F1_test.txt', 'output/F1_manual.txt',
                   'output/AUC_train.txt', 'output/AUC_test.txt', 'output/AUC_manual.txt']
     
+    #print("starting dictionary creation") 
+    
+    ## initialize training
+    #dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
+    #nwords = dictionary.get_nwords()
+    #nclasses = dictionary.get_nclasses()
+    
+    ##initialize testing
+    #X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
+    #print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    #N_train = dictionary.get_n_train_instances()
+    #N_test = dictionary.get_n_test_instances()
+    
+    #print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
+    #ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
+    #ntest_eachclass = dictionary.get_nlabels_eachclass_test()
+    #print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
+    
+    
+    ## manual labeled set (Kaggle dataset)
+    #X_manual = dictionary.get_manual_testset()
+    #y_manual = dictionary.get_manual_set_labels()
+    #N_manual = dictionary.get_n_manual_instances()
+    #print()
+    #print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+    #nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
+    #print("N each class Manual testing instances: ", nmanual_eachclass)
+    #print("################################################################")
+    #print()
+    
+    
     ##### instantiations #######################################
 
     for run in range(NUM_RUNS):
+        print("*******************************************************RUN NUMBER: ", run)
+        print()
+        
+        print("starting dictionary creation") 
+    
+        # dictionary must be recreated each run to get different subsample each time
+        # initialize training
+        dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
+        nwords = dictionary.get_nwords()
+        nclasses = dictionary.get_nclasses()
+        
+        #initialize testing
+        X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
+        print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+        N_train = dictionary.get_n_train_instances()
+        N_test = dictionary.get_n_test_instances()
+        
+        print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
+        ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
+        ntest_eachclass = dictionary.get_nlabels_eachclass_test()
+        print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
+        
+        
+        # manual labeled set (Kaggle dataset)
+        X_manual = dictionary.get_manual_testset()
+        y_manual = dictionary.get_manual_set_labels()
+        N_manual = dictionary.get_n_manual_instances()
+        print()
+        print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+        nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
+        print("N each class Manual testing instances: ", nmanual_eachclass)
+        print("#####################################")
+        
+        
         p = X_train.shape[1]
         
         # A
@@ -214,30 +250,6 @@ def main():
 
 
         #### train ################################################
-
-        #losses_train = []
-        #losses_test = []
-        #losses_manual = []
-
-        #class_error_train = []  
-        #class_error_test = []
-        #class_error_manual = []
-
-        #prec_train = [] 
-        #prec_test = []
-        #prec_manual = []
-
-        #recall_train = []
-        #recall_test = []
-        #recall_manual = []
-
-        #F1_train = []
-        #F1_test = []
-        #F1_manual = []
-        
-        #AUC_train = []
-        #AUC_test = []
-        #AUC_manual = []
 
         print()
         print()
@@ -325,29 +337,6 @@ def main():
             print("         Recall:             ", manual_recall)
             print("         F1:                 ", manual_F1)
             
-            #losses_train.append(train_loss)
-            #losses_test.append(test_loss)
-            #losses_manual.append(manual_loss)
-
-            #class_error_train.append(train_class_error)
-            #class_error_test.append(test_class_error)
-            #class_error_manual.append(manual_class_error)
-
-            #prec_train.append(train_precision)
-            #prec_test.append(test_precision)
-            #prec_manual.append(manual_precision)
-
-            #recall_train.append(train_recall)
-            #recall_test.append(test_recall)
-            #recall_manual.append(manual_recall)
-
-            #F1_train.append(train_F1)
-            #F1_test.append(test_F1)
-            #F1_manual.append(manual_F1)
-            
-            #AUC_train.append(train_AUC)
-            #AUC_test.append(test_AUC)
-            #AUC_manual.append(manual_AUC)
             
             #### WRITING LOSSES
             with open('output/loss_train.txt', '+a') as f:
