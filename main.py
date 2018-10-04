@@ -164,36 +164,6 @@ def main():
                   'output/F1_train.txt', 'output/F1_test.txt', 'output/F1_manual.txt',
                   'output/AUC_train.txt', 'output/AUC_test.txt', 'output/AUC_manual.txt']
     
-    #print("starting dictionary creation") 
-    
-    ## initialize training
-    #dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
-    #nwords = dictionary.get_nwords()
-    #nclasses = dictionary.get_nclasses()
-    
-    ##initialize testing
-    #X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
-    #print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-    #N_train = dictionary.get_n_train_instances()
-    #N_test = dictionary.get_n_test_instances()
-    
-    #print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
-    #ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
-    #ntest_eachclass = dictionary.get_nlabels_eachclass_test()
-    #print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
-    
-    
-    ## manual labeled set (Kaggle dataset)
-    #X_manual = dictionary.get_manual_testset()
-    #y_manual = dictionary.get_manual_set_labels()
-    #N_manual = dictionary.get_n_manual_instances()
-    #print()
-    #print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
-    #nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
-    #print("N each class Manual testing instances: ", nmanual_eachclass)
-    #print("################################################################")
-    #print()
-    
     
     ##### instantiations #######################################
 

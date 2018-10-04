@@ -19,21 +19,21 @@ import random, re
 class Dictionary:
     def __init__(self, ngrams, mincount, bucket):
 
-        self.subset_value = 300
+        self.subset_value = 150
 
-        #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() 
-        self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
+        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() 
+        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() 
-        self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
+        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() 
+        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         self.file_train.extend(self.file_test)
         self.dataset = self.file_train
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
-        #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()
-        self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()		# home desk comp
+        self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()
+        #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()		# home desk comp
         self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams
@@ -168,11 +168,12 @@ class Dictionary:
 
     def create_bagngrams(self): 
         #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
-        #data_features = self.vectorizer.fit_transform(self.X_train) 
+
+        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,1))
-        data_features = self.vectorizer.fit_transform(self.X_train)
+        #self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,1))
+        #data_features = self.vectorizer.fit_transform(self.X_train)
            
         self.train_bag_ngrams = data_features
         
@@ -193,7 +194,7 @@ class Dictionary:
     # index 1: label 1
     def create_train_labels(self):
         labels = np.zeros((self.n_train_instances, self.nclasses))
-        print("train labels shape:", labels.shape)
+        #print("train labels shape:", labels.shape)
         
         self.train_males = 0
         self.train_females = 0
@@ -216,7 +217,7 @@ class Dictionary:
     # index 1: label 1
     def create_test_labels(self):
         labels = np.zeros((self.n_test_instances, self.nclasses))
-        print("test labels shape:", labels.shape)
+        #print("test labels shape:", labels.shape)
         
         self.test_males = 0
         self.test_females = 0
@@ -239,7 +240,7 @@ class Dictionary:
     # index 1: label 1
     def create_manual_labels(self):
         labels = np.zeros((self.n_manual_instances, self.nclasses))
-        print("manual labels shape:", labels.shape)
+        #print("manual labels shape:", labels.shape)
         
         self.manual_males = 0
         self.manual_females = 0
