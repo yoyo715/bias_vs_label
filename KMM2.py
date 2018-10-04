@@ -2,10 +2,7 @@
 
 # This program includes the KMM reweighting coefficient beta
 
-#from dictionary import Dictionary
-#from dictionary_updated import Dictionary2
 from dictionary3 import Dictionary
-# from optbeta import get_optbeta
 
 import numpy as np
 from scipy import sparse
@@ -28,17 +25,17 @@ def compute_normalized_hidden(x, A):
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat, beta):    
-    gradient = alpha * np.dot(beta, np.dot(np.subtract(Y_hat.T, label).T, hidden.T))
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat, beta_n):    
+    gradient = alpha * beta_n * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     B_new = np.subtract(B, gradient)
 
     return B_new
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, beta):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, beta_n):
     A_old = A
-    first = np.dot(beta, np.dot(np.subtract(Y_hat.T, label), B))
+    first = beta_n * np.dot(np.subtract(Y_hat.T, label), B)
     
     if np.sum(x) > 0:
         sec = x * (1.0/np.sum(x))
@@ -59,9 +56,9 @@ def stable_softmax(x, A, B):
 
 
 # finds the loss
-def loss_function(x, A, B, label, beta):
+def loss_function(x, A, B, label, beta_n):
     loglike = np.log(stable_softmax(x, A, B))
-    return -np.dot(beta, np.dot(label, loglike))
+    return -beta * np.dot(label, loglike)
 
 
 # computes the loss over entire dataset
@@ -69,8 +66,9 @@ def total_loss_function(X, Y, A, B, N, beta):
     i = 0
     total_loss = 0
     for x in X:
+        beta_n = beta[i]
         label = Y[i]
-        loss = loss_function(x, A, B, label, beta)
+        loss = loss_function(x, A, B, label, beta_n)
         total_loss += loss
         i += 1
         
@@ -144,8 +142,6 @@ def metrics(X, Y, A, B, N):
     return classification_error, precision, recall, F1, roc_auc, fpr, tpr
     
     
-
-
 def main():
 
     # args from Simple Queries paper
@@ -157,13 +153,14 @@ def main():
     MAXN=3
     BUCKET=1000000
     EPOCH=3
-
+    
+    KERN = 'lin'    # lin or rbf or poly
     NUM_RUNS = 5       # number of test runs
     
     print("starting dictionary creation") 
     
     # initialize training
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN)
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
     
@@ -190,7 +187,10 @@ def main():
     print("################################################################")
     
     
-    beta = get_optbeta()    # NOTE: optimal KMM reweighting coefficient
+    #beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
+    
+    # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
+    beta = np.ones((N_train))   
     
     ##### instantiations #######################################
     
@@ -252,6 +252,7 @@ def main():
         
         # TRAINING
         for x in X_train:       
+            beta_n = beta[l]
             
             label = y_train[l]
             B_old = B
@@ -270,8 +271,8 @@ def main():
             Y_hat = exps / np.sum(exps)
             
             # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat, beta)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, beta)
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat, beta_n)  
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, beta_n)
             
             # verify gradients
             #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
@@ -349,7 +350,7 @@ def main():
         
         i += 1
         
-    epochs = [l for l in range(EPOCH)]
+    epochs = [l for l in range(EPOCH-1)]
     
     plt.plot(epochs, losses_train, 'm', label="train")
     plt.plot(epochs, losses_test, 'c', label="test")
