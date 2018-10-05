@@ -23,23 +23,23 @@ from optimal_beta3 import kernel_mean_matching
 class Dictionary:
     def __init__(self, ngrams, mincount, bucket, kern):
 
-        self.subset_value = 150
+        self.subset_value = 500
 
-        self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
-        #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
+        #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
+        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
         #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
+        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
         #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         
-        #self.file_train.extend(self.file_test)
+        self.file_train.extend(self.file_test)
         self.dataset = self.file_train
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
-        self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
-        #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
+        #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
+        self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
         #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
         self.create_instances_and_labels_manset()
 
@@ -61,6 +61,7 @@ class Dictionary:
         self.nwords = self.train_bag_ngrams.shape[1]
         
         self.kernel = kern
+        #self.create_optbeta()
         
         
     # adds each instance a separate element in list
@@ -318,14 +319,14 @@ class Dictionary:
         return self.manual_label_vec
     
     
-    def create_optbeta():
+    def create_optbeta(self):
         print("starting beta optimization..............................")
         opt_beta = kernel_mean_matching(self.train_bag_ngrams, self.manual_test_bag_ngrams,
                                     self.n_train_instances, self.n_test_instances, kern=self.kernel, B=10)
         self.opt_beta = opt_beta
         
         
-    def get_optbeta():
+    def get_optbeta(self):
         return self.opt_beta
     
     

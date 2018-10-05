@@ -155,7 +155,7 @@ def main():
     BUCKET=1000000
     EPOCH=20
 
-    NUM_RUNS = 5       # number of test runs
+    NUM_RUNS = 1       # number of test runs
     
     file_names = ['output/loss_train.txt', 'output/loss_test.txt', 'output/loss_manual.txt',
                   'output/error_train.txt', 'output/error_test.txt', 'output/error_manual.txt',

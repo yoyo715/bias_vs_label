@@ -25,6 +25,7 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     summary_train = losses_train.describe()
     mean_train = np.array(summary_train.loc[['mean']])
     std_train = np.array(summary_train.loc[['std']])
+    print(std_train)
     mean_train.resize((EPOCH))
     std_train.resize((EPOCH))
     

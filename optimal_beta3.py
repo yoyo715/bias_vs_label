@@ -6,7 +6,7 @@ import  numpy as  np
 import  math
 import scipy as sp
 from cvxopt import matrix, solvers, spmatrix, sparse, mul
-from dictionary3 import Dictionary
+#from dictionary3 import Dictionary
 
 
 # an implementation of Kernel Mean Matchin
@@ -36,6 +36,7 @@ def kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=1.0, ep
 
     sol = solvers.qp(K, -kappa, G, h)
     coef = np.array(sol['x'])
+    print(coef[0:10])
     return coef  
 
 
@@ -49,8 +50,8 @@ def kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=1.0, ep
     #return K
     
     
-def compute_rbf(x_i, x_j, sigma=1.0):
-    return np.exp(-np.sum((x_i-x_j)**2, axis=1)/(2.0*sigma))
+def compute_rbf(x_i, x_j, sigma=5.0):
+    return np.exp(-np.sum((x_i.toarray()-x_j.toarray())**2, axis=1)/(2.0*sigma))
     # ORRR return np.exp(-np.sum((vx-X_train)**2, axis=1)/(2.0*sigma))   # NOTE: try this one
 
 
@@ -83,30 +84,31 @@ def kernel(x_i, x_j, kern):
         raise ValueError('unknown kernel')
 
 
-def create_K(X_train, n_train):
+def create_K(X_train, n_train, kern):
     K = np.zeros((n_train, n_train))
     for i in range(n_train):
         for j in range(n_train):
-            K[i,j] = kernel(X_train[i], X_train[j])
+            K[i,j] = kernel(X_train[i], X_train[j], kern)
     return K
 
 
-def create_k(X_train, n_train, X_test, n_test):
+def create_k(X_train, n_train, X_test, n_test, kern):
     k = np.zeros((n_train))
     for i in range(n_train):
         xi_train = X_train[i]
-        ki = compute_ki(n_train, n_test, xi_train, X_test)
+        ki = compute_ki(n_train, n_test, xi_train, X_test, kern)
         k[i] = ki
     return k
     
     
-def compute_ki(n_train, n_test, xi_train, X_test):
+def compute_ki(n_train, n_test, xi_train, X_test, kern):
     _sum =  np.zeros((n_test))
     for j in range(n_test):
-        _sum[j] = kernel(xi_train, X_test[j])
+        _sum[j] = kernel(xi_train, X_test[j], kern)
     return n_train/n_test * np.sum(_sum)
 
 
+# only run as script for testing, otherwise dictionary calls kernel_means_matching()
 #def main():
     #WORDGRAMS=3
     #MINCOUNT=2
