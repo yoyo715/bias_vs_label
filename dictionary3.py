@@ -19,7 +19,7 @@ import random, re
 class Dictionary:
     def __init__(self, ngrams, mincount, bucket):
 
-        self.subset_value = 300
+        self.subset_value = 3000
 
         #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() 
         self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
