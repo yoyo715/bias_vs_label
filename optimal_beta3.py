@@ -22,8 +22,8 @@ def kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=1.0, ep
     if eps == None:
         eps = B/math.sqrt(n_test)
     
-    K = create_K(X_train, n_train, kern)*float(n_train)/float(n_test),axis=1)
-    kappa = create_k(X_train, n_train, X_test, n_test, kern)*float(n_train)/float(n_test),axis=1)
+    K = create_K(X_train, n_train, kern)*float(n_train)/float(n_test)
+    kappa = create_k(X_train, n_train, X_test, n_test, kern)*float(n_train)/float(n_test)
         
     print("K ", K.shape, type(K))
     K = K.astype(np.double)
