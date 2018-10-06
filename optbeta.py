@@ -84,8 +84,11 @@ WORDGRAMS=3
 MINCOUNT=2
 BUCKET=1000000
 
+print("starting dictionary creation.............................") 
 dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET)
-
+X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    
 n_train = dictionary.get_n_train_instances()
 n_test = dictionary.get_n_manual_instances()
 

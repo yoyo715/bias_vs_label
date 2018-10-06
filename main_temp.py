@@ -1,7 +1,7 @@
 # main.py
 
-# This program includes the KMM reweighting coefficient beta
-
+#from dictionary import Dictionary
+#from dictionary_updated import Dictionary2
 from dictionary3 import Dictionary
 
 import numpy as np
@@ -10,6 +10,12 @@ from matplotlib import pyplot as plt
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+
+
+'''
+    This script is to test the implementation to compare to KMM2.py
+
+'''
 
 
 
@@ -25,17 +31,17 @@ def compute_normalized_hidden(x, A):
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat, beta_n):    
-    gradient = alpha * beta_n * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
+    gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     B_new = np.subtract(B, gradient)
 
     return B_new
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, beta_n):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
     A_old = A
-    first = beta_n * np.dot(np.subtract(Y_hat.T, label), B)
+    first = np.dot(np.subtract(Y_hat.T, label), B)
     
     if np.sum(x) > 0:
         sec = x * (1.0/np.sum(x))
@@ -56,20 +62,18 @@ def stable_softmax(x, A, B):
 
 
 # finds the loss
-def loss_function(x, A, B, label, beta_n):
+def loss_function(x, A, B, label):
     loglike = np.log(stable_softmax(x, A, B))
-    return -beta_n * np.dot(label, loglike)
+    return -np.dot(label, loglike)
 
 
 # computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N, beta):
+def total_loss_function(X, Y, A, B, N):
     i = 0
     total_loss = 0
     for x in X:
-        #beta_n = beta[i]
-        beta_n = 1.0
         label = Y[i]
-        loss = loss_function(x, A, B, label, beta_n)
+        loss = loss_function(x, A, B, label)
         total_loss += loss
         i += 1
         
@@ -143,6 +147,8 @@ def metrics(X, Y, A, B, N):
     return classification_error, precision, recall, F1, roc_auc, fpr, tpr
     
     
+
+
 def main():
 
     # args from Simple Queries paper
@@ -154,12 +160,15 @@ def main():
     MAXN=3
     BUCKET=1000000
     EPOCH=15
+
+    KERN = 'lin'    # lin or rbf or poly
     
-    KERN = 'rbf'    # lin or rbf or poly
-    NUM_RUNS = 5       # number of test runs
     
+    ##### instantiations #######################################
+        
     print("starting dictionary creation") 
-    
+
+    # dictionary must be recreated each run to get different subsample each time
     # initialize training
     dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN)
     nwords = dictionary.get_nwords()
@@ -185,15 +194,8 @@ def main():
     print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
     nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
     print("N each class Manual testing instances: ", nmanual_eachclass)
-    print("################################################################")
+    print("#####################################")
     
-    
-    #beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
-    
-    # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
-    beta = np.ones((N_train))   
-    
-    ##### instantiations #######################################
     
     p = X_train.shape[1]
     
@@ -218,26 +220,6 @@ def main():
     losses_test = []
     losses_manual = []
 
-    class_error_train = []  
-    class_error_test = []
-    class_error_manual = []
-
-    prec_train = [] 
-    prec_test = []
-    prec_manual = []
-
-    recall_train = []
-    recall_test = []
-    recall_manual = []
-
-    F1_train = []
-    F1_test = []
-    F1_manual = []
-    
-    AUC_train = []
-    AUC_test = []
-    AUC_manual = []
-
     print()
     print()
     
@@ -253,7 +235,6 @@ def main():
         
         # TRAINING
         for x in X_train:       
-            beta_n = beta[l]
             
             label = y_train[l]
             B_old = B
@@ -272,15 +253,15 @@ def main():
             Y_hat = exps / np.sum(exps)
             
             # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat, beta_n)  
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, beta_n)
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
             
             # verify gradients
             #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
             #check_A_gradient(B_old, A_old, label, x, Y_hat)
             
             loglike = np.log(Y_hat)
-            train_loss += -beta_n * np.dot(label, loglike)
+            train_loss += -np.dot(label, loglike)
 
             l += 1
             
@@ -291,13 +272,13 @@ def main():
         print("Train:   ", train_loss)
             
         # TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test, beta)
+        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
         print("Test:    ", test_loss)
         
         print("Difference = ", test_loss - train_loss)
         
         # MANUAL SET TESTING LOSS
-        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual, beta)
+        manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
         print("Manual Set:    ", manual_loss)
 
 
@@ -329,40 +310,22 @@ def main():
         losses_test.append(test_loss)
         losses_manual.append(manual_loss)
 
-        class_error_train.append(train_class_error)
-        class_error_test.append(test_class_error)
-        class_error_manual.append(manual_class_error)
-
-        prec_train.append(train_precision)
-        prec_test.append(test_precision)
-        prec_manual.append(manual_precision)
-
-        recall_train.append(train_recall)
-        recall_test.append(test_recall)
-        recall_manual.append(manual_recall)
-
-        F1_train.append(train_F1)
-        F1_test.append(test_F1)
-        F1_manual.append(manual_F1)
-        
-        AUC_train.append(train_AUC)
-        AUC_test.append(test_AUC)
-        AUC_manual.append(manual_AUC)
         
         i += 1
-        
+
     epochs = [l for l in range(EPOCH)]
     
     plt.plot(epochs, losses_train, 'm', label="train")
     plt.plot(epochs, losses_test, 'c', label="test")
     plt.plot(epochs, losses_manual, 'g', label="manual")
+    title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    plt.title(title)
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    title = "KMM, n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
-    plt.title(title)
     plt.legend(loc='upper left')
     plt.show()
-            
+        
+
     
  
  
