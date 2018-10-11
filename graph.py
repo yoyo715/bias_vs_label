@@ -47,13 +47,19 @@ def graph_loss(losses_train, losses_test, losses_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
+    # plots std
+    #plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',  mfc='orange', barsabove=True, capsize=5, label="training loss")
+    #plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="testing loss")
+    #plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="manual loss")
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',  mfc='orange', barsabove=True, capsize=5, label="training loss")
-    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="testing loss")
-    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="manual loss")
+    plt.plot(epochs, mean_train, 'm', label="train loss")
+    plt.plot(epochs, mean_test, 'c', label="test loss")
+    plt.plot(epochs, mean_manual, 'g', label="manual loss")
     
     plt.ylabel('loss')
     plt.xlabel('epoch')
+    title = "KMM Model Loss"
+    plt.title(title)
     plt.legend(loc='upper left')
     plt.show()
     
@@ -87,17 +93,23 @@ def graph_error(class_error_train, class_error_test, class_error_manual, EPOCH):
     mean_manual.resize((EPOCH))
     std_manual.resize((EPOCH))
     
-    plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',
-                 mfc='orange', barsabove=True, capsize=5, label="training classification error")
-    plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s',
-                 mfc='orange', barsabove=True, capsize=5, label="testing classification error")
-    plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s',
-                 mfc='orange', barsabove=True, capsize=5, label="manual classification error")
+    # plots std
+    #plt.errorbar(epochs, mean_train, yerr=std_train, fmt='-o', marker='s',  mfc='orange', barsabove=True, capsize=5, label="training classification error")
+    #plt.errorbar(epochs, mean_test, yerr=std_test, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="testing classification error")
+    #plt.errorbar(epochs, mean_manual, yerr=std_manual, fmt='-o', marker='s', mfc='orange', barsabove=True, capsize=5, label="manual classification error")
+    
+    plt.plot(epochs, mean_train, 'm', label="train classification error")
+    plt.plot(epochs, mean_test, 'c', label="test classification error")
+    plt.plot(epochs, mean_manual, 'g', label="manual classification error")
     
     plt.ylabel('error')
     plt.xlabel('epoch')
+    title = "KMM Model Classification Error"
+    plt.title(title)
     plt.legend(loc='upper left')
     plt.show()
+    
+    
     
     
 def graph_auc(AUC_train, AUC_test, AUC_manual, EPOCH): 
@@ -270,33 +282,33 @@ def main():
         
     df = pd.read_csv('test.txt', sep=" ", header=None)
     
-    loss_train = pd.read_csv('output/loss_train.txt', sep=",", header=None)
-    loss_test = pd.read_csv('output/loss_test.txt', sep=",", header=None)
-    loss_manual = pd.read_csv('output/loss_manual.txt', sep=",", header=None)
+    loss_train = pd.read_csv('KMMoutput/loss_train.txt', sep=",", header=None)
+    loss_test = pd.read_csv('KMMoutput/loss_test.txt', sep=",", header=None)
+    loss_manual = pd.read_csv('KMMoutput/loss_manual.txt', sep=",", header=None)
 
-    error_train = pd.read_csv('output/error_train.txt', sep=",", header=None)
-    error_test = pd.read_csv('output/error_test.txt', sep=",", header=None)
-    error_manual = pd.read_csv('output/error_manual.txt', sep=",", header=None)
+    error_train = pd.read_csv('KMMoutput/error_train.txt', sep=",", header=None)
+    error_test = pd.read_csv('KMMoutput/error_test.txt', sep=",", header=None)
+    error_manual = pd.read_csv('KMMoutput/error_manual.txt', sep=",", header=None)
                 
-    precision_train = pd.read_csv('output/precision_train.txt', sep=",", header=None)
-    precision_test = pd.read_csv('output/precision_test.txt', sep=",", header=None)
-    precision_manual = pd.read_csv('output/precision_manual.txt', sep=",", header=None)
+    #precision_train = pd.read_csv('output/precision_train.txt', sep=",", header=None)
+    #precision_test = pd.read_csv('output/precision_test.txt', sep=",", header=None)
+    #precision_manual = pd.read_csv('output/precision_manual.txt', sep=",", header=None)
         
-    recall_train = pd.read_csv('output/recall_train.txt', sep=",", header=None)
-    recall_test = pd.read_csv('output/recall_test.txt', sep=",", header=None)
-    recall_manual = pd.read_csv('output/recall_manual.txt', sep=",", header=None)
+    #recall_train = pd.read_csv('output/recall_train.txt', sep=",", header=None)
+    #recall_test = pd.read_csv('output/recall_test.txt', sep=",", header=None)
+    #recall_manual = pd.read_csv('output/recall_manual.txt', sep=",", header=None)
     
-    F1_train = pd.read_csv('output/F1_train.txt', sep=",", header=None)
-    F1_test = pd.read_csv('output/F1_test.txt', sep=",", header=None)
-    F1_manual = pd.read_csv('output/F1_manual.txt', sep=",", header=None)
+    #F1_train = pd.read_csv('output/F1_train.txt', sep=",", header=None)
+    #F1_test = pd.read_csv('output/F1_test.txt', sep=",", header=None)
+    #F1_manual = pd.read_csv('output/F1_manual.txt', sep=",", header=None)
         
-    AUC_train = pd.read_csv('output/AUC_train.txt', sep=",", header=None)
-    AUC_test = pd.read_csv('output/AUC_test.txt', sep=",", header=None)
-    AUC_manual = pd.read_csv('output/AUC_manual.txt', sep=",", header=None)
+    #AUC_train = pd.read_csv('output/AUC_train.txt', sep=",", header=None)
+    #AUC_test = pd.read_csv('output/AUC_test.txt', sep=",", header=None)
+    #AUC_manual = pd.read_csv('output/AUC_manual.txt', sep=",", header=None)
 
 
     graph_loss(loss_train, loss_test, loss_manual, EPOCH)
-    #graph_error(error_train, error_test, error_manual, EPOCH)
+    graph_error(error_train, error_test, error_manual, EPOCH)
     #graph_auc(AUC_train, AUC_test, AUC_manual, EPOCH)
     #graph_f1(F1_train, F1_test, F1_manual, EPOCH)
     #graph_roc(train_FPR, train_TPR, test_FPR, test_TPR, manual_FPR, manual_TPR, train_AUC, test_AUC, manual_AUC)

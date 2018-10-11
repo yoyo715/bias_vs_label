@@ -1,9 +1,10 @@
-# main.py
+# KMM2.py
 
 # This program includes the KMM reweighting coefficient beta
 
 from dictionary3 import Dictionary
 
+import time
 import numpy as np
 from scipy import sparse
 from matplotlib import pyplot as plt
@@ -58,7 +59,8 @@ def stable_softmax(x, A, B):
 # finds the loss
 def loss_function(x, A, B, label, beta_n):
     loglike = np.log(stable_softmax(x, A, B))
-    return -beta_n * np.dot(label, loglike)
+    #return -beta_n * np.dot(label, loglike)
+    return -np.dot(label, loglike)
 
 
 # computes the loss over entire dataset
@@ -147,21 +149,26 @@ def main():
 
     # args from Simple Queries paper
     DIM=30
-    LR=0.15
+    LR=0.20       #0.15 good for ~5000
     WORDGRAMS=3
     MINCOUNT=2
     MINN=3
     MAXN=3
     BUCKET=1000000
-    EPOCH=15
+    EPOCH=20
     
-    KERN = 'rbf'    # lin or rbf or poly
+    KERN = 'lin'    # lin or rbf or poly
     NUM_RUNS = 5       # number of test runs
+    SUBSET_VAL = 1000   # number of subset instances for self reported dataset
+    LIN_C = 0.90        # hyperparameter for linear kernel
     
     print("starting dictionary creation") 
     
     # initialize training
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN)
+    start = time.time()
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C)
+    end = time.time()
+    print("Dictionary took ", (end - start)/60.0, " minutes to create.")
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
     
@@ -188,10 +195,10 @@ def main():
     print("################################################################")
     
     
-    #beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
+    beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
     
     # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
-    beta = np.ones((N_train))   
+    #beta = np.ones((N_train))   
     
     ##### instantiations #######################################
     
@@ -280,7 +287,8 @@ def main():
             #check_A_gradient(B_old, A_old, label, x, Y_hat)
             
             loglike = np.log(Y_hat)
-            train_loss += -beta_n * np.dot(label, loglike)
+            #train_loss += -beta_n * np.dot(label, loglike)
+            train_loss += -np.dot(label, loglike)
 
             l += 1
             
@@ -353,14 +361,28 @@ def main():
         
     epochs = [l for l in range(EPOCH)]
     
+    txt = "LR: ", LR, " Kern: ", KERN, 
+    
     plt.plot(epochs, losses_train, 'm', label="train")
     plt.plot(epochs, losses_test, 'c', label="test")
     plt.plot(epochs, losses_manual, 'g', label="manual")
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    title = "KMM, n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    title = "KMM LOSS, n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
     plt.title(title)
     plt.legend(loc='upper left')
+    plt.text(.5, .05, txt, ha='center')
+    plt.show()
+    
+    plt.plot(epochs, class_error_train, 'm', label="train classification error")
+    plt.plot(epochs, class_error_test, 'c', label="test classification error")
+    plt.plot(epochs, class_error_manual, 'g', label="manual classification error")
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    title = "KMM CLASS ERROR, n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual, " kern: ", KERN
+    plt.title(title)
+    plt.legend(loc='upper left')
+    plt.text(.5, .05, txt, ha='center')
     plt.show()
             
     

@@ -1,0 +1,31 @@
+# KMM Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 3
+
+MINCOUNT: 2
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 0.2
+
+LR: 0.2
+
+KERN: lin
+
+NUM_RUNS: 5
+
+SUBSET_VAL: 1000
+
+LIN_C: 0.9

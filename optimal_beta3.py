@@ -5,6 +5,7 @@ import  sys
 import  numpy as  np 
 import  math
 import scipy as sp
+import time
 from cvxopt import matrix, solvers, spmatrix, sparse, mul
 #from dictionary3 import Dictionary
 
@@ -18,12 +19,12 @@ from cvxopt import matrix, solvers, spmatrix, sparse, mul
 # implementation based off of https://github.com/vodp/py-kmm/blob/master/Kernel%20Meam%20Matching.ipynb
 
 
-def kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=1.0, eps=None):    
+def kernel_mean_matching(X_train, X_test, n_train, n_test, lin_c, kern='lin', B=1.0, eps=None):    
     if eps == None:
         eps = B/math.sqrt(n_test)
     
-    K = create_K(X_train, n_train, kern)*float(n_train)/float(n_test)
-    kappa = create_k(X_train, n_train, X_test, n_test, kern)*float(n_train)/float(n_test)
+    K = create_K(X_train, n_train, kern, lin_c)*float(n_train)/float(n_test)
+    kappa = create_k(X_train, n_train, X_test, n_test, kern, lin_c)*float(n_train)/float(n_test)
         
     print("K ", K.shape, type(K))
     K = K.astype(np.double)
@@ -50,9 +51,9 @@ def kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=1.0, ep
     #return K
     
     
-def compute_rbf(x_i, x_j, sigma=5.0):
-    return np.exp(-np.sum((x_i.toarray()-x_j.toarray())**2, axis=1)/(2.0*sigma))
-    # ORRR return np.exp(-np.sum((vx-X_train)**2, axis=1)/(2.0*sigma))   # NOTE: try this one
+def compute_rbf(x_i, x_j, sigma=10.0):
+    #return np.exp(-np.sum((x_i.toarray()-x_j.toarray())**2, axis=1)/(2.0*sigma))
+    return np.exp(-np.sum((x_i.toarray()-x_j.toarray())**2, axis=1)/(2.0*sigma))   # NOTE: try this one
 
 
 # gaussian kernel not going to work with sparse matrices since norm is 0
@@ -60,10 +61,9 @@ def gaussian_kernel(x_i, x_j, sigma=1.0):
     return  np.exp(-norm(np.subtract(x_i - x_j))**2 / (2 * (sigma ** 2)))
 
 
-def linear_kernel(x_i, x_j):
-    c = 0.1
+def linear_kernel(x_i, x_j, lin_c):
     val = sp.sparse.csr_matrix.dot(x_i, x_j.T).sum()
-    return val + c
+    return val + lin_c
 
 
 def poly_kernel(x_i, x_j, d=2):
@@ -72,9 +72,9 @@ def poly_kernel(x_i, x_j, d=2):
     return val**d + c
 
 
-def kernel(x_i, x_j, kern):
+def kernel(x_i, x_j, kern, lin_c):
     if kern == 'lin':
-        return linear_kernel(x_i, x_j)
+        return linear_kernel(x_i, x_j, lin_c)
     elif kern == 'rbf':
         #return gaussian_kernel(x_i, x_j)
         return compute_rbf(x_i, x_j)
@@ -84,27 +84,27 @@ def kernel(x_i, x_j, kern):
         raise ValueError('unknown kernel')
 
 
-def create_K(X_train, n_train, kern):
+def create_K(X_train, n_train, kern, lin_c):
     K = np.zeros((n_train, n_train))
     for i in range(n_train):
         for j in range(n_train):
-            K[i,j] = kernel(X_train[i], X_train[j], kern)
+            K[i,j] = kernel(X_train[i], X_train[j], kern, lin_c)
     return K
 
 
-def create_k(X_train, n_train, X_test, n_test, kern):
+def create_k(X_train, n_train, X_test, n_test, kern, lin_c):
     k = np.zeros((n_train))
     for i in range(n_train):
         xi_train = X_train[i]
-        ki = compute_ki(n_train, n_test, xi_train, X_test, kern)
+        ki = compute_ki(n_train, n_test, xi_train, X_test, kern, lin_c)
         k[i] = ki
     return k
     
     
-def compute_ki(n_train, n_test, xi_train, X_test, kern):
+def compute_ki(n_train, n_test, xi_train, X_test, kern, lin_c):
     _sum =  np.zeros((n_test))
     for j in range(n_test):
-        _sum[j] = kernel(xi_train, X_test[j], kern)
+        _sum[j] = kernel(xi_train, X_test[j], kern, lin_c)
     return n_train/n_test * np.sum(_sum)
 
 

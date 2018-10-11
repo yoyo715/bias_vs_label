@@ -1,7 +1,8 @@
-# main.py
+# KMM3.py
 
 from dictionary3 import Dictionary
 
+import time
 import numpy as np
 from scipy import sparse
 #from matplotlib import pyplot as plt
@@ -23,17 +24,17 @@ def compute_normalized_hidden(x, A):
     
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
-    gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
+def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat, beta_n):    
+    gradient = alpha * beta_n * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     B_new = np.subtract(B, gradient)
 
     return B_new
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
+def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat, beta_n):
     A_old = A
-    first = np.dot(np.subtract(Y_hat.T, label), B)
+    first = beta_n * np.dot(np.subtract(Y_hat.T, label), B)
     
     if np.sum(x) > 0:
         sec = x * (1.0/np.sum(x))
@@ -140,35 +141,61 @@ def metrics(X, Y, A, B, N):
     
     
 # writing model specifications to an about file
-def create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, NUM_RUNS, SUBSET_VAL):
-    with open('output/README.md ', '+a') as f:
-        f.write('# Original Model specifications # \n\n')
-        f.write('DIM: ', DIM)
+def create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, KERN, NUM_RUNS, SUBSET_VAL, LIN_C):
+    with open('KMMoutput/README.md ', '+a') as f:
+        f.write('# KMM Model specifications # \n\n')
+        a = 'DIM: '+ str(DIM)
+        f.write(a)
         f.write('\n\n')
-        f.write('WORDGRAMS: ', WORDGRAMS)
+        
+        b = 'WORDGRAMS: ' + str(WORDGRAMS)
+        f.write(b)
         f.write('\n\n')
-        f.write('MINCOUNT: ', MINCOUNT)
+        
+        c = 'MINCOUNT: ' + str(MINCOUNT)
+        f.write(c)
         f.write('\n\n')
-        f.write('MINN: ', MINN)
+        
+        d = 'MINN: ' + str(MINN)
+        f.write(d)
         f.write('\n\n')
-        f.write('MAXN: ', MAXN)
+        
+        e = 'MAXN: ' + str(MAXN)
+        f.write(e)
         f.write('\n\n')
-        f.write('BUCKET: ', BUCKET)
+        
+        m = 'BUCKET: ' + str(BUCKET)
+        f.write(m)
         f.write('\n\n')
         f.write('\n\n')
         f.write('\n\n')
         
         # Hyperparameters
         f.write('## Hyperparameters ##\n\n')
-        f.write('EPOCH: ', LR)
-        f.write('\n\n')
-        f.write('LR: ', LR)
-        f.write('\n\n')
-        f.write('NUM_RUNS: ', NUM_RUNS)
-        f.write('\n\n')
-        f.write('SUBSET_VAL: ', SUBSET_VAL)
-
         
+        g = 'EPOCH: ' + str(LR)
+        f.write(g)
+        f.write('\n\n')
+        
+        h = 'LR: ' + str(LR)
+        f.write(h)
+        f.write('\n\n')
+        
+        i = 'KERN: ' + str(KERN)
+        f.write(i)
+        f.write('\n\n')
+        
+        j = 'NUM_RUNS: '+ str(NUM_RUNS)
+        f.write(j)
+        f.write('\n\n')
+        
+        k = 'SUBSET_VAL: ' + str(SUBSET_VAL)
+        f.write(k)
+        f.write('\n\n')
+        
+        l = 'LIN_C: ' + str(LIN_C)
+        f.write(l)
+
 
 def main():
 
@@ -183,20 +210,23 @@ def main():
     
     # adjust these
     EPOCH=20
-    LR=0.15             #0.15 good for ~5000
+    LR=0.20             #0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
-    NUM_RUNS = 1        # number of test runs
+    NUM_RUNS = 5        # number of test runs
     SUBSET_VAL = 1000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
-    file_names = ['output/loss_train.txt', 'output/loss_test.txt', 'output/loss_manual.txt',
-                  'output/error_train.txt', 'output/error_test.txt', 'output/error_manual.txt',
-                  'output/precision_train.txt', 'output/precision_test.txt', 'output/precision_manual.txt',
-                  'output/recall_train.txt', 'output/recall_test.txt', 'output/recall_manual.txt',
-                  'output/F1_train.txt', 'output/F1_test.txt', 'output/F1_manual.txt',
-                  'output/AUC_train.txt', 'output/AUC_test.txt', 'output/AUC_manual.txt']
+    model='kmm'
     
-    create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, NUM_RUNS, SUBSET_VAL)
+    file_names = ['KMMoutput/loss_train.txt', 'KMMoutput/loss_test.txt', 'KMMoutput/loss_manual.txt',
+                  'KMMoutput/error_train.txt', 'KMMoutput/error_test.txt', 'KMMoutput/error_manual.txt',
+                  'KMMoutput/precision_train.txt', 'KMMoutput/precision_test.txt', 'KMMoutput/precision_manual.txt',
+                  'KMMoutput/recall_train.txt', 'KMMoutput/recall_test.txt', 'KMMoutput/recall_manual.txt',
+                  'KMMoutput/F1_train.txt', 'KMMoutput/F1_test.txt', 'KMMoutput/F1_manual.txt',
+                  'KMMoutput/AUC_train.txt', 'KMMoutput/AUC_test.txt', 'KMMoutput/AUC_manual.txt']
+    
+    create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, KERN, NUM_RUNS, SUBSET_VAL, LIN_C)
+        
     
     ##### instantiations #######################################
 
@@ -208,7 +238,10 @@ def main():
     
         # dictionary must be recreated each run to get different subsample each time
         # initialize training
-        dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model='original')
+        start = time.time()
+        dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model)
+        end = time.time()
+        print("Dictionary took ", (end - start)/60.0, " minutes to create.")
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
         
@@ -250,7 +283,10 @@ def main():
         B_m = nclasses          # rows
         B = np.zeros((B_m, B_n))
 
-
+        beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
+    
+        # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
+        #beta = np.ones((N_train))   
 
         #### train ################################################
 
@@ -269,6 +305,7 @@ def main():
             
             # TRAINING
             for x in X_train:       
+                beta_n = beta[l]
                 
                 label = y_train[l]
                 B_old = B
@@ -287,8 +324,8 @@ def main():
                 Y_hat = exps / np.sum(exps)
                 
                 # Back prop with alt optimization
-                B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-                A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
+                B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat, beta_n)  
+                A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat, beta_n)
                 
                 # verify gradients
                 #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
@@ -342,63 +379,63 @@ def main():
             
             
             #### WRITING LOSSES
-            with open('output/loss_train.txt', '+a') as f:
+            with open('KMMoutput/loss_train.txt', '+a') as f:
                 f.write("%s," % train_loss)
                     
-            with open('output/loss_test.txt', '+a') as f:
+            with open('KMMoutput/loss_test.txt', '+a') as f:
                 f.write("%s," % test_loss)
                     
-            with open('output/loss_manual.txt', '+a') as f:
+            with open('KMMoutput/loss_manual.txt', '+a') as f:
                 f.write("%s," % manual_loss)
                     
             #### WRITING ERROR
-            with open('output/error_train.txt', '+a') as f:
+            with open('KMMoutput/error_train.txt', '+a') as f:
                 f.write("%s," % train_class_error)
             
-            with open('output/error_test.txt', '+a') as f:
+            with open('KMMoutput/error_test.txt', '+a') as f:
                 f.write("%s," % test_class_error)
                     
-            with open('output/error_manual.txt', '+a') as f:
+            with open('KMMoutput/error_manual.txt', '+a') as f:
                 f.write("%s," % manual_class_error)
                     
             #### WRITING PRECISION
-            with open('output/precision_train.txt', '+a') as f:
+            with open('KMMoutput/precision_train.txt', '+a') as f:
                 f.write("%s," % train_precision)
                     
-            with open('output/precision_test.txt', '+a') as f:
+            with open('KMMoutput/precision_test.txt', '+a') as f:
                 f.write("%s," % test_precision)
                     
-            with open('output/precision_manual.txt', '+a') as f:
+            with open('KMMoutput/precision_manual.txt', '+a') as f:
                 f.write("%s," % manual_precision)
                     
             #### WRITING RECALL
-            with open('output/recall_train.txt', '+a') as f:
+            with open('KMMoutput/recall_train.txt', '+a') as f:
                 f.write("%s," % train_recall)
                     
-            with open('output/recall_test.txt', '+a') as f:
+            with open('KMMoutput/recall_test.txt', '+a') as f:
                 f.write("%s," % test_recall)
                     
-            with open('output/recall_manual.txt', '+a') as f:
+            with open('KMMoutput/recall_manual.txt', '+a') as f:
                 f.write("%s," % manual_recall)
                     
             #### WRITING F1
-            with open('output/F1_train.txt', '+a') as f:
+            with open('KMMoutput/F1_train.txt', '+a') as f:
                 f.write("%s," % train_F1)
                     
-            with open('output/F1_test.txt', '+a') as f:
+            with open('KMMoutput/F1_test.txt', '+a') as f:
                 f.write("%s," % test_F1)
                     
-            with open('output/F1_manual.txt', '+a') as f:
+            with open('KMMoutput/F1_manual.txt', '+a') as f:
                 f.write("%s," % manual_F1)
                     
             #### WRITING AUC
-            with open('output/AUC_train.txt', '+a') as f:
+            with open('KMMoutput/AUC_train.txt', '+a') as f:
                 f.write("%s," % train_AUC)
                     
-            with open('output/AUC_test.txt', '+a') as f:
+            with open('KMMoutput/AUC_test.txt', '+a') as f:
                 f.write("%s," % test_AUC)
                     
-            with open('output/AUC_manual.txt', '+a') as f:
+            with open('KMMoutput/AUC_manual.txt', '+a') as f:
                 f.write("%s," % manual_AUC)
             
             i += 1
