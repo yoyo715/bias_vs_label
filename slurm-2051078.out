@@ -1,0 +1,7 @@
+
+The following have been reloaded with a version change:
+  1) python/3.6.3 => python/2.7.14
+
+slurmstepd: error: execve(): bias_vs_labelefficiency/main_test.py: No such file or directory
+srun: error: m038: task 0: Exited with exit code 2
+srun: Terminating job step 2051078.0

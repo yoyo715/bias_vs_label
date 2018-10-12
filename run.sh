@@ -22,10 +22,10 @@
 
 #Load required modules
 
-module load swset/2018.05
-module load gcc/7.3.0
-module load python/3.6.3
-module load py-numpy
+#module load swset/2018.05
+#module load gcc/7.3.0
+#module load python/3.6.3
+#module load py-numpy
 
-#srun bias_vs_labelefficiency/parallel_test.py
-srun bias_vs_labelefficiency/main_test.py
+srun parallel_test.py
+#srun main_test.py
