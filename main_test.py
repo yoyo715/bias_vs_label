@@ -161,7 +161,13 @@ def main():
     BUCKET=1000000
     EPOCH=15
 
-    KERN = 'lin'    # lin or rbf or poly
+    # adjust these
+    EPOCH=20
+    LR=0.15             #0.15 good for ~5000
+    KERN = 'lin'        # lin or rbf or poly
+    NUM_RUNS = 1        # number of test runs
+    SUBSET_VAL = 1000   # number of subset instances for self reported dataset
+    LIN_C = 0.90        # hyperparameter for linear kernel
     
     
     ##### instantiations #######################################
@@ -170,7 +176,7 @@ def main():
 
     # dictionary must be recreated each run to get different subsample each time
     # initialize training
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN)
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model='original')
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
     
