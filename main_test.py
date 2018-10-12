@@ -166,7 +166,7 @@ def main():
     LR=0.15             #0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 1000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 500   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     

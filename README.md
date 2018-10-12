@@ -51,3 +51,28 @@ About each file:
 
  
 
+# Running On Teton
+
+	1. Need to first load required modules (while in /home/usernam) though this can just be done in the slurm script.
+	
+	- $ module load gcc
+
+  	- $ module load swset
+
+  	- $ module load python/3.6.3
+
+	2. Run SLURM script
+	
+	- sbatch run.sh 
+
+	
+## Helpful commands
+
+	- $ squeue  - shows all jobs running
+ 
+	- $ squeue -u username  - shows your jobs
+
+	- $ module spider   - shows available modules
+
+	- $ module list  - show all currently loaded modules
+
