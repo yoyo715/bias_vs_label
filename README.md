@@ -53,17 +53,20 @@ About each file:
 
 # Running On Teton
 
-	1. Need to first load required modules (while in /home/usernam) though this can just be done in the slurm script.
+	1. To install python packages
+
+		- create a miniconda env "conda create -n test_project python=3.5.6"
+
+		- "source activate test_project"
+		
+		- "pip install packages"
+
+	2. Must make python script executable!!
+		- 'chmod +x script.py'
+
+	3. Run SLURM script
 	
-	- $ module load gcc
-
-  	- $ module load swset
-
-  	- $ module load python/3.6.3
-
-	2. Run SLURM script
-	
-	- sbatch run.sh 
+		- sbatch run.sh 	
 
 	
 ## Helpful commands
@@ -75,4 +78,45 @@ About each file:
 	- $ module spider   - shows available modules
 
 	- $ module list  - show all currently loaded modules
+
+
+
+## Slurm Script example
+
+	#!/bin/bash
+
+	#Script to run a program on Teton
+	#Submit the job to the scheduler using the command : sbatch name_of_your_sbatch_script.sh
+
+	#Assign Job Name
+	#SBATCH --job-name=fasttext
+
+	#Assign Account Name
+	#SBATCH --account=lsrtwitter	
+
+
+	#Set Max Wall Time
+	#days-hours:minutes:seconds
+	#SBATCH --time=00:03:00
+
+	#Specify Resources Needed
+	#SBATCH --nodes=1
+	#SBATCH --ntasks-per-node=1
+
+
+	#Load required modules
+
+	#module load miniconda3
+	source activate test_project
+
+	srun python test.py
+
+	source deactivate test_project
+
+
+
+
+
+
+
 

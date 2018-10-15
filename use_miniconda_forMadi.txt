@@ -1,0 +1,49 @@
+# Load miniconda 2 or 3
+# the difference in version is which framework it uses to run conda, so if you have modules loaded outside of your conda environment that require python 2.x you'll need to use miniconda 2
+	$ module load miniconda3
+
+# create an environment in homedir
+	#basic example
+	$ conda create -n <name>  python=<version>
+
+	#create in homedir called test_project with python 2.7
+	$ conda create -n test_project python=2.7
+
+	#create in alternal directory
+	$ conda create --prefix /project/arcc/test_project python=2.7
+
+#  Miniconda stores environment information in /home/<user>/.conda
+
+	
+# activate the enviornment
+	$ source activate <name>
+	$ source activate test_project
+
+
+# install packages
+	#$ conda install <pkg>
+	$ conda install ruby
+
+	#$ pip install <pkg>
+	$ pip install argparse
+
+# deactivate (return to normal shell)
+	$ source deactivate
+
+
+
+#SLURM 
+# using in a sbatch 
+
+For use in an sbatch environment you'll need to 
+	# SBATCH variables
+	$ module load miniconda3 
+	$ source actiave <name>
+	$ srun <commands>
+
+# using with sallaoc
+
+	$ module load miniconda3 (or 2)
+	$ salloc <commands>
+	# <on new host now>
+	$ source activate <name>
