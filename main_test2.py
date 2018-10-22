@@ -11,6 +11,7 @@ import time
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+from sklearn.preprocessing import normalize
 
 
 '''
@@ -82,7 +83,7 @@ def total_loss_function(X, Y, A, B, N):
 
 
 # function to return prediction error, precision, recall, F1 score
-def metrics(X, Y, A, B, N):
+def metrics(Y_hat, Y):
     incorrect = 0
     true_pos = 0
     false_pos = 0
@@ -91,10 +92,13 @@ def metrics(X, Y, A, B, N):
     
     y_true = []
     y_pred = []
+    
+    print(Y_hat)
+    print(Y)
 
     i = 0
-    for x in X:
-        prediction = np.argmax(stable_softmax(x, A, B))
+    while i < len(Y_hat):
+        prediction = np.argmax(Y_hat[i])
         true_label = np.argmax(Y[i])
         
         y_true.append(true_label)
@@ -120,7 +124,6 @@ def metrics(X, Y, A, B, N):
     print("confusion matrix: ")
     print("[ ", true_neg, false_pos, " ]")
     print("[ ", false_neg, true_pos, " ]")
-    
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     
@@ -148,6 +151,49 @@ def metrics(X, Y, A, B, N):
     return classification_error, precision, recall, F1, roc_auc, fpr, tpr
     
     
+def softmax(X, theta, axis = None):
+    """
+    Compute the softmax of each element along an axis of X.
+
+    Parameters
+    ----------
+    X: ND-Array. Probably should be floats. 
+    theta (optional): float parameter, used as a multiplier
+        prior to exponentiation. Default = 1.0
+    axis (optional): axis to compute values along. Default is the 
+        first non-singleton axis.
+
+    Returns an array the same size as X. The result will sum to 1
+    along the specified axis.
+    """
+
+    # make X at least 2d
+    y = np.atleast_2d(X)
+
+
+    # multiply y against the theta parameter, 
+    y = y * float(theta)
+
+    # subtract the max for numerical stability
+    y = y - np.expand_dims(np.max(y, axis = axis), axis)
+    
+    # exponentiate y
+    y = np.exp(y)
+
+    # take the sum along the specified axis
+    ax_sum = np.expand_dims(np.sum(y, axis = axis), axis)
+
+    # finally: divide elementwise
+    p = y / ax_sum
+
+    return p
+    
+    #maxes = np.amax(X, axis=0)
+    #maxes = maxes.reshape(maxes.shape[0], 1)
+    #e = np.exp(X - maxes)
+    #dist = e / np.sum(e, axis=0)
+
+    #return dist
 
 
 def main():
@@ -162,10 +208,10 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR=0.15             #0.15 good for ~5000
+    LR=0.20             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 500   # number of subset instances for self reported dataset
+    SUBSET_VAL = 10000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     
@@ -223,6 +269,11 @@ def main():
 
 
     #### train ################################################
+    
+    print("A: ", A.shape)
+    print("B: ", B.shape)
+    print("X_trian: ", X_train.shape)
+    print("labels: ", y_train.shape)
 
     losses_train = []
     losses_test = []
@@ -231,89 +282,76 @@ def main():
     print()
     print()
     
+    X_train = normalize(X_train, axis=1, norm='l1')
+    X_test = normalize(X_test, axis=1, norm='l1')
+    X_manual = normalize(X_manual, axis=1, norm='l1')
+    
     traintime_start = time.time()
     for i in range(EPOCH):
         print()
         print("EPOCH: ", i)
         
-        # linearly decaying lr alpha
-        alpha = LR * ( 1 - i / EPOCH)
-        
-        l = 0
+        alpha = LR * ( 1 - i / EPOCH)  # linearly decaying lr alpha
         train_loss = 0
         
-        # TRAINING
-        epochtime_start = time.time()
-        for x in X_train:       
-            
-            label = y_train[l]
-            #B_old = B
-            #A_old = A
-            
-            # Forward Propogation
-            s = time.time()
-            hidden = sparse.csr_matrix.dot(A, x.T)
-            e = time.time()
-            print("compute hidden time: ", (e - s)/60.0)
-            
-            if np.sum(x) > 0:
-                a1 = hidden / np.sum(x)
-            else:
-                a1 = hidden
-                
-            z2 = np.dot(B, a1)
-            exps = np.exp(z2 - np.max(z2))
-            Y_hat = exps / np.sum(exps)
-            
-            # Back prop with alt optimization
-            #B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-            
-            print(Y_hat.shape, label.shape, a1.shape)
-            gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, a1.T)
-            B = np.subtract(B, gradient)
-            print(B.shape,np.subtract(Y_hat.T, label).shape)
-    
-            #A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
-            first = np.dot(np.subtract(Y_hat.T, label), B)
-            
-            if np.sum(x) > 0:
-                sec = x * (1.0/np.sum(x))   
-            else:
-                sec = x
-
-            gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
-            A = np.subtract(A, gradient) 
-            
-            # verify gradients
-            #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
-            #check_A_gradient(B_old, A_old, label, x, Y_hat)
-            
-            loglike = np.log(Y_hat)
-            train_loss += -np.dot(label, loglike)
-
-            l += 1
+        # Forward Propogation
+        hidden = sparse.csr_matrix.dot(A, X_train.T)
+        #hidden = normalize(hidden, axis=0, norm='l1')
+        z2 = np.dot(B, hidden)
         
-        
-        epochtime_end = time.time()
-            
+        # softmax
+        Y_hat = softmax(z2, theta = 0.5, axis = 0)
+        loglike = np.log(Y_hat)
+        train_loss = -np.multiply(y_train, loglike.T)  # need to multiply element wise here
+
         # TRAINING LOSS
-        #train_loss = total_loss_function(X_train, y_train, A, B, N_train)
-        train_loss = (1.0/N_train) * train_loss
+        train_loss = np.sum(train_loss)/N_train
         print("Train:   ", train_loss)
-        print("epoch time ", (epochtime_end - epochtime_start)/60.0)
-            
+        
         ## TESTING LOSS
         #test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
-        #print("Test:    ", test_loss)
+        hidden_test = sparse.csr_matrix.dot(A, X_test.T)
+        #hidden = normalize(hidden, axis=0, norm='l1')
+        z2_test = np.dot(B, hidden_test)
         
-        #print("Difference = ", test_loss - train_loss)
+        # softmax
+        Y_hat_test = softmax(z2_test, theta = 0.5, axis = 0)
+        loglike_test = np.log(Y_hat_test)
+        test_loss = -np.multiply(y_test, loglike_test.T)  # need to multiply element wise here
+        test_loss = np.sum(test_loss)/N_test
+        print("Test:    ", test_loss)
+        
+        print("Difference = ", test_loss - train_loss)
         
         ## MANUAL SET TESTING LOSS
         #manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
-        #print("Manual Set:    ", manual_loss)
+        hidden_man = sparse.csr_matrix.dot(A, X_manual.T)
+        #hidden = normalize(hidden, axis=0, norm='l1')
+        z2_man = np.dot(B, hidden_man)
+        
+        # softmax
+        Y_hat_man = softmax(z2_man, theta = 0.5, axis = 0)
+        loglike_manual = np.log(Y_hat_man)
+        manual_loss = -np.multiply(y_manual, loglike_manual.T)  # need to multiply element wise here
+        manual_loss = np.sum(manual_loss)/N_manual
+        
+        print("Manual Set:    ", manual_loss)
+        
+        #### Back prop #########################################################
+        # B update
+        gradient = alpha * np.dot(np.subtract(Y_hat.T, y_train).T, hidden.T)
+        B = np.subtract(B, gradient)
+        B = normalize(B, axis=0, norm='l1')
 
+        # A update
+        first = np.dot(np.subtract(Y_hat.T, y_train), B)
+        gradient = alpha * sparse.csr_matrix.dot(first.T, X_train)
+        A = np.subtract(A, gradient) 
+        A = normalize(A, axis=0, norm='l1')
+        
+        
 
-        #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train)
+        #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(Y_hat, y_train)
         #test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
         #manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual)
         
@@ -338,8 +376,8 @@ def main():
         #print("         F1:                 ", manual_F1)
         
         losses_train.append(train_loss)
-        #losses_test.append(test_loss)
-        #losses_manual.append(manual_loss)
+        losses_test.append(test_loss)
+        losses_manual.append(manual_loss)
 
         
         i += 1
@@ -350,8 +388,8 @@ def main():
     epochs = [l for l in range(EPOCH)]
     
     plt.plot(epochs, losses_train, 'm', label="train")
-    #plt.plot(epochs, losses_test, 'c', label="test")
-    #plt.plot(epochs, losses_manual, 'g', label="manual")
+    plt.plot(epochs, losses_test, 'c', label="test")
+    plt.plot(epochs, losses_manual, 'g', label="manual")
     title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
     plt.title(title)
     plt.ylabel('loss')

@@ -169,7 +169,7 @@ class Dictionary:
     
     
     def words_and_char_ngrams(self, text):
-        words = re.findall(r'\w{3,}', text)  # {3,} "3 OR MORE"
+        words = re.findall(r'\w{6,}', text)  # {3,} "3 OR MORE"
         for w in words:
             numgrams = 3
             yield w
@@ -179,10 +179,11 @@ class Dictionary:
                 numgrams -= 1
 
     def create_bagngrams(self): 
-        #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-
-        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
         data_features = self.vectorizer.fit_transform(self.X_train) 
+        
+        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        #data_features = self.vectorizer.fit_transform(self.X_train) 
         
         #self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,1))
         #data_features = self.vectorizer.fit_transform(self.X_train)

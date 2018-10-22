@@ -1,3 +1,0 @@
-srun: error: m011: task 0: Exited with exit code 13
-srun: Terminating job step 2051253.0
-slurmstepd: error: execve(): parallel_test.py: Permission denied

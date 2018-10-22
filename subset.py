@@ -3,13 +3,13 @@
 import random 
 
 
-NUMINST = 100
+NUMINST = 500
 
 dataset = open('../cleaned_combined_FULL.txt', 'r').readlines()
 
 random.shuffle(dataset)
 
-subset = open('../cleaned_subset.txt', 'w')
+subset = open('../cleaned_test_subset.txt', 'w')
 
 
 i = 0
