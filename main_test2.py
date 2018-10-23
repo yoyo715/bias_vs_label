@@ -19,69 +19,7 @@ from sklearn.preprocessing import normalize
 
 '''
 
-
-
-# computes the normalized hidden layer
-# NOTE: only for computing gradient?
-def compute_normalized_hidden(x, A):
-    hidden = sparse.csr_matrix.dot(A, x.T)
     
-    if np.sum(x) > 0:
-        return hidden / np.sum(x)
-    else:
-        return hidden
-    
-
-# finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
-    gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
-    B_new = np.subtract(B, gradient)
-
-    return B_new
-
-
-# update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
-    A_old = A
-    first = np.dot(np.subtract(Y_hat.T, label), B)
-    
-    if np.sum(x) > 0:
-        sec = x * (1.0/np.sum(x))
-    else:
-        sec = x
-
-    gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
-    A = np.subtract(A_old, gradient) 
-    
-    return A
-
-
-def stable_softmax(x, A, B): 
-    hidden = compute_normalized_hidden(x, A) 
-    X = np.dot(B, hidden)
-    exps = np.exp(X - np.max(X))
-    return (exps / np.sum(exps))
-
-
-# finds the loss
-def loss_function(x, A, B, label):
-    loglike = np.log(stable_softmax(x, A, B))
-    return -np.dot(label, loglike)
-
-
-# computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N):
-    i = 0
-    total_loss = 0
-    for x in X:
-        label = Y[i]
-        loss = loss_function(x, A, B, label)
-        total_loss += loss
-        i += 1
-        
-    return (1.0/N) * total_loss
-
-
 # function to return prediction error, precision, recall, F1 score
 def metrics(Y_hat, Y):
     incorrect = 0
@@ -187,13 +125,7 @@ def softmax(X, theta, axis = None):
     p = y / ax_sum
 
     return p
-    
-    #maxes = np.amax(X, axis=0)
-    #maxes = maxes.reshape(maxes.shape[0], 1)
-    #e = np.exp(X - maxes)
-    #dist = e / np.sum(e, axis=0)
 
-    #return dist
 
 
 def main():
@@ -208,12 +140,13 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR=0.20             # 0.15 good for ~5000
+    LR=0.10             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 10000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 5000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
-    
+
+    BATCHES = 50         # for batch gradient descent (number of splits of datatset)
     
     ##### instantiations #######################################
         
@@ -285,6 +218,13 @@ def main():
     X_train = normalize(X_train, axis=1, norm='l1')
     X_test = normalize(X_test, axis=1, norm='l1')
     X_manual = normalize(X_manual, axis=1, norm='l1')
+
+    #X_train_batches = np.vsplit(X_train, BATCHES )
+    #X_train = np.toarray(X_train)
+    #X_train_batches = np.array_split(X_train.todense(), BATCHES)
+    #print("****** ", X_train_batches[0].shape)
+
+    #y_train_batches = np.array_split(y_train, BATCHES)
     
     traintime_start = time.time()
     for i in range(EPOCH):
@@ -293,44 +233,62 @@ def main():
         
         alpha = LR * ( 1 - i / EPOCH)  # linearly decaying lr alpha
         train_loss = 0
+
+        batch_num = 0
+        for batch in X_train_batches:
         
-        # Forward Propogation
-        hidden = sparse.csr_matrix.dot(A, X_train.T)
-        #hidden = normalize(hidden, axis=0, norm='l1')
-        z2 = np.dot(B, hidden)
-        
-        # softmax
-        Y_hat = softmax(z2, theta = 0.5, axis = 0)
-        loglike = np.log(Y_hat)
-        train_loss = -np.multiply(y_train, loglike.T)  # need to multiply element wise here
+            # Forward Propogation
+            hidden = sparse.csr_matrix.dot(A, batch.T)
+            hidden = normalize(hidden, axis=1, norm='l1')
+            z2 = np.dot(B, hidden)
+            
+            # softmax
+            Y_hat = softmax(z2, theta = 1.0, axis = 0)
+            #loglike = np.log(Y_hat)
+            #train_loss = -np.multiply(y_train_batches[batch_num], loglike.T)  # need to multiply element wise here
+
+            #### Back prop #########################################################
+            # B update
+            gradient = alpha * np.dot(np.subtract(Y_hat.T, y_train_batches[batch_num]).T, hidden.T)
+            B = np.subtract(B, gradient)
+
+            # A update
+            first = np.dot(np.subtract(Y_hat.T, y_train_batches[batch_num]), B)
+            gradient = alpha * sparse.csr_matrix.dot(first.T, batch)
+            A = np.subtract(A, gradient) 
+
+            batch_num += 1
+ 
 
         # TRAINING LOSS
+        #train_loss = np.sum(train_loss)/N_train
+        hidden_train = sparse.csr_matrix.dot(A, X_train.T)
+        hidden_train = normalize(hidden_train, axis=1, norm='l1')
+        z2_train = np.dot(B, hidden_train)
+        
+        Y_hat_train = softmax(z2_train, theta = 1.0, axis = 0)
+        loglike_train = np.log(Y_hat_train)
+        train_loss = -np.multiply(y_train, loglike_train.T)  # need to multiply element wise here
         train_loss = np.sum(train_loss)/N_train
         print("Train:   ", train_loss)
         
         ## TESTING LOSS
-        #test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
         hidden_test = sparse.csr_matrix.dot(A, X_test.T)
-        #hidden = normalize(hidden, axis=0, norm='l1')
+        hidden_test = normalize(hidden_test, axis=1, norm='l1')
         z2_test = np.dot(B, hidden_test)
         
-        # softmax
-        Y_hat_test = softmax(z2_test, theta = 0.5, axis = 0)
+        Y_hat_test = softmax(z2_test, theta = 1.0, axis = 0)
         loglike_test = np.log(Y_hat_test)
         test_loss = -np.multiply(y_test, loglike_test.T)  # need to multiply element wise here
         test_loss = np.sum(test_loss)/N_test
         print("Test:    ", test_loss)
         
-        print("Difference = ", test_loss - train_loss)
-        
         ## MANUAL SET TESTING LOSS
-        #manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
         hidden_man = sparse.csr_matrix.dot(A, X_manual.T)
-        #hidden = normalize(hidden, axis=0, norm='l1')
+        hidden_man = normalize(hidden_man, axis=1, norm='l1')
         z2_man = np.dot(B, hidden_man)
         
-        # softmax
-        Y_hat_man = softmax(z2_man, theta = 0.5, axis = 0)
+        Y_hat_man = softmax(z2_man, theta = 1.0, axis = 0)
         loglike_manual = np.log(Y_hat_man)
         manual_loss = -np.multiply(y_manual, loglike_manual.T)  # need to multiply element wise here
         manual_loss = np.sum(manual_loss)/N_manual
@@ -339,15 +297,13 @@ def main():
         
         #### Back prop #########################################################
         # B update
-        gradient = alpha * np.dot(np.subtract(Y_hat.T, y_train).T, hidden.T)
-        B = np.subtract(B, gradient)
-        B = normalize(B, axis=0, norm='l1')
+        #gradient = alpha * np.dot(np.subtract(Y_hat.T, y_train).T, hidden.T)
+        #B = np.subtract(B, gradient)
 
         # A update
-        first = np.dot(np.subtract(Y_hat.T, y_train), B)
-        gradient = alpha * sparse.csr_matrix.dot(first.T, X_train)
-        A = np.subtract(A, gradient) 
-        A = normalize(A, axis=0, norm='l1')
+        #first = np.dot(np.subtract(Y_hat.T, y_train), B)
+        #gradient = alpha * sparse.csr_matrix.dot(first.T, X_train)
+        #A = np.subtract(A, gradient) 
         
         
 

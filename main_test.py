@@ -165,7 +165,7 @@ def main():
     LR=0.15             #0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 500   # number of subset instances for self reported dataset
+    SUBSET_VAL = 2000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     
@@ -247,14 +247,11 @@ def main():
         for x in X_train:       
             
             label = y_train[l]
-            #B_old = B
-            #A_old = A
+            B_old = B
+            A_old = A
             
             # Forward Propogation
-            s = time.time()
             hidden = sparse.csr_matrix.dot(A, x.T)
-            e = time.time()
-            print("compute hidden time: ", (e - s)/60.0)
             
             if np.sum(x) > 0:
                 a1 = hidden / np.sum(x)
@@ -268,10 +265,8 @@ def main():
             # Back prop with alt optimization
             #B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
             
-            print(Y_hat.shape, label.shape, a1.shape)
             gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, a1.T)
             B = np.subtract(B, gradient)
-            print(B.shape,np.subtract(Y_hat.T, label).shape)
     
             #A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
             first = np.dot(np.subtract(Y_hat.T, label), B)
@@ -303,8 +298,8 @@ def main():
         print("epoch time ", (epochtime_end - epochtime_start)/60.0)
             
         ## TESTING LOSS
-        #test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
-        #print("Test:    ", test_loss)
+        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
+        print("Test:    ", test_loss)
         
         #print("Difference = ", test_loss - train_loss)
         
@@ -338,7 +333,7 @@ def main():
         #print("         F1:                 ", manual_F1)
         
         losses_train.append(train_loss)
-        #losses_test.append(test_loss)
+        losses_test.append(test_loss)
         #losses_manual.append(manual_loss)
 
         
@@ -350,7 +345,7 @@ def main():
     epochs = [l for l in range(EPOCH)]
     
     plt.plot(epochs, losses_train, 'm', label="train")
-    #plt.plot(epochs, losses_test, 'c', label="test")
+    plt.plot(epochs, losses_test, 'c', label="test")
     #plt.plot(epochs, losses_manual, 'g', label="manual")
     title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
     plt.title(title)
