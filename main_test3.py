@@ -140,7 +140,7 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR=0.10             # 0.15 good for ~5000
+    LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
     SUBSET_VAL = 1000   # number of subset instances for self reported dataset
@@ -234,99 +234,85 @@ def main():
         alpha = LR * ( 1 - i / EPOCH)  # linearly decaying lr alpha
         train_loss = 0
 
-        start = 0
-        batchnum = 0
-        while start <= N_train:
-            batch = X_train.tocsr()[start:start+BATCHSIZE, :]
-            y_train_batch = y_train[start:start+BATCHSIZE, :] 
+        l = 0
+        for x in X_train:   
+            label = y_train[l]
 
             # Forward Propogation
-            hidden = sparse.csr_matrix.dot(A, batch.T)
-            hidden = normalize(hidden, axis=1, norm='l1')
-            z2 = np.dot(B, hidden)
+            hidden = sparse.csr_matrix.dot(A, x.T)
+            #hidden = normalize(hidden, axis=1, norm='l1')
+            if np.sum(x, axis = 1) > 0:
+                a1 = hidden / np.sum(x, axis=1)  # axis = 1 across rows
+            else:
+                a1 = hidden
             
             # softmax
-            Y_hat = softmax(z2, theta = 1.0, axis = 0)
+            z2 = np.dot(B, a1)
+            exps = np.exp(z2 - np.max(z2, axis=1))
+            Y_hat = exps / np.sum(exps, axis=1)
+
+            #Y_hat = softmax(z2, theta = 1.0, axis = 0)
             #loglike = np.log(Y_hat)
             #train_loss = -np.multiply(y_train_batches[batch_num], loglike.T)  # need to multiply element wise here
 
             #### Back prop #########################################################
             # B update
-            gradient = alpha * np.dot(np.subtract(Y_hat.T, y_train_batch).T, hidden.T)
+            gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
             B = np.subtract(B, gradient)
 
             # A update
-            first = np.dot(np.subtract(Y_hat.T, y_train_batch), B)
-            gradient = alpha * sparse.csr_matrix.dot(first.T, batch)
+            first = np.dot(np.subtract(Y_hat.T, label), B)
+            gradient = alpha * sparse.csr_matrix.dot(first.T, x)
             A = np.subtract(A, gradient) 
 
-            batchnum += 1
+            l += 1
 
-            if start+BATCHSIZE >= N_train:
-                batch = X_train.tocsr()[start:-1, :]   # rest of train set
-                y_train_batch = y_train[start:-1, :] 
-
-                # Forward Propogation
-                hidden = sparse.csr_matrix.dot(A, batch.T)
-                hidden = normalize(hidden, axis=1, norm='l1')
-                z2 = np.dot(B, hidden)
-                
-                # softmax
-                Y_hat = softmax(z2, theta = 1.0, axis = 0)
-                #loglike = np.log(Y_hat)
-                #train_loss = -np.multiply(y_train_batches[batch_num], loglike.T)  # need to multiply element wise here
-
-                #### Back prop #########################################################
-                # B update
-                gradient = alpha * np.dot(np.subtract(Y_hat.T, y_train_batch).T, hidden.T)
-                B = np.subtract(B, gradient)
-
-                # A update
-                first = np.dot(np.subtract(Y_hat.T, y_train_batch), B)
-                gradient = alpha * sparse.csr_matrix.dot(first.T, batch)
-                A = np.subtract(A, gradient) 
-
-                break
-            else:
-                start = start + BATCHSIZE
-                
-
- 
+            
 
         # TRAINING LOSS
         #train_loss = np.sum(train_loss)/N_train
         hidden_train = sparse.csr_matrix.dot(A, X_train.T)
-        hidden_train = normalize(hidden_train, axis=1, norm='l1')
-        z2_train = np.dot(B, hidden_train)
+        #hidden_train = normalize(hidden_train, axis=1, norm='l1')
+        #z2_train = np.dot(B, hidden_train)
+        #if np.sum(X_train, axis = 1) > 0:
+
+        a1 = hidden_train.divide(np.sum(X_train, axis=1))  # axis = 1 across rows
+        #else:
+        #    a1 = hidden
         
-        Y_hat_train = softmax(z2_train, theta = 1.0, axis = 0)
+        # softmax
+        z2_train = np.dot(B, a1)
+        exps = np.exp(z2_train - np.max(z2_train, axis=1))
+        Y_hat_train = exps / np.sum(exps, axis=1)
+        
+        #Y_hat_train = softmax(z2_train, theta = 1.0, axis = 0)
         loglike_train = np.log(Y_hat_train)
         train_loss = -np.multiply(y_train, loglike_train.T)  # need to multiply element wise here
         train_loss = np.sum(train_loss)/N_train
         print("Train:   ", train_loss)
         
         ## TESTING LOSS
-        hidden_test = sparse.csr_matrix.dot(A, X_test.T)
-        hidden_test = normalize(hidden_test, axis=1, norm='l1')
-        z2_test = np.dot(B, hidden_test)
+        #hidden_test = sparse.csr_matrix.dot(A, X_test.T)
+        #hidden_test = normalize(hidden_test, axis=1, norm='l1')
+        #z2_test = np.dot(B, hidden_test)
         
-        Y_hat_test = softmax(z2_test, theta = 1.0, axis = 0)
-        loglike_test = np.log(Y_hat_test)
-        test_loss = -np.multiply(y_test, loglike_test.T)  # need to multiply element wise here
-        test_loss = np.sum(test_loss)/N_test
-        print("Test:    ", test_loss)
+        #Y_hat_test = softmax(z2_test, theta = 1.0, axis = 0)
+        #loglike_test = np.log(Y_hat_test)
+        #test_loss = -np.multiply(y_test, loglike_test.T)  # need to multiply element wise here
+        #test_loss = np.sum(test_loss)/N_test
+        #print("Test:    ", test_loss)
         
         ## MANUAL SET TESTING LOSS
-        hidden_man = sparse.csr_matrix.dot(A, X_manual.T)
-        hidden_man = normalize(hidden_man, axis=1, norm='l1')
-        z2_man = np.dot(B, hidden_man)
+        #hidden_man = sparse.csr_matrix.dot(A, X_manual.T)
+        #hidden_man = normalize(hidden_man, axis=1, norm='l1')
+        #z2_man = np.dot(B, hidden_man)
         
-        Y_hat_man = softmax(z2_man, theta = 1.0, axis = 0)
-        loglike_manual = np.log(Y_hat_man)
-        manual_loss = -np.multiply(y_manual, loglike_manual.T)  # need to multiply element wise here
-        manual_loss = np.sum(manual_loss)/N_manual
+        #Y_hat_man = softmax(z2_man, theta = 1.0, axis = 0)
+        #loglike_manual = np.log(Y_hat_man)
+        #manual_loss = -np.multiply(y_manual, loglike_manual.T)  # need to multiply element wise here
+        #manual_loss = np.sum(manual_loss)/N_manual
         
-        print("Manual Set:    ", manual_loss)
+        #print("Manual Set:    ", manual_loss)
         
         #### Back prop #########################################################
         # B update

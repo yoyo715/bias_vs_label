@@ -1,7 +1,5 @@
 # main.py
 
-#from dictionary import Dictionary
-#from dictionary_updated import Dictionary2
 from dictionary3 import Dictionary
 
 import numpy as np
@@ -11,6 +9,7 @@ import time
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+from sklearn.preprocessing import normalize
 
 
 '''
@@ -26,7 +25,7 @@ def compute_normalized_hidden(x, A):
     hidden = sparse.csr_matrix.dot(A, x.T)
     
     if np.sum(x) > 0:
-        return hidden / np.sum(x)
+        return hidden * (1.0 / np.sum(x))
     else:
         return hidden
     
@@ -55,11 +54,58 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
     return A
 
 
-def stable_softmax(x, A, B): 
+#def stable_softmax(x, A, B): 
+#    hidden = compute_normalized_hidden(x, A) 
+#    X = np.dot(B, hidden)
+    #exps = np.exp(X - np.max(X))
+    #return (exps / np.sum(exps))
+
+#    axis = 0  # across rows
+
+    # subtract the max for numerical stability
+#    X = X - np.expand_dims(np.max(X, axis = axis), axis)
+    
+    # exponentiate y
+#    X = np.exp(X)
+
+    # take the sum along the specified axis
+#    ax_sum = np.expand_dims(np.sum(X, axis = axis), axis)
+
+    # finally: divide elementwise
+#    p = X / ax_sum
+
+#    return p
+
+
+def stable_softmax(X): 
+    #hidden = compute_normalized_hidden(x, A) 
+    #X = np.dot(B, hidden)
+    #exps = np.exp(X - np.max(X))
+    #return (exps / np.sum(exps))
+
+    axis = 0  # across rows
+
+    # subtract the max for numerical stability
+    X = X - np.expand_dims(np.max(X, axis = axis), axis)
+    
+    # exponentiate y
+    X = np.exp(X)
+
+    # take the sum along the specified axis
+    ax_sum = np.expand_dims(np.sum(X, axis = axis), axis)
+
+    # finally: divide elementwise
+    p = X / ax_sum
+
+    return p
+
+
+def stable_softmax2(x, A, B): 
     hidden = compute_normalized_hidden(x, A) 
     X = np.dot(B, hidden)
     exps = np.exp(X - np.max(X))
     return (exps / np.sum(exps))
+
 
 
 # finds the loss
@@ -162,10 +208,10 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR=0.15             #0.15 good for ~5000
+    LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 2000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 1000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     
@@ -243,7 +289,6 @@ def main():
         train_loss = 0
         
         # TRAINING
-        epochtime_start = time.time()
         for x in X_train:       
             
             label = y_train[l]
@@ -254,13 +299,21 @@ def main():
             hidden = sparse.csr_matrix.dot(A, x.T)
             
             if np.sum(x) > 0:
-                a1 = hidden / np.sum(x)
+                a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
             else:
                 a1 = hidden
                 
             z2 = np.dot(B, a1)
-            exps = np.exp(z2 - np.max(z2))
-            Y_hat = exps / np.sum(exps)
+            
+            #exps = np.exp(z2 - np.max(z2))
+            #Y_hat = exps / np.sum(exps)
+
+            Y_hat = stable_softmax(z2)
+            #Y_hat = stable_softmax(x, A, B)
+            #print(Y_hat_test)
+
+            #Y_hat = stable_softmax2(x, A, B)
+            #print(Y_hat)
             
             # Back prop with alt optimization
             #B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
@@ -272,7 +325,8 @@ def main():
             first = np.dot(np.subtract(Y_hat.T, label), B)
             
             if np.sum(x) > 0:
-                sec = x * (1.0/np.sum(x))   
+                sec = x * (1.0/np.sum(x))  
+                #sec = x / np.sum(x)    
             else:
                 sec = x
 
@@ -288,17 +342,38 @@ def main():
 
             l += 1
         
-        
-        epochtime_end = time.time()
+
             
         # TRAINING LOSS
         #train_loss = total_loss_function(X_train, y_train, A, B, N_train)
-        train_loss = (1.0/N_train) * train_loss
+        train_loss = train_loss * (1.0/N_train)
         print("Train:   ", train_loss)
-        print("epoch time ", (epochtime_end - epochtime_start)/60.0)
+
+        # TRAINING LOSS
+        hidden_train = sparse.csr_matrix.dot(A, X_train.T)
+        hidden_train = normalize(hidden_train, axis=1, norm='l1')
+        z2_train = np.dot(B, hidden_train)
+        
+        Y_hat_train = stable_softmax(z2_train)
+        loglike_train = np.log(Y_hat_train)
+        train_loss = -np.multiply(y_train, loglike_train.T)  # need to multiply element wise here
+        train_loss = np.sum(train_loss)/N_train
+        print("Train2:   ", train_loss)
             
         ## TESTING LOSS
-        test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
+        #test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
+        #print("Test:    ", test_loss)
+
+        ## TESTING LOSS
+        hidden_test = sparse.csr_matrix.dot(A, X_test.T)
+        hidden_test = normalize(hidden_test, axis=1, norm='l1')
+        z2_test = np.dot(B, hidden_test)
+        
+        Y_hat_test = stable_softmax(z2_test)
+        #Y_hat_test = stable_softmax(X_test, A, B)
+        loglike_test = np.log(Y_hat_test)
+        test_loss = -np.multiply(y_test, loglike_test.T)  # need to multiply element wise here
+        test_loss = np.sum(test_loss)/N_test
         print("Test:    ", test_loss)
         
         #print("Difference = ", test_loss - train_loss)
@@ -333,7 +408,7 @@ def main():
         #print("         F1:                 ", manual_F1)
         
         losses_train.append(train_loss)
-        losses_test.append(test_loss)
+        #losses_test.append(test_loss)
         #losses_manual.append(manual_loss)
 
         
@@ -345,7 +420,7 @@ def main():
     epochs = [l for l in range(EPOCH)]
     
     plt.plot(epochs, losses_train, 'm', label="train")
-    plt.plot(epochs, losses_test, 'c', label="test")
+    #plt.plot(epochs, losses_test, 'c', label="test")
     #plt.plot(epochs, losses_manual, 'g', label="manual")
     title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
     plt.title(title)
