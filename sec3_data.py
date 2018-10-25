@@ -1,14 +1,55 @@
+"""Scripts to run the Data Collection part of the paper."""
+
 import json
-#from misc_keys import twitter_keys
+#Dfrom misc_keys import twitter_keys
 from ACCESS_TOKENS_DONTSHARE import *
 import pandas as pd
 from time import localtime
 from time import sleep
 from time import strftime
 import tweepy
-import logging as log
 
 
+def log(message):
+    """Print simple timestamped message log."""
+    entry = "{0} - {1}".format(strftime('%H:%M:%S', localtime()), message)
+    print(entry)
+    return entry
+
+
+def chunk(l, n):
+    """Divide list l into n chuncks."""
+    n = int(len(l) / n)
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+#def tw_connect(keys):
+    #"""Connect to Twitter API using Tweepy.
+
+    #Parameters
+    #----------
+    #keys : dict
+        #Dictionary object containing keys app_public, app_secret, per_public,
+        #and per_secret.
+
+    #Returns
+    #-------
+    #api : object
+        #Authenticated Tweepy API object.
+
+    #"""
+    #auth = tweepy.OAuthHandler(keys['app_public'], keys['app_secret'])
+    #auth.set_access_token(keys['per_public'], keys['per_secret'])
+    #return tweepy.API(auth)
+
+#try:
+    #assert twitter_keys['app_public']
+    #API = tw_connect(twitter_keys)
+#except AssertionError:
+    #log("API keys are empty. Please provide them in misc_keys.py...")
+    #exit()
+    
 #def tw_connect(keys):
 def tw_connect(app_pub, app_priv, con_key, con_priv):
     #auth = tweepy.OAuthHandler(keys['app_public'], keys['app_secret'])
@@ -32,18 +73,35 @@ try:
 except AssertionError:
     log("API keys are empty. Please provide them in misc_keys.py...")
     exit()
-    
+
+
 class DB(object):
+    """Super simple database class.
+
+    Parameters
+    ----------
+    fdir : str
+        File directory.
+
+    mode : str
+        File mode ('r' for read, 'w' for write).
+
+    Attributes
+    ----------
+    db : obj
+        File object.
+
+    """
 
     def __init__(self, db_name, mode):
         """Open file directory."""
         self.mode = mode
         try:
-            self.db = open('/local_madim/Desktop/ML_research/gitfiles/bias_vs_labelefficiency/data/' + db_name + '.db', mode)
+            self.db = open('./data/' + db_name + '.db', mode)
         except FileNotFoundError:
-            fo = open('/local_madim/Desktop/ML_research/gitfiles/bias_vs_labelefficiency/data/' + db_name + '.db', 'w')
+            fo = open('./data/' + db_name + '.db', 'w')
             fo.close()
-            self.db = open('/local_madim/Desktop/ML_research/gitfiles/bias_vs_labelefficiency/data/' + db_name + '.db', mode)
+            self.db = open('./data/' + db_name + '.db', mode)
 
     def insert(self, jsonf):
         """Write json line to file."""
@@ -65,6 +123,7 @@ class DB(object):
             jsf = json.loads(line)
             yield jsf
 
+
 def reconstruct_ids(db_id):
     """Extract query and user information from existing file."""
     uds = DB(db_id + '_fix', 'r')
@@ -77,11 +136,101 @@ def reconstruct_ids(db_id):
             query_ids[line['tweet_id']] = line['query']
         except KeyError:
             user_ids[line['id']] = line['label']
-            
-    print(user_ids)
     return user_ids, query_ids
 
+
 class DistantCollection(object):
+    """Reader class to collect, store, and access the distant gender set.
+
+    Parameters
+    ----------
+    db_id : str
+        String identifier for this specific database (so the name).
+
+    query_string : str
+        Should contain the wrapper string where the keywords pairs should be
+        inserted. As such it should be of the format 'this is the query and
+        use {0} for the word position'. So, for '"I'm a girl"', where girl is
+        variable, you write '"I'm a {0}"'. Note that " can be used for exact
+        matches.
+
+    query_words : dict
+        Dictionary where the keys should be the query words inserted in the
+        query_string, and the values the labels associated with these words.
+
+    filter : list
+        Patterns that should be completely ignored as they do not guarantee a
+        message to be a self-report (retweets for example).
+
+    flip_any : list
+        Substrings that could flip the gender label, and can be positioned
+        anywhere in a tweet (e.g. " according to " such and such
+        " I'm a girl ").
+
+    flip_prefix : list
+        Substrings that could flip the gender label, and can be positioned
+        only as a suffix to the query (e.g. I " guess "" I'm a man " now).
+
+    clean_level : str, {'historic', 'query'}, default: 'historic'
+        The level on which to remove the query strings. This can be either from
+        history, meaning it will remove any of the queries from the entire
+        timeline (like in the paper), or only on query level, meaning it will
+        remove the queries only.
+
+    mode : str, {'live', 'test'}, default: 'live'
+        If set to 'test', will only run a few iterations of data collection
+        (ideal for debugging and such).
+
+    Attributes
+    ----------
+    id : str
+        String identifier for this specific database.
+
+    hits : obj
+        Database wrapper for the query table. Includes the orginal query
+        hit message, and a user and tweet id.
+
+    users : obj
+        Database wrapper for user table. Normal query representation doesn't
+        include these objects!
+
+    messages : obj
+        Database wrapper for message table.
+
+    hit_fix : obj
+        Database wrapper with the corrected distant labels initially provided
+        by the naive queries. These are either flipped or filtered.
+
+    msg_fix : obj
+        Database wrapper for the corrected message table. This excludes tweets
+        that include any of the specified queries.
+
+    queries : dict
+        Formatted dictionary combining query_string and query_words so that
+        {full_query: distant_label}.
+
+    filter : list
+        See filters parameter.
+
+    flip_any : list
+        See flip_any parameter.
+
+    flip_prefix : list
+        See flip_prefix parameter.
+
+    user_ids : dict
+        Dictionary so that {user_id : label}.
+
+    query_ids : dict
+        Dictionary so that {message id containing query: query}.
+
+    clean_level : str
+        See clean_level parameter.
+
+    max : int
+        0 if mode == 'live' else 1
+
+    """
 
     def __init__(self, query_string, query_words, filters, flip_any,
                  flip_prefix, clean_level='messages', mode='live',
@@ -159,7 +308,6 @@ class DistantCollection(object):
                         self.hits.insert({'user_id': tweet.user.id,
                                           'tweet_id': tweet.id,
                                           'tweet_text': tweet.text,
-                                          'location': tweet.location,
                                           'label': label,
                                           'query': query})
                     except Exception as e:
@@ -216,24 +364,14 @@ class DistantCollection(object):
             if self.max:
                 break
 
-    def get_location(self):
-       for user_id in self.user_ids:
-           cursor = tweepy.Cursor(API.user_timeline, id=user_id, count=200)
-           for tweet in self.get_tweets(cursor):
-               tweet['user_id'] = user_id
-               assert not tweet.get('user')
-               self.messages.insert({'tweet_id': tweet['id'],
-                                     'user_id': user_id,
-                                     'user_location': tweet['location']})
-           log("Fetched user...")
-           if self.max:
-               break
-
     def fetch_user_tweets(self):
         """Divide all ids amongst API connections and thread them."""
         try:
             assert self.user_ids
         except (AssertionError, AttributeError):
+            log("Empty users, trying to repopulate from " + self.id +
+                "_fix.db. If this errors, make sure you ran " +
+                "fetch_query_tweets first!")
             self.user_ids, self.query_ids = reconstruct_ids(self.id)
 
         self.get_timelines()
@@ -241,10 +379,76 @@ class DistantCollection(object):
         if self.id == 'twitter_gender' or self.id == 'query_gender':
             self.remove_query_tweets()
 
+
 class QueryCollection(DistantCollection):
+    r"""Reader class to load and store our Query corpus.
+
+    Parameters
+    ----------
+    db_id : str
+        String identifier for this specific database (so the name).
+
+    corpus_dir : str, optional, default ./corpora/query-gender.json
+        Directory where corpus is located.
+
+    clean_level : str, {'historic', 'query'}, default: 'historic'
+        The level on which to remove the query strings. This can be either from
+        history, meaning it will remove any of the queries from the entire
+        timeline (like in the paper), or only on query level, meaning it will
+        remove the queries only.
+
+    mode : str, {'live', 'test'}, default: 'live'
+        If set to 'test', will only run a few iterations of data collection
+        (ideal for debugging and such).
+
+    Attributes
+    ----------
+    id : str
+        String identifier for this specific database.
+
+    users : obj
+        Database wrapper for user table.
+
+    messages : obj
+        Database wrapper for message table.
+
+    msg_fix : obj
+        Database wrapper for the corrected message table. This excludes tweets
+        that include any of the specified queries.
+
+    queries : dict
+        Formatted dictionary combining query_string and query_words from the
+        paper so that {full_query: distant_label}.
+
+    user_ids : dict
+        Dictionary so that {user_id : label}.
+
+    clean_level : str
+        See clean_level parameter.
+
+    max : int
+        0 if mode == 'live' else 1
+
+    corpus : dict
+        JSON object with Query corpus.
+
+    Notes
+    -----
+    The Query corpus is from our own paper:
+
+    @article{emmery2017simple,
+      title={Simple Queries as Distant Labels for Predicting Gender on Twitter
+             },
+      author={Chris Emmery, Grzegorz Chrupa{\l}a, Walter Daelemans},
+      journal={WNUT 2017},
+      pages={50-55},
+      year={2017}
+    }
+
+    """
+
     def __init__(self, db_id='query_gender',
-                 #corpus_dir='./corpora/query-gender.json',
-                 corpus_dir='/local_madim/Desktop/ML_research/gitfiles/bias_vs_labelefficiency/data/query-gender.json',
+                 corpus_dir='./corpora/query-gender.json',
                  clean_level='messages', mode='live'):
         """Call correct databases corresponding to class, open corpus."""
         self.id = db_id
@@ -268,7 +472,7 @@ class QueryCollection(DistantCollection):
         try:
             self.corpus = json.load(open(corpus_dir, 'r'))
         except FileNotFoundError:
-            log("Something went wrong while loading the query corpus. Re-download from http://github.com/cmry/simple-queries and store in corpora")
+            log("Something went wrong while loading the query corpus. Re-download from http://github.com/cmry/simple-queries and store in ./corpora")
 
     def fetch_users(self):
         """Collect the users in the Query corpus."""
@@ -276,6 +480,7 @@ class QueryCollection(DistantCollection):
         for idx, info in self.corpus['annotations'].items():
             userd[idx] = info['query_label2']
             if len(userd) == 100:
+                log("Getting user batch...")
                 userl = list(userd.keys())
                 users = API.lookup_users(userl)
                 for user in users:
@@ -286,9 +491,46 @@ class QueryCollection(DistantCollection):
                 if self.max:
                     break
         self.users.commit()
-        
-tc = QueryCollection(db_id='query_gender', clean_level='messages')
-tc.fetch_users()
-tc.fetch_user_tweets()
-print(tc.user_ids)
 
+
+
+if __name__ == "__main__":
+
+    qs = 'm a {0}'
+    qw = {'girl': 'f', 'boy': 'm', 'man': 'm', 'woman': 'f', 'guy': 'm',
+          'dude': 'm', 'gal': 'f', 'female': 'f', 'male': 'm'}
+
+    fil = ['rt ', '"', ': ']
+    flp_any = ["according to", "deep down"]
+    flp_pfx = [" feel like ", " where ", " as if ", " hoping ", " assumed ",
+               " think ", " assumes ", " assumed ", " assume that ",
+               " assumed that ", " then ", " expect that ", " expect ",
+               "that means ", " means ", " think ", " implying ", " guess ",
+               " thinks ", " tells me ", " learned ", " if "]
+
+    dc = DistantCollection(query_string=qs, query_words=qw, filters=fil,
+                           flip_any=flp_any, flip_prefix=flp_pfx,
+                           clean_level='messages', db_id='twitter_gender')
+
+    # log("Fetching query tweets...")
+    # dc.fetch_query_tweets()
+    # log("Fetching user tweets...")
+    # dc.fetch_user_tweets()
+
+    log("Fetching Query users...")
+    tc = QueryCollection(db_id='query_gender', clean_level='messages')
+    tc.fetch_users()
+    log("Fetching Query tweets...")
+    tc.fetch_user_tweets()
+
+    #log("Fetching Plank users...")
+    #tc = PlankCollection(db_id='plank_gender')
+    #tc.fetch_users()
+    #log("Fetching Plank tweets...")
+    #tc.fetch_user_tweets()
+
+    #log("Fetching Volkova users...")
+    #pc = VolkovaCollection(db_id='volkova_gender')
+    #pc.fetch_users()
+    #log("Fetching Volkova tweets...")
+    #pc.fetch_user_tweets()

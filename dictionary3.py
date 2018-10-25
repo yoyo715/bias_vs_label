@@ -28,16 +28,19 @@ class Dictionary:
         self.subset_value = subset_value
         self.lin_c = lin_c
         
-        #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
-        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
+        self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender.train', encoding='utf8').readlines()  # laptop
+        #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
         #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
+        #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
+        self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
         #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         
         self.file_train.extend(self.file_test)
         self.dataset = self.file_train
+        
+        print("****************** ", len(self.dataset))
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
