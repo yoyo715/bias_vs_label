@@ -180,11 +180,11 @@ def main():
     BUCKET=1000000
 
     # adjust these
-    EPOCH=10
+    EPOCH=20
     LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 100   # number of subset instances for self reported dataset
+    SUBSET_VAL = 3000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     BATCHSIZE = 1       # number of instances in each batch
@@ -216,13 +216,13 @@ def main():
     
     
     # manual labeled set (Kaggle dataset)
-    #X_manual = dictionary.get_manual_testset()
-    #y_manual = dictionary.get_manual_set_labels()
-    #N_manual = dictionary.get_n_manual_instances()
-    #print()
-    #print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
-    #nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
-    #print("N each class Manual testing instances: ", nmanual_eachclass)
+    X_manual = dictionary.get_manual_testset()
+    y_manual = dictionary.get_manual_set_labels()
+    N_manual = dictionary.get_n_manual_instances()
+    print()
+    print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+    nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
+    print("N each class Manual testing instances: ", nmanual_eachclass)
     print("#####################################")
     
     
@@ -292,13 +292,17 @@ def main():
             B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, a1, Y_hat)  
             
             A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, Y_hat)
-        
-            loglike = np.log(Y_hat)
-            train_loss += -np.dot(y_train_batch, loglike)
+
+            
+            #loglike = np.log(Y_hat)
+
+            #train_loss += -np.dot(y_train_batch, loglike)
             
             batchnum += 1
 
-            if start+BATCHSIZE >= N_train:
+            # NOTE figure this out, Might be missing last sample
+            if start+BATCHSIZE >= N_train and start < N_train-1:   
+
                 batch = X_train.tocsr()[start:-1, :]   # rest of train set
                 y_train_batch = y_train[start:-1, :] 
                 
@@ -327,8 +331,8 @@ def main():
                 
                 A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, Y_hat)
             
-                loglike = np.log(Y_hat)
-                train_loss += -np.dot(y_train_batch, loglike)
+                #loglike = np.log(Y_hat)
+                #train_loss += -np.dot(y_train_batch, loglike)
 
                 break
             else:
@@ -336,11 +340,11 @@ def main():
 
             
         # TRAINING LOSS
-        train_loss = train_loss * (1.0/N_train)
-        print("Train:   ", train_loss)
+        #train_loss = train_loss * (1.0/N_train)
+        #print("Train:   ", train_loss)
 
-        train_loss2 = get_total_loss(A, B, X_train, y_train, N_train)
-        print("Train2:   ", train_loss2)
+        train_loss = get_total_loss(A, B, X_train, y_train, N_train)
+        print("Train:   ", train_loss)
 
         ## TESTING LOSS
         test_loss = get_total_loss(A, B, X_test, y_test, N_test)
@@ -349,8 +353,8 @@ def main():
         #print("Difference = ", test_loss - train_loss)
         
         ## MANUAL SET TESTING LOSS
-        #manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
-        #print("Manual Set:    ", manual_loss)
+        manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
+        print("Manual Set:    ", manual_loss)
 
 
         #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train)
@@ -378,8 +382,8 @@ def main():
         #print("         F1:                 ", manual_F1)
         
         losses_train.append(train_loss)
-        #losses_test.append(test_loss)
-        #losses_manual.append(manual_loss)
+        losses_test.append(test_loss)
+        losses_manual.append(manual_loss)
 
         
         i += 1
@@ -390,9 +394,10 @@ def main():
     epochs = [l for l in range(EPOCH)]
     
     plt.plot(epochs, losses_train, 'm', label="train")
-    #plt.plot(epochs, losses_test, 'c', label="test")
-    #plt.plot(epochs, losses_manual, 'g', label="manual")
-    #title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    plt.plot(epochs, losses_test, 'c', label="test")
+    plt.plot(epochs, losses_manual, 'g', label="manual")
+    title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    #title = "Main_temp: n_train: ", N_train, " n_test: ", N_test
     plt.title(title)
     plt.ylabel('loss')
     plt.xlabel('epoch')
