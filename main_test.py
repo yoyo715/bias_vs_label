@@ -21,13 +21,13 @@ from sklearn.preprocessing import normalize
 
 # computes the normalized hidden layer
 # NOTE: only for computing gradient?
-def compute_normalized_hidden(x, A):
-    hidden = sparse.csr_matrix.dot(A, x.T)
+#def compute_normalized_hidden(x, A):
+    #hidden = sparse.csr_matrix.dot(A, x.T)
     
-    if np.sum(x) > 0:
-        return hidden * (1.0 / np.sum(x))
-    else:
-        return hidden
+    #if np.sum(x) > 0:
+        #return hidden * (1.0 / np.sum(x))
+    #else:
+        #return hidden
     
 
 # finds gradient of B and returns an up
@@ -54,28 +54,6 @@ def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
     return A
 
 
-#def stable_softmax(x, A, B): 
-#    hidden = compute_normalized_hidden(x, A) 
-#    X = np.dot(B, hidden)
-    #exps = np.exp(X - np.max(X))
-    #return (exps / np.sum(exps))
-
-#    axis = 0  # across rows
-
-    # subtract the max for numerical stability
-#    X = X - np.expand_dims(np.max(X, axis = axis), axis)
-    
-    # exponentiate y
-#    X = np.exp(X)
-
-    # take the sum along the specified axis
-#    ax_sum = np.expand_dims(np.sum(X, axis = axis), axis)
-
-    # finally: divide elementwise
-#    p = X / ax_sum
-
-#    return p
-
 
 def stable_softmax(X): 
     #hidden = compute_normalized_hidden(x, A) 
@@ -100,31 +78,53 @@ def stable_softmax(X):
     return p
 
 
-def stable_softmax2(x, A, B): 
-    hidden = compute_normalized_hidden(x, A) 
-    X = np.dot(B, hidden)
-    exps = np.exp(X - np.max(X))
-    return (exps / np.sum(exps))
+#def stable_softmax2(x, A, B): 
+    #hidden = compute_normalized_hidden(x, A) 
+    #X = np.dot(B, hidden)
+    #exps = np.exp(X - np.max(X))
+    #return (exps / np.sum(exps))
 
 
 
 # finds the loss
-def loss_function(x, A, B, label):
-    loglike = np.log(stable_softmax(x, A, B))
-    return -np.dot(label, loglike)
+#def loss_function(x, A, B, label):
+    #loglike = np.log(stable_softmax(x, A, B))
+    #return -np.dot(label, loglike)
 
 
-# computes the loss over entire dataset
-def total_loss_function(X, Y, A, B, N):
-    i = 0
-    total_loss = 0
-    for x in X:
-        label = Y[i]
-        loss = loss_function(x, A, B, label)
-        total_loss += loss
-        i += 1
+## computes the loss over entire dataset
+#def total_loss_function(X, Y, A, B, N):
+    #i = 0
+    #total_loss = 0
+    #for x in X:
+        #label = Y[i]
+        #loss = loss_function(x, A, B, label)
+        #total_loss += loss
+        #i += 1
         
-    return (1.0/N) * total_loss
+    #return (1.0/N) * total_loss
+
+
+# calculates total loss using matrix operations (quicker than looping)
+def get_total_loss(A, B, X, y, N):
+    hidden = sparse.csr_matrix.dot(A, X.T)      
+    
+    sum_ = np.sum(X, axis = 1)
+    sum_[sum_ == 0] = 1         # replace zeros with ones so divide will work
+    sum_ = np.array(sum_)
+    sum_ = sum_.flatten()
+    
+    hidden = hidden.T / sum_[:,None]
+    hidden = hidden.T
+    z2 = np.dot(B, hidden)
+    
+    Y_hat = stable_softmax(z2)
+    loglike = np.log(Y_hat)
+    
+    loss = -np.multiply(y, loglike.T)  # need to multiply element wise here
+    loss = np.sum(loss)/N
+    
+    return loss
 
 
 # function to return prediction error, precision, recall, F1 score
@@ -139,27 +139,27 @@ def metrics(X, Y, A, B, N):
     y_pred = []
 
     i = 0
-    for x in X:
-        prediction = np.argmax(stable_softmax(x, A, B))
-        true_label = np.argmax(Y[i])
-        
-        y_true.append(true_label)
-        y_pred.append(prediction)
+    #for x in X:
+    prediction = np.argmax(stable_softmax(x, A, B))
+    true_label = np.argmax(Y[i])
+    
+    y_true.append(true_label)
+    y_pred.append(prediction)
 
-        if prediction != true_label:
-            incorrect += 1
+    if prediction != true_label:
+        incorrect += 1
 
-        if prediction == 1 and true_label == 1:
-            true_pos += 1
+    if prediction == 1 and true_label == 1:
+        true_pos += 1
 
-        if prediction == 1 and true_label == 0:
-            false_pos += 1
+    if prediction == 1 and true_label == 0:
+        false_pos += 1
 
-        if prediction == 0 and true_label == 0:
-            true_neg += 1
+    if prediction == 0 and true_label == 0:
+        true_neg += 1
 
-        if prediction == 0 and true_label == 1:
-            false_neg += 1
+    if prediction == 0 and true_label == 1:
+        false_neg += 1
     
         i += 1
         
@@ -207,7 +207,7 @@ def main():
     BUCKET=1000000
 
     # adjust these
-    EPOCH=20
+    EPOCH=10
     LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
@@ -241,13 +241,13 @@ def main():
     
     
     # manual labeled set (Kaggle dataset)
-    X_manual = dictionary.get_manual_testset()
-    y_manual = dictionary.get_manual_set_labels()
-    N_manual = dictionary.get_n_manual_instances()
-    print()
-    print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
-    nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
-    print("N each class Manual testing instances: ", nmanual_eachclass)
+    #X_manual = dictionary.get_manual_testset()
+    #y_manual = dictionary.get_manual_set_labels()
+    #N_manual = dictionary.get_n_manual_instances()
+    #print()
+    #print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+    #nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
+    #print("N each class Manual testing instances: ", nmanual_eachclass)
     print("#####################################")
     
     
@@ -289,7 +289,14 @@ def main():
         train_loss = 0
         
         # TRAINING
-        for x in X_train:       
+        #for x in X_train: 
+        
+        start = 0
+        batchnum = 0
+        while start <= N_train:
+            batch = X_train.tocsr()[start:start+BATCHSIZE, :]
+            y_train_batch = y_train[start:start+BATCHSIZE, :] 
+            
             
             label = y_train[l]
             B_old = B
@@ -302,6 +309,8 @@ def main():
                 a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
             else:
                 a1 = hidden
+                
+            #print(hidden)
                 
             z2 = np.dot(B, a1)
             
@@ -316,70 +325,43 @@ def main():
             #print(Y_hat)
             
             # Back prop with alt optimization
-            #B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
+            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
             
-            gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, a1.T)
-            B = np.subtract(B, gradient)
+            #gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, a1.T)
+            #B = np.subtract(B, gradient)
     
-            #A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
-            first = np.dot(np.subtract(Y_hat.T, label), B)
+            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
+            #first = np.dot(np.subtract(Y_hat.T, label), B)
             
-            if np.sum(x) > 0:
-                sec = x * (1.0/np.sum(x))  
-                #sec = x / np.sum(x)    
-            else:
-                sec = x
+            #if np.sum(x) > 0:
+                #sec = x * (1.0/np.sum(x))  
+            #else:
+                #sec = x
 
-            gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
-            A = np.subtract(A, gradient) 
-            
-            # verify gradients
-            #check_B_gradient(B_old, A_old, label, x, Y_hat, a1)
-            #check_A_gradient(B_old, A_old, label, x, Y_hat)
+            #gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
+            #A = np.subtract(A, gradient) 
             
             loglike = np.log(Y_hat)
             train_loss += -np.dot(label, loglike)
 
             l += 1
-        
 
             
         # TRAINING LOSS
-        #train_loss = total_loss_function(X_train, y_train, A, B, N_train)
         train_loss = train_loss * (1.0/N_train)
         print("Train:   ", train_loss)
 
-        # TRAINING LOSS
-        hidden_train = sparse.csr_matrix.dot(A, X_train.T)
-        hidden_train = normalize(hidden_train, axis=1, norm='l1')
-        z2_train = np.dot(B, hidden_train)
-        
-        Y_hat_train = stable_softmax(z2_train)
-        loglike_train = np.log(Y_hat_train)
-        train_loss = -np.multiply(y_train, loglike_train.T)  # need to multiply element wise here
-        train_loss = np.sum(train_loss)/N_train
-        print("Train2:   ", train_loss)
-            
-        ## TESTING LOSS
-        #test_loss = total_loss_function(X_test, y_test, A_old, B_old, N_test)
-        #print("Test:    ", test_loss)
+        train_loss2 = get_total_loss(A, B, X_train, y_train, N_train)
+        print("Train2:   ", train_loss2)
 
         ## TESTING LOSS
-        hidden_test = sparse.csr_matrix.dot(A, X_test.T)
-        hidden_test = normalize(hidden_test, axis=1, norm='l1')
-        z2_test = np.dot(B, hidden_test)
-        
-        Y_hat_test = stable_softmax(z2_test)
-        #Y_hat_test = stable_softmax(X_test, A, B)
-        loglike_test = np.log(Y_hat_test)
-        test_loss = -np.multiply(y_test, loglike_test.T)  # need to multiply element wise here
-        test_loss = np.sum(test_loss)/N_test
+        test_loss = get_total_loss(A, B, X_test, y_test, N_test)
         print("Test:    ", test_loss)
         
         #print("Difference = ", test_loss - train_loss)
         
         ## MANUAL SET TESTING LOSS
-        #manual_loss = total_loss_function(X_manual, y_manual, A_old, B_old, N_manual)
+        #manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
         #print("Manual Set:    ", manual_loss)
 
 
@@ -422,7 +404,7 @@ def main():
     plt.plot(epochs, losses_train, 'm', label="train")
     #plt.plot(epochs, losses_test, 'c', label="test")
     #plt.plot(epochs, losses_manual, 'g', label="manual")
-    title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    #title = "Main_temp: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
     plt.title(title)
     plt.ylabel('loss')
     plt.xlabel('epoch')
