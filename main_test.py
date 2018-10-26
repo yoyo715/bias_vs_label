@@ -78,33 +78,6 @@ def stable_softmax(X):
     return p
 
 
-#def stable_softmax2(x, A, B): 
-    #hidden = compute_normalized_hidden(x, A) 
-    #X = np.dot(B, hidden)
-    #exps = np.exp(X - np.max(X))
-    #return (exps / np.sum(exps))
-
-
-
-# finds the loss
-#def loss_function(x, A, B, label):
-    #loglike = np.log(stable_softmax(x, A, B))
-    #return -np.dot(label, loglike)
-
-
-## computes the loss over entire dataset
-#def total_loss_function(X, Y, A, B, N):
-    #i = 0
-    #total_loss = 0
-    #for x in X:
-        #label = Y[i]
-        #loss = loss_function(x, A, B, label)
-        #total_loss += loss
-        #i += 1
-        
-    #return (1.0/N) * total_loss
-
-
 # calculates total loss using matrix operations (quicker than looping)
 def get_total_loss(A, B, X, y, N):
     hidden = sparse.csr_matrix.dot(A, X.T)      
@@ -211,8 +184,10 @@ def main():
     LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 1000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 100   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
+    
+    BATCHSIZE = 1       # number of instances in each batch
     
     
     ##### instantiations #######################################
@@ -288,63 +263,76 @@ def main():
         l = 0
         train_loss = 0
         
-        # TRAINING
-        #for x in X_train: 
-        
         start = 0
         batchnum = 0
         while start <= N_train:
             batch = X_train.tocsr()[start:start+BATCHSIZE, :]
             y_train_batch = y_train[start:start+BATCHSIZE, :] 
-            
-            
-            label = y_train[l]
+
             B_old = B
             A_old = A
             
             # Forward Propogation
-            hidden = sparse.csr_matrix.dot(A, x.T)
-            
-            if np.sum(x) > 0:
-                a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
-            else:
-                a1 = hidden
+            hidden = sparse.csr_matrix.dot(A, batch.T)
+            #if np.sum(x) > 0:
+                #a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
+            #else:
+                #a1 = hidden
                 
-            #print(hidden)
+            sum_ = np.sum(batch, axis = 1)
+            sum_[sum_ == 0] = 1         # replace zeros with ones so divide will work
+            sum_ = np.array(sum_).flatten()
+            
+            a1 = (hidden.T / sum_[:,None]).T
                 
             z2 = np.dot(B, a1)
-            
-            #exps = np.exp(z2 - np.max(z2))
-            #Y_hat = exps / np.sum(exps)
-
             Y_hat = stable_softmax(z2)
-            #Y_hat = stable_softmax(x, A, B)
-            #print(Y_hat_test)
-
-            #Y_hat = stable_softmax2(x, A, B)
-            #print(Y_hat)
-            
-            # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, x, label, nclasses, alpha, DIM, a1, Y_hat)  
-            
-            #gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, a1.T)
-            #B = np.subtract(B, gradient)
     
-            A = gradient_A(B_old, A_old, x, label, nclasses, alpha, DIM, Y_hat)
-            #first = np.dot(np.subtract(Y_hat.T, label), B)
+            # Back prop with alt optimization
+            B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, a1, Y_hat)  
             
-            #if np.sum(x) > 0:
-                #sec = x * (1.0/np.sum(x))  
-            #else:
-                #sec = x
-
-            #gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
-            #A = np.subtract(A, gradient) 
-            
+            A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, Y_hat)
+        
             loglike = np.log(Y_hat)
-            train_loss += -np.dot(label, loglike)
+            train_loss += -np.dot(y_train_batch, loglike)
+            
+            batchnum += 1
 
-            l += 1
+            if start+BATCHSIZE >= N_train:
+                batch = X_train.tocsr()[start:-1, :]   # rest of train set
+                y_train_batch = y_train[start:-1, :] 
+                
+                B_old = B
+                A_old = A
+                
+                # Forward Propogation
+                hidden = sparse.csr_matrix.dot(A, batch.T)
+                
+                sum_ = np.sum(batch, axis = 1)
+                sum_[sum_ == 0] = 1         # replace zeros with ones so divide will work
+                sum_ = np.array(sum_).flatten()
+                
+                a1 = (hidden.T  / sum_[:,None]).T
+                
+                #if np.sum(x) > 0:
+                    #a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
+                #else:
+                    #a1 = hidden
+                    
+                z2 = np.dot(B, a1)
+                Y_hat = stable_softmax(z2)
+        
+                # Back prop with alt optimization
+                B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, a1, Y_hat)  
+                
+                A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, Y_hat)
+            
+                loglike = np.log(Y_hat)
+                train_loss += -np.dot(y_train_batch, loglike)
+
+                break
+            else:
+                start = start + BATCHSIZE
 
             
         # TRAINING LOSS
