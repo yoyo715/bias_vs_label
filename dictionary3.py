@@ -28,7 +28,8 @@ class Dictionary:
         self.subset_value = subset_value
         self.lin_c = lin_c
         
-        self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
+        self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()
+        #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
         #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
         #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
@@ -37,11 +38,11 @@ class Dictionary:
         self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
         #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         
-        self.file_train.extend(self.file_test)
-        self.dataset = self.file_train
+        #self.file_train.extend(self.file_test)
+        #self.dataset = self.file_train
         
-        print("****************** total instances in dataset ", len(self.dataset))
-        random.shuffle(self.dataset)
+        #print("****************** total instances in dataset ", len(self.dataset))
+        #random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
         self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
@@ -53,13 +54,15 @@ class Dictionary:
         self.mincount = mincount
         self.bucket = bucket
 
-        self.create_instances_and_labels()
-        self.train_and_testsplit()
+        self.create_train_instances_and_labels()
+        self.create_test_instances_and_labels()
+        #self.train_and_testsplit()
+        self.create_sets()
         self.create_bagngrams()
         self.create_test_bagngrams()
         self.create_manual_bagngrams()
         
-        self.nclasses = len(set(self.labels))
+        self.nclasses = len(set(self.train_labels))
         self.create_train_labels()
         self.create_test_labels()
         self.create_manual_labels()
@@ -73,14 +76,15 @@ class Dictionary:
         
     # adds each instance a separate element in list
     # each 'tweet' is separated by tab
-    def create_instances_and_labels(self):
+    def create_train_instances_and_labels(self):
         words =  []
         labels = []
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
 
         # loop through each instance in training data, gets labels
-        for x in self.dataset[0:self.subset_value]:
+        #for x in self.dataset[0:self.subset_value]:
+        for x in self.file_train[0:self.subset_value]:
             i = 0
             inst = ''
             label = x[0:10]
@@ -110,8 +114,49 @@ class Dictionary:
                             word = ''
             
             documents.append(inst)
-        self.instances = documents
-        self.labels = labels
+        self.train_instances = documents
+        self.train_labels = labels
+        
+        
+    def create_test_instances_and_labels(self):
+        words =  []
+        labels = []
+        documents = []
+        whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
+
+        # loop through each instance in training data, gets labels
+        for x in self.file_test:
+            i = 0
+            inst = ''
+            label = x[0:10]
+            
+            if label[0:9] != '__label__':
+                print("ERROR in label creation. label: ", label)
+                break
+            else:
+                labels.append(float(label[-1]))
+                
+            sent = ''
+            word = ''
+            for w in x[10:]:
+                if w in whitelist:
+                    if w == '\t':
+                        inst = inst + '\t' + sent
+                        sent = ''
+                        word = ''
+                        i += 1
+                    elif w != ' ':
+                        word = word + w
+                    else:
+                        if "http" not in word and word != "RT" and word != "rt":
+                            sent = sent + ' ' + word
+                            word = ''
+                        else:
+                            word = ''
+            
+            documents.append(inst)
+        self.test_instances = documents
+        self.test_labels = labels
         
         
     # this function creates the instances of the manually labeled (Kaggle) dataset
@@ -162,8 +207,20 @@ class Dictionary:
         self.n_manual_instances = len(self.manual_instances)
         
         
-    def train_and_testsplit(self):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.instances, self.labels, test_size=0.30)
+    #def train_and_testsplit(self):
+        #self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.instances, self.labels, test_size=0.30)
+        
+        #self.n_train_instances = len(self.X_train)
+        #self.n_test_instances = len(self.X_test)
+        #self.n_train_labels = len(self.y_train)
+        #self.n_test_labels = len(self.y_test)
+        
+        
+    def create_sets(self):
+        self.X_train = self.train_instances
+        self.X_test = self.test_instances
+        self.y_train = self.train_labels
+        self.y_test = self.test_labels
         
         self.n_train_instances = len(self.X_train)
         self.n_test_instances = len(self.X_test)

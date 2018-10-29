@@ -19,7 +19,7 @@ from sklearn.preprocessing import normalize
 
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
+def gradient_B(B, A, x, label, nclasses, alpha, hidden, Y_hat):    
     gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     B_new = np.subtract(B, gradient)
 
@@ -27,16 +27,16 @@ def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, DIM, Y_hat):
+def gradient_A(B, A, x, label, nclasses, alpha, sum_, Y_hat):
     A_old = A
     first = np.dot(np.subtract(Y_hat.T, label), B)
     
-    if np.sum(x) > 0:
-        sec = x * (1.0/np.sum(x))
-    else:
-        sec = x
+    #if np.sum(x) > 0:
+        #sec = x * (1.0/np.sum(x))
+    #else:
+        #sec = x
 
-    gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
+    gradient = alpha * sparse.csr_matrix.dot(first.T, sum_)
     A = np.subtract(A_old, gradient) 
     
     return A
@@ -174,7 +174,7 @@ def main():
     LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 5000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 800   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     BATCHSIZE = 1       # number of instances in each batch
@@ -190,6 +190,8 @@ def main():
     dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model='original')
     end = time.time()
     print("dictionary took ", (end - start)/60.0, " time to create.")
+    
+    
     nwords = dictionary.get_nwords()
     nclasses = dictionary.get_nclasses()
     
@@ -279,9 +281,9 @@ def main():
             Y_hat = stable_softmax(z2)
     
             # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, a1, Y_hat)  
+            B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, a1, Y_hat)  
             
-            A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, Y_hat)
+            A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, sum_, Y_hat)
 
             
             #loglike = np.log(Y_hat)
