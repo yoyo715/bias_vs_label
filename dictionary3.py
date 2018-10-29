@@ -28,13 +28,13 @@ class Dictionary:
         self.subset_value = subset_value
         self.lin_c = lin_c
         
-        #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
-        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
+        self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
+        #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
         #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
-        #self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
+        #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
+        self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
         #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         
         self.file_train.extend(self.file_test)
@@ -44,8 +44,8 @@ class Dictionary:
         random.shuffle(self.dataset)
     
         # This is the Kaggle dataset
-        #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
-        self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
+        self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
+        #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
         #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
         self.create_instances_and_labels_manset()
 
@@ -163,7 +163,7 @@ class Dictionary:
         
         
     def train_and_testsplit(self):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.instances, self.labels, test_size=0.33)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.instances, self.labels, test_size=0.30)
         
         self.n_train_instances = len(self.X_train)
         self.n_test_instances = len(self.X_test)

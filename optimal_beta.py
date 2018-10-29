@@ -15,14 +15,20 @@ from cvxopt import matrix, solvers
 def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
     nx = X.shape[0]
     nz = Z.shape[0]
+    
+    print("nx: ", nx, " nz: ", nz)
+    
     if eps == None:
         eps = B/math.sqrt(nz)
+        
     if kern == 'lin':
         K = np.dot(Z, Z.T)
         kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+        
     elif kern == 'rbf':
         K = compute_rbf(Z,Z)
         kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
+        
     else:
         raise ValueError('unknown kernel')
         
@@ -42,23 +48,27 @@ def compute_rbf(X, Z, sigma=1.0):
         K[i,:] = np.exp(-np.sum((vx-Z)**2, axis=1)/(2.0*sigma))
     return K
 
-
+# Training data
 x = 11*np.random.random(200)- 6.0
 y = x**2 + 10*np.random.random(200) - 5
 Z = np.c_[x, y]
+print("Z: ", Z.shape)
 
+# Testing data
 x = 2*np.random.random(10) - 6.0
 y = x**2 + 10*np.random.random(10) - 5
 X = np.c_[x, y]
+print("X: ", X.shape)
 
 coef = kernel_mean_matching(X, Z, kern='rbf', B=10)
 
 plt.close()
 plt.figure()
-plt.scatter(Z[:,0], Z[:,1], color='black', marker='x')
-plt.scatter(X[:,0], X[:,1], color='red')
-plt.scatter(Z[:,0], Z[:,1], color='green', s=coef*10, alpha=0.5)
+plt.scatter(Z[:,0], Z[:,1], color='black', marker='x')              # training
+plt.scatter(X[:,0], X[:,1], color='red')                            # testing   
+plt.scatter(Z[:,0], Z[:,1], color='green', s=coef*10, alpha=0.5)    # KMM
+plt.show()
 
-np.sum(coef > 1e-2)
+#np.sum(coef > 1e-2)
 
 

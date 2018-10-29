@@ -374,6 +374,7 @@ class DistantCollection(object):
                 "fetch_query_tweets first!")
             self.user_ids, self.query_ids = reconstruct_ids(self.id)
 
+        print(self.user_ids)
         self.get_timelines()
         self.messages.commit()
         if self.id == 'twitter_gender' or self.id == 'query_gender':

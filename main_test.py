@@ -18,18 +18,6 @@ from sklearn.preprocessing import normalize
 '''
 
 
-
-# computes the normalized hidden layer
-# NOTE: only for computing gradient?
-#def compute_normalized_hidden(x, A):
-    #hidden = sparse.csr_matrix.dot(A, x.T)
-    
-    #if np.sum(x) > 0:
-        #return hidden * (1.0 / np.sum(x))
-    #else:
-        #return hidden
-    
-
 # finds gradient of B and returns an up
 def gradient_B(B, A, x, label, nclasses, alpha, DIM, hidden, Y_hat):    
     gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
@@ -108,63 +96,65 @@ def metrics(X, Y, A, B, N):
     true_neg = 0
     false_neg = 0    
     
-    y_true = []
-    y_pred = []
-
-    i = 0
-    #for x in X:
-    prediction = np.argmax(stable_softmax(x, A, B))
-    true_label = np.argmax(Y[i])
+    # get predicted classes
+    hidden = sparse.csr_matrix.dot(A, X.T)        
+    sum_ = np.sum(X, axis = 1)
+    sum_[sum_ == 0] = 1         # replace zeros with ones so divide will work
+    sum_ = np.array(sum_).flatten()
     
-    y_true.append(true_label)
-    y_pred.append(prediction)
+    a1 = (hidden.T / sum_[:,None]).T
+    z2 = np.dot(B, a1)
+    Y_hat = stable_softmax(z2)
 
-    if prediction != true_label:
-        incorrect += 1
-
-    if prediction == 1 and true_label == 1:
-        true_pos += 1
-
-    if prediction == 1 and true_label == 0:
-        false_pos += 1
-
-    if prediction == 0 and true_label == 0:
-        true_neg += 1
-
-    if prediction == 0 and true_label == 1:
-        false_neg += 1
     
-        i += 1
+    # compare to actual classes
+    prediction = np.argmax(Y_hat, axis=1)
+    true_label = np.argmax(Y, axis=1)
+    
+    
+    #if prediction != true_label:
+        #incorrect += 1
+
+    #if prediction == 1 and true_label == 1:
+        #true_pos += 1
+
+    #if prediction == 1 and true_label == 0:
+        #false_pos += 1
+
+    #if prediction == 0 and true_label == 0:
+        #true_neg += 1
+
+    #if prediction == 0 and true_label == 1:
+        #false_neg += 1
+
+
+    #print("confusion matrix: ")
+    #print("[ ", true_neg, false_pos, " ]")
+    #print("[ ", false_neg, true_pos, " ]")
+    
+    
+    
+    ## Compute fpr, tpr, thresholds and roc auc
+    #fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+    #roc_auc = auc(fpr, tpr)
+    
+    #print("AUC score: ", roc_auc)
+
+    #if true_pos == 0 and false_pos == 0:
+        #print("WARNING::True pos and False pos both zero")
+        #precision = true_pos / 0.000001
+        #recall = true_pos / 0.000001
+        #F1 = 2 * ((precision * recall) / (precision + recall))
+        #classification_error = incorrect / N
+    #else:
+        #precision = true_pos / (true_pos + false_pos)   # true pos rate (TRP)
+        #recall = true_pos / (true_pos + false_neg)      # 
+        #F1 = 2 * ((precision * recall) / (precision + recall))
+        #classification_error = incorrect / N
         
-    print("confusion matrix: ")
-    print("[ ", true_neg, false_pos, " ]")
-    print("[ ", false_neg, true_pos, " ]")
-    
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-    
-    
-    # Compute fpr, tpr, thresholds and roc auc
-    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
-    roc_auc = auc(fpr, tpr)
-    
-    print("AUC score: ", roc_auc)
+    #print()
 
-    if true_pos == 0 and false_pos == 0:
-        print("WARNING::True pos and False pos both zero")
-        precision = true_pos / 0.000001
-        recall = true_pos / 0.000001
-        F1 = 2 * ((precision * recall) / (precision + recall))
-        classification_error = incorrect / N
-    else:
-        precision = true_pos / (true_pos + false_pos)   # true pos rate (TRP)
-        recall = true_pos / (true_pos + false_neg)      # 
-        F1 = 2 * ((precision * recall) / (precision + recall))
-        classification_error = incorrect / N
-        
-    print()
-
-    return classification_error, precision, recall, F1, roc_auc, fpr, tpr
+    return classification_error  #, precision, recall, F1, roc_auc, fpr, tpr
     
     
 
@@ -184,7 +174,7 @@ def main():
     LR=0.15             # 0.15 good for ~5000
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 3000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 5000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     BATCHSIZE = 1       # number of instances in each batch
@@ -295,7 +285,6 @@ def main():
 
             
             #loglike = np.log(Y_hat)
-
             #train_loss += -np.dot(y_train_batch, loglike)
             
             batchnum += 1
