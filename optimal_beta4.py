@@ -42,7 +42,7 @@ from cvxopt import matrix, solvers, spmatrix, sparse, mul
     
     
 # Z is training data, X is testing data
-def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
+def kernel_mean_matching(X, Z, lin_c, kern='lin', B=1.0, eps=None):
     nx = X.shape[0]
     nz = Z.shape[0]
     
@@ -53,7 +53,7 @@ def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
         
     if kern == 'lin':
         K = np.dot(Z, Z.T) 
-        K = K.todense() + 0.9
+        K = K.todense() + lin_c   #+ 0.9
         kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
         
     elif kern == 'rbf':

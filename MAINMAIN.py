@@ -16,6 +16,7 @@ import time
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.preprocessing import normalize
+from sklearn.metrics import confusion_matrix
 
 
 # model_version: 'original' or 'kmm;
@@ -34,7 +35,7 @@ def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, mode
 
 
 # writing model specifications to an about file
-def create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, NUM_RUNS, SUBSET_VAL, KERN, LIN_C, BATCHSIZE):
+def create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, KMMLR, NUM_RUNS, SUBSET_VAL, KERN, LIN_C, BATCHSIZE):
     with open('output/README.md ', '+a') as f:
         f.write('# Original Model specifications # \n\n')
         f.write('DIM: ' + str(DIM))
@@ -57,6 +58,8 @@ def create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, NUM_R
         f.write('EPOCH: ' + str(EPOCH))
         f.write('\n\n')
         f.write('LR: ' + str(LR))
+        f.write('\n\n')
+        f.write('KMMLR: ' + str(KMMLR))
         f.write('\n\n')
         f.write('NUM_RUNS: ' +  str(NUM_RUNS))
         f.write('\n\n')
@@ -101,20 +104,9 @@ def metrics(X, Y, A, B, N, test, trialnum, epoch):
     if ( class_error + class_acc ) != 1:
         print("ERROR in computing class errror")
     
-    
-    true_pos = np.sum((true_label_max == 1) & (prediction_max.T == 1))
-    false_pos = np.sum((true_label_max == 1) & (prediction_max.T == 0))
-    false_neg = np.sum((true_label_max == 0) & (prediction_max.T == 1))
-    true_neg = np.sum((true_label_max == 0) & (prediction_max.T == 0))
-    
-    if (true_pos + false_pos + false_neg + true_neg) != N:
-        print("ERROR computing confusion matrix")
-    
+    print(confusion_matrix(true_label_max, prediction_max))
 
-    print("confusion matrix, N: ", N)
-    print("[ ", true_neg, false_pos, "    ]")
-    print("[ ", false_neg, true_pos, "  ]")
-    
+    true_neg, false_pos, false_neg, true_pos = confusion_matrix(true_label_max, prediction_max).ravel()
     
     # Compute fpr, tpr, thresholds and roc auc
     fpr, tpr, thresholds = roc_curve(true_label_max, prediction_max)
@@ -146,6 +138,51 @@ def metrics(X, Y, A, B, N, test, trialnum, epoch):
     write_labels_tofile(fname, Y, Y_hat)
 
     return class_error, precision, recall, F1, roc_auc, fpr, tpr
+
+
+def show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual,
+                    KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual,
+                    N_train, N_test, N_manual, trialnum):
+
+    epochs = [l for l in range(EPOCH)]
+    
+    plt.subplot(2, 1, 1)
+    plt.plot(epochs, losses_train, 'm', linestyle='--', label="train")
+    plt.plot(epochs, losses_test, 'c', linestyle='--', label="test")
+    plt.plot(epochs, losses_manual, 'g', linestyle='--', label="manual")
+
+    plt.plot(epochs, KMMlosses_train, 'm', label="KMMtrain")
+    plt.plot(epochs, KMMlosses_test, 'c', label="KMMtest")
+    plt.plot(epochs, KMMlosses_manual, 'g', label="KMMmanual")
+
+
+    title = "Loss: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    plt.title(title)
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(loc='upper left')
+
+
+    plt.subplot(2, 1, 2)
+    plt.plot(epochs, classerr_train, 'm', linestyle='--', label="train")
+    plt.plot(epochs, classerr_test, 'c', linestyle='--', label="test")
+    plt.plot(epochs, classerr_manual, 'g', linestyle='--', label="manual")
+
+    plt.plot(epochs, KMMclasserr_train, 'm', label="KMMtrain")
+    plt.plot(epochs, KMMclasserr_test, 'c', label="KMMtest")
+    plt.plot(epochs, KMMclasserr_manual, 'g', label="KMMmanual")
+
+    title = "Class Error: n_train: ", N_train, " n_test: ", N_test, " n_manual ", N_manual
+    plt.title(title)
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(loc='upper left')
+    
+    plt.tight_layout()
+
+    plt.savefig('/home/mcooley/Desktop/bias_vs_labelefficiency/PLOTS/3-'+str(trialnum)+'.png')
+    plt.show()
+
 
 
 def stable_softmax(X): 
@@ -218,6 +255,10 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
     losses_train = []
     losses_test = []
     losses_manual = []
+
+    classerr_train = []
+    classerr_test = []
+    classerr_manual = []
 
     print()
     print()
@@ -301,12 +342,20 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
         manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
         print("Manual Set:    ", manual_loss)
         print()
+
+        losses_train.append(train_loss)
+        losses_test.append(test_loss)
+        losses_manual.append(manual_loss)
         
         train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'train', trialnum, i)
         
         test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, 'test', trialnum, i)
         
         manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'manual', trialnum, i)
+
+        classerr_train.append(train_class_error)
+        classerr_test.append(test_class_error)
+        classerr_manual.append(manual_class_error)
         
         print()
         print("TRAIN:")
@@ -339,6 +388,8 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
     traintime_end = time.time()
     
     print("model took ", (traintime_end - traintime_start)/60.0, " time to train")
+    
+    return losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual
 
 
 def write_fasttext_stats(train_loss, train_class_error, train_precision, train_recall, train_F1,
@@ -428,6 +479,10 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
     losses_test = []
     losses_manual = []
 
+    classerr_train = []
+    classerr_test = []
+    classerr_manual = []
+
     print()
     print()
     
@@ -466,9 +521,6 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
             B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
             A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
             
-            #loglike = np.log(Y_hat)
-            #train_loss += -np.dot(y_train_batch, loglike)
-            
             batchnum += 1
 
             # NOTE figure this out, Might be missing last sample
@@ -489,10 +541,6 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
                 # Back prop with alt optimization
                 B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
                 A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
-            
-                #loglike = np.log(Y_hat)
-                #train_loss += -np.dot(y_train_batch, loglike)
-
                 break
             else:
                 start = start + BATCHSIZE
@@ -512,6 +560,10 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
         manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
         print("KMM Manual Set:    ", manual_loss)
         print()
+
+        losses_train.append(train_loss)
+        losses_test.append(test_loss)
+        losses_manual.append(manual_loss)
         
         train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
         
@@ -519,6 +571,10 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
         
         manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
         
+        classerr_train.append(train_class_error)
+        classerr_test.append(test_class_error)
+        classerr_manual.append(manual_class_error)
+
         print()
         print("KMMTRAIN:")
         print("         Classification Err: ", train_class_error)
@@ -550,6 +606,8 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
     traintime_end = time.time()
     
     print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
+
+    return losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual
 
 
 # finds gradient of B and returns an up
@@ -658,13 +716,15 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR=0.008            # 0.008 good for fasttext
+    LR= 0.02                 #0.007            # 0.008 good for fasttext
+    KMMLR = 0.02     #0.015 pretty good
+
     KERN = 'lin'        # lin or rbf or poly
-    NUM_RUNS = 3        # number of test runs
+    NUM_RUNS = 1        # number of test runs
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
-    LIN_C = 0.90        # hyperparameter for linear kernel
+    LIN_C = 0.9          # hyperparameter for linear kernel
     
-    BATCHSIZE = 100       # number of instances in each batch
+    BATCHSIZE = 200       # number of instances in each batch
     
     model = 'kmm'
     #model = 'original'   # 'kmm' for kmm implementation
@@ -684,7 +744,7 @@ def main():
                   'KMMoutput/AUC_train.txt', 'KMMoutput/AUC_test.txt', 'KMMoutput/AUC_manual.txt']
     
     
-    create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, NUM_RUNS, SUBSET_VAL, KERN, LIN_C, BATCHSIZE)
+    create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, KMMLR, NUM_RUNS, SUBSET_VAL, KERN, LIN_C, BATCHSIZE)
     
     
     #########################################################
@@ -692,6 +752,7 @@ def main():
     
     for run in range(NUM_RUNS):
         print("*******************************************************RUN NUMBER: ", run)
+        print("KMMlr = ", KMMLR, " LR = ", LR)
         print()
     
         dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model)
@@ -721,7 +782,6 @@ def main():
         print("N each class Manual testing instances: ", nmanual_eachclass)
         
         
-        
         p = X_train.shape[1]
         
         # A
@@ -740,35 +800,36 @@ def main():
         Bkmm = np.zeros((B_m, B_n))   # for kmm implementation
         
         
-        #beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
-        #beta = normalize(beta, axis=0, norm='l1')
+        beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
         #print(beta)
         
     
         # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
         #beta = np.ones((N_train, 1))  
-        ##print("Beta Dimensions: ", beta.shape)
+        print("Beta Dimensions: ", beta.shape)
         
         print("#####################################")
         #*******************************************************************
         
-        train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test,
+        losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual = train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test,
                        y_manual, nclasses, A, B, N_train, N_test, N_manual, run)
         
-        ## writing newline to file after each trial
-        #for name in file_names_fasttext:
-            #with open(name, '+a') as f:
-                #f.write('\n')
+        # writing newline to file after each trial
+        for name in file_names_fasttext:
+            with open(name, '+a') as f:
+                f.write('\n')
         
-        #train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train,
-                    #y_test, y_manual, nclasses, Akmm, Bkmm, N_train, N_test, N_manual, run)
+        KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual = train_fastKMMtext(beta, EPOCH, KMMLR, BATCHSIZE, X_train, X_test, X_manual, y_train,
+                    y_test, y_manual, nclasses, Akmm, Bkmm, N_train, N_test, N_manual, run)
         
-        ##writing newline to file after each trial
-        #for name in file_names_fastKMMtext:
-            #with open(name, '+a') as f:
-                #f.write('\n')
+        #writing newline to file after each trial
+        for name in file_names_fastKMMtext:
+            with open(name, '+a') as f:
+                f.write('\n')
         
-        
+        show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual,
+                KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual,
+                N_train, N_test, N_manual, run)
         
         run += 1
     
