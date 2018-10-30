@@ -19,7 +19,7 @@ from sklearn.preprocessing import normalize
 
 
 # finds gradient of B and returns an up
-def gradient_B(B, A, x, label, nclasses, alpha, hidden, Y_hat):    
+def gradient_B(B, A, label, alpha, hidden, Y_hat):    
     gradient = alpha * np.dot(np.subtract(Y_hat.T, label).T, hidden.T)
     B_new = np.subtract(B, gradient)
 
@@ -27,16 +27,19 @@ def gradient_B(B, A, x, label, nclasses, alpha, hidden, Y_hat):
 
 
 # update rule for weight matrix A
-def gradient_A(B, A, x, label, nclasses, alpha, sum_, Y_hat):
+def gradient_A(B, A, X, label, alpha, sum_, Y_hat):
     A_old = A
     first = np.dot(np.subtract(Y_hat.T, label), B)
+    #a1 = (X.T / sum_[:,None]).T
+    #gradient = alpha * sparse.csr_matrix.dot(first.T, a1)
     
-    #if np.sum(x) > 0:
-        #sec = x * (1.0/np.sum(x))
-    #else:
-        #sec = x
+    if np.sum(X) > 0:
+        sec = X * (1.0/np.sum(X))
+    else:
+        sec = X
 
-    gradient = alpha * sparse.csr_matrix.dot(first.T, sum_)
+    gradient = alpha * sparse.csr_matrix.dot(first.T, sec)
+    
     A = np.subtract(A_old, gradient) 
     
     return A
@@ -44,11 +47,6 @@ def gradient_A(B, A, x, label, nclasses, alpha, sum_, Y_hat):
 
 
 def stable_softmax(X): 
-    #hidden = compute_normalized_hidden(x, A) 
-    #X = np.dot(B, hidden)
-    #exps = np.exp(X - np.max(X))
-    #return (exps / np.sum(exps))
-
     axis = 0  # across rows
 
     # subtract the max for numerical stability
@@ -108,8 +106,12 @@ def metrics(X, Y, A, B, N):
 
     
     # compare to actual classes
-    prediction = np.argmax(Y_hat, axis=1)
+    prediction = np.argmax(Y_hat, axis=0)
     true_label = np.argmax(Y, axis=1)
+    
+    class_error = np.dot(prediction, true_label) / N
+    
+    #print("CLASS ERROR : ", class_error)
     
     
     #if prediction != true_label:
@@ -154,7 +156,7 @@ def metrics(X, Y, A, B, N):
         
     #print()
 
-    return classification_error  #, precision, recall, F1, roc_auc, fpr, tpr
+    return class_error  #, precision, recall, F1, roc_auc, fpr, tpr
     
     
 
@@ -177,7 +179,7 @@ def main():
     SUBSET_VAL = 800   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
-    BATCHSIZE = 1       # number of instances in each batch
+    BATCHSIZE = 2       # number of instances in each batch
     
     
     ##### instantiations #######################################
@@ -266,26 +268,18 @@ def main():
             
             # Forward Propogation
             hidden = sparse.csr_matrix.dot(A, batch.T)
-            #if np.sum(x) > 0:
-                #a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
-            #else:
-                #a1 = hidden
-                
             sum_ = np.sum(batch, axis = 1)
             sum_[sum_ == 0] = 1         # replace zeros with ones so divide will work
             sum_ = np.array(sum_).flatten()
             
             a1 = (hidden.T / sum_[:,None]).T
-                
             z2 = np.dot(B, a1)
             Y_hat = stable_softmax(z2)
     
             # Back prop with alt optimization
-            B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, a1, Y_hat)  
-            
-            A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, sum_, Y_hat)
+            B = gradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat)  
+            A = gradient_A(B_old, A_old, batch, y_train_batch, alpha, sum_, Y_hat)
 
-            
             #loglike = np.log(Y_hat)
             #train_loss += -np.dot(y_train_batch, loglike)
             
@@ -308,20 +302,14 @@ def main():
                 sum_ = np.array(sum_).flatten()
                 
                 a1 = (hidden.T  / sum_[:,None]).T
-                
-                #if np.sum(x) > 0:
-                    #a1 = hidden * (1.0 / np.sum(x))  # axis = 1 across rows
-                #else:
-                    #a1 = hidden
-                    
                 z2 = np.dot(B, a1)
                 Y_hat = stable_softmax(z2)
         
                 # Back prop with alt optimization
-                B = gradient_B(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, a1, Y_hat)  
+                B = gradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat)  
+                A = gradient_A(B_old, A_old, batch, y_train_batch, alpha, sum_, Y_hat)
                 
-                A = gradient_A(B_old, A_old, batch, y_train_batch, nclasses, alpha, DIM, Y_hat)
-            
+                
                 #loglike = np.log(Y_hat)
                 #train_loss += -np.dot(y_train_batch, loglike)
 
@@ -349,25 +337,30 @@ def main():
 
 
         #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train)
-        #test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
-        #manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual)
+        train_class_error = metrics(X_train, y_train, A, B, N_train)
         
-        #print()
-        #print("TRAIN:")
-        #print("         Classification Err: ", train_class_error)
+        #test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test)
+        test_class_error = metrics(X_test, y_test, A, B, N_test)
+        
+        #manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual)
+        manual_class_error = metrics(X_manual, y_manual, A, B, N_manual)
+        
+        print()
+        print("TRAIN:")
+        print("         Classification Err: ", train_class_error)
         #print("         Precision:          ", train_precision)
         #print("         Recall:             ", train_recall)
         #print("         F1:                 ", train_F1)
 
-        #print("TEST:")
-        #print("         Classification Err: ", test_class_error)
+        print("TEST:")
+        print("         Classification Err: ", test_class_error)
         #print("         Precision:          ", test_precision)
         #print("         Recall:             ", test_recall)
         #print("         F1:                 ", test_F1)
         
-        #print()
-        #print("MANUAL:")
-        #print("         Classification Err: ", manual_class_error)
+        print()
+        print("MANUAL:")
+        print("         Classification Err: ", manual_class_error)
         #print("         Precision:          ", manual_precision)
         #print("         Recall:             ", manual_recall)
         #print("         F1:                 ", manual_F1)

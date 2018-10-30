@@ -1,0 +1,1985 @@
+# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.005
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 5000
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 10# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.008
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 5000
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 5000
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 5000
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.01
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.05
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 5000
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 5000
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: rbf
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100# Original Model specifications # 
+
+DIM: 30
+
+WORDGRAMS: 2
+
+MINCOUNT: 3
+
+MINN: 3
+
+MAXN: 3
+
+BUCKET: 1000000
+
+
+
+
+
+## Hyperparameters ##
+
+EPOCH: 20
+
+LR: 0.1
+
+NUM_RUNS: 3
+
+SUBSET_VAL: 500
+
+KERN: lin
+
+LINEAR KERNEL hyperparameter C: 0.9
+
+BATCH SIZE: 100

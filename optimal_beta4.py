@@ -7,7 +7,7 @@ import  math
 import scipy as sp
 import time
 from cvxopt import matrix, solvers, spmatrix, sparse, mul
-from dictionary3 import Dictionary
+#from dictionary3 import Dictionary
 
 
 # an implementation of Kernel Mean Matchin
@@ -52,7 +52,8 @@ def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
         eps = B/math.sqrt(nz)
         
     if kern == 'lin':
-        K = np.dot(Z, Z.T)
+        K = np.dot(Z, Z.T) #+ 0.90
+        K = K.todense()
         kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
         
     elif kern == 'rbf':
@@ -62,7 +63,7 @@ def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
     else:
         raise ValueError('unknown kernel')
     
-    K = K.todense()
+    
     K = K.astype(np.double)
     K = matrix(K)
     
@@ -75,13 +76,22 @@ def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
     return coef
 
 
-def compute_rbf(X_train, X_test, sigma=1.0):
-    K = np.zeros((X_train.shape[0], X_test.shape[0]), dtype=float)
-    print("*", K.shape)
-    for i, vx in enumerate(X_train):
-        print(vx.shape, X_test.shape)
-        K[i,:] = np.exp(-np.sum((vx-X_test)**2, axis=1)/(2.0*sigma))
-        K[i,:] = np.exp(-np.sum((vx-X_train)**2, axis=1)/(2.0*sigma))   # NOTE: try this one
+#def compute_rbf(X_train, X_test, sigma=1.0):
+    #K = np.zeros((X_train.shape[0], X_test.shape[0]), dtype=float)
+    #print("*", K.shape)
+    #for i, vx in enumerate(X_train):
+        #print(vx.shape, X_test.shape)
+        #K[i,:] = np.exp(-np.sum((vx-X_test)**2, axis=1)/(2.0*sigma))
+        #K[i,:] = np.exp(-np.sum((vx-X_train)**2, axis=1)/(2.0*sigma))   # NOTE: try this one
+    #return K
+    
+def compute_rbf(X, Z, sigma=1.0):
+    K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
+    Z = Z.todense()
+    
+    for i, vx in enumerate(X):
+        vx = vx.todense()
+        K[i,:] = np.exp(-np.sum(np.square(vx-Z), axis=1)/(2.0*sigma)).flatten()
     return K
     
     
@@ -119,41 +129,41 @@ def kernel(x_i, x_j, kern, lin_c):
 
 
 # only run as script for testing, otherwise dictionary calls kernel_means_matching()
-def main():
-    # args from Simple Queries paper
-    DIM=30
-    WORDGRAMS=2
-    MINCOUNT=8
-    MINN=3
-    MAXN=3
-    BUCKET=1000000
+#def main():
+    ## args from Simple Queries paper
+    #DIM=30
+    #WORDGRAMS=2
+    #MINCOUNT=8
+    #MINN=3
+    #MAXN=3
+    #BUCKET=1000000
 
-    # adjust these
-    EPOCH=5
-    LR=0.15             # 0.15 good for ~5000
-    KERN = 'lin'        # lin or rbf or poly
-    NUM_RUNS = 1        # number of test runs
-    SUBSET_VAL = 300   # number of subset instances for self reported dataset
-    LIN_C = 0.90        # hyperparameter for linear kernel
+    ## adjust these
+    #EPOCH=5
+    #LR=0.15             # 0.15 good for ~5000
+    #KERN = 'lin'        # lin or rbf or poly
+    #NUM_RUNS = 1        # number of test runs
+    #SUBSET_VAL = 300   # number of subset instances for self reported dataset
+    #LIN_C = 0.90        # hyperparameter for linear kernel
 
-    print("starting dictionary creation.............................") 
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model='original')
-    X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    #print("starting dictionary creation.............................") 
+    #dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model='original')
+    #X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
+    #print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
     
-    n_train = dictionary.get_n_train_instances()
-    n_test = dictionary.get_n_manual_instances()
+    #n_train = dictionary.get_n_train_instances()
+    #n_test = dictionary.get_n_manual_instances()
 
-    X_train = dictionary.get_trainset()
-    X_test = dictionary.get_manual_testset()
+    #X_train = dictionary.get_trainset()
+    #X_test = dictionary.get_manual_testset()
         
-    print()
-    print("starting optimization")
-    #coef = kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=10)
-    coef = kernel_mean_matching(X_test, X_train, kern='lin', B=10)
-    print(coef)
+    #print()
+    #print("starting optimization")
+    ##coef = kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=10)
+    #coef = kernel_mean_matching(X_test, X_train, kern='lin', B=10)
+    #print(coef)
     
-    print    
+    #print    
  
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+    #main()

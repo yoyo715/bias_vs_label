@@ -18,7 +18,8 @@ import numpy as np
 import random, re
 import time
 
-from optimal_beta3 import kernel_mean_matching
+#from optimal_beta3 import kernel_mean_matching
+from optimal_beta4 import kernel_mean_matching
 
 
 class Dictionary:
@@ -28,26 +29,27 @@ class Dictionary:
         self.subset_value = subset_value
         self.lin_c = lin_c
         
-        self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()
+        #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()
         #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
         #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
-        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
+        self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
         #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
-        self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
-        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
+        #self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
+        self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         
         #self.file_train.extend(self.file_test)
         #self.dataset = self.file_train
         
         #print("****************** total instances in dataset ", len(self.dataset))
-        #random.shuffle(self.dataset)
+        random.shuffle(self.file_train)
+        random.shuffle(self.file_test)
     
         # This is the Kaggle dataset
-        self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
+        #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
         #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
-        #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
+        self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
         self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams
@@ -125,7 +127,7 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
 
         # loop through each instance in training data, gets labels
-        for x in self.file_test:
+        for x in self.file_test[0:300]:
             i = 0
             inst = ''
             label = x[0:10]
@@ -239,14 +241,14 @@ class Dictionary:
                 numgrams -= 1
 
     def create_bagngrams(self): 
-        self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        data_features = self.vectorizer.fit_transform(self.X_train) 
+        #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
+        #data_features = self.vectorizer.fit_transform(self.X_train) 
         
         #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
         #data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        #self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,1))
-        #data_features = self.vectorizer.fit_transform(self.X_train)
+        self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,self.ngrams), max_features=self.bucket)
+        data_features = self.vectorizer.fit_transform(self.X_train)
            
         self.train_bag_ngrams = data_features
         
@@ -267,7 +269,6 @@ class Dictionary:
     # index 1: label 1
     def create_train_labels(self):
         labels = np.zeros((self.n_train_instances, self.nclasses))
-        #print("train labels shape:", labels.shape)
         
         self.train_males = 0
         self.train_females = 0
@@ -388,9 +389,12 @@ class Dictionary:
         print("starting beta optimization..............................")
         
         start = time.time()
-        opt_beta = kernel_mean_matching(self.train_bag_ngrams, self.manual_test_bag_ngrams,
-                                    self.n_train_instances, self.n_test_instances, self.lin_c, kern=self.kernel, 
-                                    B=10, eps=None)
+        #opt_beta = kernel_mean_matching(self.train_bag_ngrams, self.manual_test_bag_ngrams,
+        #                            self.n_train_instances, self.n_test_instances, self.lin_c, kern=self.kernel, 
+        #                            B=10, eps=None)
+        
+        opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, self.train_bag_ngrams, 
+                                    kern=self.kernel, B=10.0, eps=None)
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
         
