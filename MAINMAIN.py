@@ -658,10 +658,10 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR=0.1            # 0.008 good for fasttext
+    LR=0.008            # 0.008 good for fasttext
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 3        # number of test runs
-    SUBSET_VAL = 500   # number of subset instances for self reported dataset
+    SUBSET_VAL = 10000   # number of subset instances for self reported dataset
     LIN_C = 0.90        # hyperparameter for linear kernel
     
     BATCHSIZE = 100       # number of instances in each batch
@@ -740,31 +740,33 @@ def main():
         Bkmm = np.zeros((B_m, B_n))   # for kmm implementation
         
         
-        beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
-        beta = normalize(beta, axis=0, norm='l1')
-        print(beta)
+        #beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
+        #beta = normalize(beta, axis=0, norm='l1')
+        #print(beta)
         
     
         # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
         #beta = np.ones((N_train, 1))  
-        print("Beta Dimensions: ", beta.shape)
+        ##print("Beta Dimensions: ", beta.shape)
         
         print("#####################################")
         #*******************************************************************
         
-        #train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test, y_manual, nclasses, A, B, N_train, N_test, N_manual, run)
+        train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test,
+                       y_manual, nclasses, A, B, N_train, N_test, N_manual, run)
         
         ## writing newline to file after each trial
         #for name in file_names_fasttext:
             #with open(name, '+a') as f:
                 #f.write('\n')
         
-        train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test, y_manual, nclasses, Akmm, Bkmm, N_train, N_test, N_manual, run)
+        #train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train,
+                    #y_test, y_manual, nclasses, Akmm, Bkmm, N_train, N_test, N_manual, run)
         
-        #writing newline to file after each trial
-        for name in file_names_fastKMMtext:
-            with open(name, '+a') as f:
-                f.write('\n')
+        ##writing newline to file after each trial
+        #for name in file_names_fastKMMtext:
+            #with open(name, '+a') as f:
+                #f.write('\n')
         
         
         

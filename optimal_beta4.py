@@ -52,8 +52,8 @@ def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
         eps = B/math.sqrt(nz)
         
     if kern == 'lin':
-        K = np.dot(Z, Z.T) #+ 0.90
-        K = K.todense()
+        K = np.dot(Z, Z.T) 
+        K = K.todense() + 0.9
         kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
         
     elif kern == 'rbf':
