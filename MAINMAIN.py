@@ -83,6 +83,16 @@ def write_labels_tofile(fname, Y_true, Y_pred):
     output = open(fname, 'wb')
     pickle.dump(data, output)
     output.close()
+    
+  
+# writes the model to a file to be used again later
+def save_model_tofile(A, B, fname):
+    data = { 'A': A,
+             'B': B,
+            }
+    output = open(fname, 'wb')
+    pickle.dump(data, output)
+    output.close()
          
         
 # function to return prediction error, precision, recall, F1 score
@@ -180,7 +190,8 @@ def show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, 
     
     plt.tight_layout()
 
-    plt.savefig('/home/mcooley/Desktop/bias_vs_labelefficiency/PLOTS/3-'+str(trialnum)+'.png')
+    #plt.savefig('/home/mcooley/Desktop/bias_vs_labelefficiency/PLOTS/3-'+str(trialnum)+'.png')
+    plt.savefig('/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/PLOTS/4-'+str(trialnum)+'.png')
     plt.show()
 
 
@@ -297,9 +308,6 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
             B = gradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat)  
             A = gradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat)
             
-            #loglike = np.log(Y_hat)
-            #train_loss += -np.dot(y_train_batch, loglike)
-            
             batchnum += 1
 
             # NOTE figure this out, Might be missing last sample
@@ -319,9 +327,6 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
                 # Back prop with alt optimization
                 B = gradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat)  
                 A = gradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat)
-            
-                #loglike = np.log(Y_hat)
-                #train_loss += -np.dot(y_train_batch, loglike)
 
                 break
             else:
@@ -383,13 +388,19 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
                              test_F1, test_AUC, manual_loss, manual_class_error, manual_precision,
                              manual_recall, manual_F1, manual_AUC)
         
+        fname = "./models/fasttext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
+        save_model_tofile(A, B, fname)
+        
         i += 1
+        
         
     traintime_end = time.time()
     
     print("model took ", (traintime_end - traintime_start)/60.0, " time to train")
     
+    
     return losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual
+
 
 
 def write_fasttext_stats(train_loss, train_class_error, train_precision, train_recall, train_F1,
@@ -601,11 +612,15 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
                                 test_F1, test_AUC, manual_loss, manual_class_error, manual_precision,
                                 manual_recall, manual_F1, manual_AUC)
         
+        fname = "./kmmmodels/fastKMMtext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
+        save_model_tofile(A, B, fname)
+        
         i += 1
         
     traintime_end = time.time()
     
     print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
+    
 
     return losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual
 
@@ -716,15 +731,15 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR= 0.02                 #0.007            # 0.008 good for fasttext
-    KMMLR = 0.02     #0.015 pretty good
+    LR= 0.008                 #0.007            # 0.008 good for fasttext
+    KMMLR = 0.014         #0.015 pretty good
 
     KERN = 'lin'        # lin or rbf or poly
-    NUM_RUNS = 1        # number of test runs
+    NUM_RUNS = 10        # number of test runs
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
     LIN_C = 0.9          # hyperparameter for linear kernel
     
-    BATCHSIZE = 200       # number of instances in each batch
+    BATCHSIZE = 100       # number of instances in each batch
     
     model = 'kmm'
     #model = 'original'   # 'kmm' for kmm implementation

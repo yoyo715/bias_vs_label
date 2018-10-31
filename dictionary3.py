@@ -31,13 +31,13 @@ class Dictionary:
         
         #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()
         #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()  # laptop
-        self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
-        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
+        #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines() # work comp
+        self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines() # home desk comp
         del self.file_train[0]
 
-        self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
+        #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines() # work comp 
         #self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines() # laptop
-        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
+        self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines() # home desk comp
         
         #self.file_train.extend(self.file_test)
         #self.dataset = self.file_train
@@ -48,8 +48,8 @@ class Dictionary:
     
         # This is the Kaggle dataset
         #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
-        self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
-        #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
+        #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
+        self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
         self.create_instances_and_labels_manset()
 
         self.ngrams = ngrams
@@ -127,7 +127,7 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
 
         # loop through each instance in training data, gets labels
-        for x in self.file_test[0:3000]:
+        for x in self.file_test[0:9000]:
             i = 0
             inst = ''
             label = x[0:10]
