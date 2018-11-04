@@ -263,6 +263,11 @@ class Dictionary:
     def create_manual_bagngrams(self):
         data_features = self.vectorizer.transform(self.manual_instances)    
         self.manual_test_bag_ngrams = data_features
+        
+    # bagngrams for the state and country labeled datasets
+    def create_statecountry_bagngrams(self, instances):
+        data_features = self.vectorizer.transform(instances)    
+        return data_features
 
 
     # index 0: label 0
