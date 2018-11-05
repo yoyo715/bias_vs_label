@@ -15,12 +15,24 @@ from matplotlib import pyplot as plt
 import time
 import sys
 import warnings
+import argparse
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
 #from sklearn.metrics import precision_recall_fscore_support
+
+# Method to get arguments
+# User must input a source and destination and a log file
+def get_args():
+    parser = argparse.ArgumentParser(description='Enter trial number')
+    
+    parser.add_argument('-r', "--run", action='store', help="trial number", required=True)
+
+    args = vars(parser.parse_args())
+
+    return args
 
 
 def create_filenames_manstates(directory, file, types):
@@ -1077,6 +1089,11 @@ def write_fastKMMtext_stats(train_loss, train_class_error, train_precision, trai
     
     
 def main():
+    
+    args = get_args()
+    print(args)
+    
+    run = args[0]
 
     if not sys.warnoptions:
         warnings.simplefilter("ignore")
@@ -1158,7 +1175,7 @@ def main():
     
     #########################################################
     
-    run = 0
+    #run = 0
     
     #while run<NUM_RUNS:
     #print("*******************************************************RUN NUMBER: ", run)
