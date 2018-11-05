@@ -568,7 +568,7 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
         #fname = "./models/fasttext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
         #save_model_tofile(A, B, fname)
         
-        fname = "./models/fasttext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
+        fname = "./models/fasttext_trial"+str(trialnum)+"epoch"+str(i)  #+".pkl"
         save_model_tofile(A, B, fname)
         
         #print("testing manual countries")
@@ -888,7 +888,7 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
                                 test_F1, test_AUC, manual_loss, manual_class_error, manual_precision,
                                 manual_recall, manual_F1, manual_AUC)
         
-        fname = "./kmmmodels/fastKMMtext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
+        fname = "./kmmmodels/fastKMMtext_trial"+str(trialnum)+"epoch"+str(i)  #+".pkl"
         save_model_tofile(A, B, fname)
         
         #print("Testing manual countries")
@@ -1125,32 +1125,32 @@ def main():
     
     
     ##### manual set filenames
-    f1 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Manual_Country_data.csv'
-    dir1 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/ft/'      # manualset country
-    dir2 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/fkmmt/'   # manualset country
+    #f1 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Manual_Country_data.csv'
+    #dir1 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/ft/'      # manualset country
+    #dir2 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/fkmmt/'   # manualset country
 
-    man_coun_ft_filenames = create_filenames_mancouns(dir1, f1, types)
-    man_coun_fkmmt_filenames = create_filenames_mancouns(dir2, f1, types)
+    #man_coun_ft_filenames = create_filenames_mancouns(dir1, f1, types)
+    #man_coun_fkmmt_filenames = create_filenames_mancouns(dir2, f1, types)
     
-    f2 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Manual_State.csv'
-    dir3 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/ft/'     # manualset state
-    dir4 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/fkmmt/'  # manualset state
+    #f2 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Manual_State.csv'
+    #dir3 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/ft/'     # manualset state
+    #dir4 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/fkmmt/'  # manualset state
 
-    man_state_ft_filenames = create_filenames_manstates(dir3, f2, types)
-    man_state_fkmmt_filenames = create_filenames_manstates(dir4, f2, types)
+    #man_state_ft_filenames = create_filenames_manstates(dir3, f2, types)
+    #man_state_fkmmt_filenames = create_filenames_manstates(dir4, f2, types)
     
     
-    ##### self labeled set filenames
-    f3 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Self_Country_data.csv'
-    dir5 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/ft/'        # selfset country
-    dir6 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/fkmmt/'     # selfset country
+    ###### self labeled set filenames
+    #f3 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Self_Country_data.csv'
+    #dir5 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/ft/'        # selfset country
+    #dir6 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/fkmmt/'     # selfset country
 
-    self_coun_ft_filenames = create_filenames_mancouns(dir5, f3, types)
-    self_coun_fkmmt_filenames = create_filenames_mancouns(dir6, f3, types)
+    #self_coun_ft_filenames = create_filenames_mancouns(dir5, f3, types)
+    #self_coun_fkmmt_filenames = create_filenames_mancouns(dir6, f3, types)
     
-    f4 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Self_State_data.csv'
-    dir7 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/ft/'        # selfset state
-    dir8 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/fkmmt/'     # selfset state
+    #f4 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Self_State_data.csv'
+    #dir7 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/ft/'        # selfset state
+    #dir8 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/fkmmt/'     # selfset state
 
     #self_state_ft_filenames = create_filenames_manstates(dir7, f4, types)
     #self_state_fkmmt_filenames = create_filenames_manstates(dir8, f4, types)
