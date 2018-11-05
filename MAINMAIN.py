@@ -8,26 +8,94 @@
 from dictionary3 import Dictionary
 
 import numpy as np
-import pickle
+import pandas as pd
+import pickle, os
 from scipy import sparse
 from matplotlib import pyplot as plt
 import time
+import sys
+import warnings
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
+#from sklearn.metrics import precision_recall_fscore_support
 
+
+def create_filenames_manstates(directory, file, types):
+    csv_data = pd.read_csv(file,low_memory = False)
+    df = pd.DataFrame(csv_data)
+    states = df['state'].unique()
+    
+    filenames = []
+    for state in states:
+        state = state[2:-1]
+        for type in types:
+            filenames.append(directory+state+'_'+type+'.txt')
+            
+    return filenames
+
+
+def create_filenames_mancouns(directory, file, types):
+    csv_data = pd.read_csv(file,low_memory = False)
+    df = pd.DataFrame(csv_data)
+    countries = df['country'].unique()
+    
+    filenames = []
+    for c in countries:
+        for type in types:
+            filenames.append(directory+c+'_'+type+'.txt')
+            
+    return filenames
+
+
+def get_man_statesets():
+    directory = '/local_d/RESEARCH/bias_vs_eff/locations_manual/states/'
+    
+    states = []
+    for filename in os.listdir(directory):
+        states.append(directory+filename)
+    return states
+
+      
+def get_man_countrysets():
+    directory = '/local_d/RESEARCH/bias_vs_eff/locations_manual/countries/'
+    
+    countries = []
+    for filename in os.listdir(directory):
+        countries.append(directory+filename)
+    return countries
+
+
+def get_self_statesets():
+    directory = '/local_d/RESEARCH/simple-queries/data/state_datasets/'
+    
+    states = []
+    for filename in os.listdir(directory):
+        states.append(directory+filename)
+    return states
+
+
+def get_self_countrysets():
+    directory = '/local_d/RESEARCH/simple-queries/data/country_datasets/'
+    
+    countries = []
+    for filename in os.listdir(directory):
+        countries.append(directory+filename)
+    return countries
+    
+    
 
 # model_version: 'original' or 'kmm;
-def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model_version):
+def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, run, model_version):
     
     print("starting dictionary creation") 
 
     # dictionary must be recreated each run to get different subsample each time
     # initialize training
     start = time.time()
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model=model_version)
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, run, model=model_version)
     end = time.time()
     print("dictionary took ", (end - start)/60.0, " time to create.")
     
@@ -79,7 +147,7 @@ def write_labels_tofile(fname, Y_true, Y_pred):
     
     data = { 'Y_true': Y_true.T,
                 'Y_predicted': Y_pred,
-               }
+            }
     output = open(fname, 'wb')
     pickle.dump(data, output)
     output.close()
@@ -87,12 +155,16 @@ def write_labels_tofile(fname, Y_true, Y_pred):
   
 # writes the model to a file to be used again later
 def save_model_tofile(A, B, fname):
-    data = { 'A': A,
-             'B': B,
-            }
-    output = open(fname, 'wb')
-    pickle.dump(data, output)
-    output.close()
+    #data = { 'A': A,
+             #'B': B,
+            #}
+    #output = open(fname, 'wb')
+    #pickle.dump(data, output)
+    #output.close()
+    scipy.sparse.save_npz(fname, A)
+    
+    with open(fname, 'a+') as f:
+        np.savetxt(f, B, fmt="%f", delimiter=",")
          
         
 # function to return prediction error, precision, recall, F1 score
@@ -114,7 +186,7 @@ def metrics(X, Y, A, B, N, test, trialnum, epoch):
     if ( class_error + class_acc ) != 1:
         print("ERROR in computing class errror")
     
-    print(confusion_matrix(true_label_max, prediction_max))
+    #print(confusion_matrix(true_label_max, prediction_max))
 
     true_neg, false_pos, false_neg, true_pos = confusion_matrix(true_label_max, prediction_max).ravel()
     
@@ -122,8 +194,8 @@ def metrics(X, Y, A, B, N, test, trialnum, epoch):
     fpr, tpr, thresholds = roc_curve(true_label_max, prediction_max)
     roc_auc = auc(fpr, tpr)
     
-    print("AUC score: ", roc_auc)
-    print()
+    #print("AUC score: ", roc_auc)
+    #print()
 
     precision = true_pos / (true_pos + false_pos)           # true pos rate (TRP)
     recall = true_pos / (true_pos + false_neg)              # 
@@ -131,6 +203,24 @@ def metrics(X, Y, A, B, N, test, trialnum, epoch):
     
     
     # write labels to a file for future use
+    #if test == 'train':
+        #fname = 'label_output/train_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+    #elif test == 'test':
+        #fname = 'label_output/test_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+    #elif test == 'manual':
+        #fname = 'label_output/manual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        
+    #elif test == 'KMMtrain':
+        #fname = 'KMMlabel_output/kmmtrain_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+    #elif test == 'KMMtest':
+        #fname = 'KMMlabel_output/kmmtest_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+    #elif test == 'KMMmanual':
+        #fname = 'KMMlabel_output/kmmmanual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+    
+    #write_labels_tofile(fname, Y, Y_hat)
+    
+    
+    # TETON
     if test == 'train':
         fname = 'label_output/train_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
     elif test == 'test':
@@ -148,6 +238,58 @@ def metrics(X, Y, A, B, N, test, trialnum, epoch):
     write_labels_tofile(fname, Y, Y_hat)
 
     return class_error, precision, recall, F1, roc_auc, fpr, tpr
+
+
+# function to return prediction error, precision, recall, F1 score
+def metrics_subset(X, Y, A, B, N):
+    # get predicted classes
+    #print(A.shape, X.shape)
+
+    hidden = sparse.csr_matrix.dot(A, X.T)    
+    #hidden = np.dot(A, X.T)    
+    a1 = normalize(hidden, axis=0, norm='l1')
+    z2 = np.dot(B, a1)
+    Y_hat = stable_softmax(z2)
+
+    # compare to actual classes
+    prediction_max = np.argmax(Y_hat, axis=0)
+    true_label_max = np.argmax(Y, axis=1)
+    
+    class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
+    class_acc = np.sum(true_label_max == prediction_max.T) * 1.0 / N
+    
+    if ( class_error + class_acc ) != 1:
+        print("ERROR in computing class errror")
+    
+    #print(confusion_matrix(true_label_max, prediction_max))
+    
+    true_neg, false_pos, false_neg, true_pos = confusion_matrix(true_label_max, prediction_max, labels=[0,1]).ravel()
+    
+    # Compute fpr, tpr, thresholds and roc auc
+    fpr, tpr, thresholds = roc_curve(true_label_max, prediction_max)
+    roc_auc = auc(fpr, tpr)
+    
+    #print("AUC score: ", roc_auc)
+    #print()
+    
+    #print(true_pos, false_neg, false_pos)
+    if true_pos == 0 and false_pos == 0:
+        precision = 0
+    else:
+        precision = 1.0 * true_pos / (1.0 * true_pos + 1.0 *false_pos)           # true pos rate (TRP)
+        
+    if true_pos == 0 and false_neg == 0:
+        recall = 0
+    else:
+        recall = 1.0 * true_pos / (1.0 * true_pos + 1.0 * false_neg)   # 
+        
+    if precision == 0 and recall == 0:
+        F1 = 0
+    else:
+        F1 = 2 * ((precision * recall) / (precision + recall))
+
+    return class_error, precision, recall, F1, roc_auc, fpr, tpr
+
 
 
 def show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual,
@@ -192,7 +334,7 @@ def show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, 
 
     #plt.savefig('/home/mcooley/Desktop/bias_vs_labelefficiency/PLOTS/3-'+str(trialnum)+'.png')
     plt.savefig('/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/PLOTS/4-'+str(trialnum)+'.png')
-    plt.show()
+    #plt.show()
 
 
 
@@ -230,6 +372,34 @@ def get_total_loss(A, B, X, y, N):
     return loss
 
 
+
+def write_stats(directory, name, loss, class_error, precision, recall, F1, AUC):
+    
+    #### WRITING LOSSES
+    with open(directory+name+'_loss.txt', '+a') as f:
+        f.write("%s," % loss)
+            
+    #### WRITING ERROR
+    with open(directory+name+'_error.txt', '+a') as f:
+        f.write("%s," % class_error)
+            
+    #### WRITING PRECISION
+    with open(directory+name+'_precision.txt', '+a') as f:
+        f.write("%s," % precision)
+            
+    #### WRITING RECALL
+    with open(directory+name+'_recall.txt', '+a') as f:
+        f.write("%s," % recall)
+            
+    #### WRITING F1
+    with open(directory+name+'_F1.txt', '+a') as f:
+        f.write("%s," % F1)
+            
+    #### WRITING AUC
+    with open(directory+name+'_AUC.txt', '+a') as f:
+        f.write("%s," % AUC)
+
+
 ###################################################################################################
 
 
@@ -260,8 +430,15 @@ def gradient_A(B, A, X, label, alpha, Y_hat):
         
         
 def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test,
-                   y_manual, nclasses, A, B, N_train, N_test, N_manual, trialnum):
+                   y_manual, nclasses, A, B, N_train, N_test, N_manual, trialnum, dictionary):
+    
     #### train ################################################
+    files_man_states = get_man_statesets()
+    files_man_coun = get_man_countrysets()
+    
+    files_self_states = get_self_statesets()
+    files_self_coun = get_self_countrysets()
+
 
     losses_train = []
     losses_test = []
@@ -388,8 +565,92 @@ def train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_t
                              test_F1, test_AUC, manual_loss, manual_class_error, manual_precision,
                              manual_recall, manual_F1, manual_AUC)
         
+        #fname = "./models/fasttext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
+        #save_model_tofile(A, B, fname)
+        
         fname = "./models/fasttext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
         save_model_tofile(A, B, fname)
+        
+        #print("testing manual countries")
+        #for f in files_man_coun:
+            #s = open(f, encoding='utf8').readlines()
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #state = f.split("_")[-1]
+            #state = state[:-4]
+
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(f, " class error (fasttext manual set): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/ft/' # manualset country
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+        
+        #print("testing manual states")
+        #for f in files_man_states:
+            #s = open(f, encoding='utf8').readlines()
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #state = f.split("_")[-1]
+            #state = state[:-4]
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(state, " class error (fasttext manual set): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/ft/' # manualset state
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+            
+        #print("testing self states")
+        #for f in files_self_states:
+            #s = open(f, encoding='utf8').readlines()
+            #del s[0]
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #state = f.split("_")[-1]
+            #state = state[:-6]
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(state, " class error (fasttext): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/ft/' # selfset state
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+
+        #print("tesetings self countires")
+        #for f in files_self_coun:
+            #state = f.split("_")[-1]
+            #state = state[:-6]
+            
+            #s = open(f, encoding='utf8').readlines()
+            #del s[0]
+            
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(state, " class error (fasttext): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/ft/' # selfset country
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+            
+            
         
         i += 1
         
@@ -409,63 +670,63 @@ def write_fasttext_stats(train_loss, train_class_error, train_precision, train_r
                          manual_recall, manual_F1, manual_AUC):
     
     #### WRITING LOSSES
-    with open('output/loss_train.txt', '+a') as f:
+    with open('output2/loss_train.txt', '+a') as f:
         f.write("%s," % train_loss)
             
-    with open('output/loss_test.txt', '+a') as f:
+    with open('output2/loss_test.txt', '+a') as f:
         f.write("%s," % test_loss)
             
-    with open('output/loss_manual.txt', '+a') as f:
+    with open('output2/loss_manual.txt', '+a') as f:
         f.write("%s," % manual_loss)
             
     #### WRITING ERROR
-    with open('output/error_train.txt', '+a') as f:
+    with open('output2/error_train.txt', '+a') as f:
         f.write("%s," % train_class_error)
     
-    with open('output/error_test.txt', '+a') as f:
+    with open('output2/error_test.txt', '+a') as f:
         f.write("%s," % test_class_error)
             
-    with open('output/error_manual.txt', '+a') as f:
+    with open('output2/error_manual.txt', '+a') as f:
         f.write("%s," % manual_class_error)
             
     #### WRITING PRECISION
-    with open('output/precision_train.txt', '+a') as f:
+    with open('output2/precision_train.txt', '+a') as f:
         f.write("%s," % train_precision)
             
-    with open('output/precision_test.txt', '+a') as f:
+    with open('output2/precision_test.txt', '+a') as f:
         f.write("%s," % test_precision)
             
-    with open('output/precision_manual.txt', '+a') as f:
+    with open('output2/precision_manual.txt', '+a') as f:
         f.write("%s," % manual_precision)
             
     #### WRITING RECALL
-    with open('output/recall_train.txt', '+a') as f:
+    with open('output2/recall_train.txt', '+a') as f:
         f.write("%s," % train_recall)
             
-    with open('output/recall_test.txt', '+a') as f:
+    with open('output2/recall_test.txt', '+a') as f:
         f.write("%s," % test_recall)
             
-    with open('output/recall_manual.txt', '+a') as f:
+    with open('output2/recall_manual.txt', '+a') as f:
         f.write("%s," % manual_recall)
             
     #### WRITING F1
-    with open('output/F1_train.txt', '+a') as f:
+    with open('output2/F1_train.txt', '+a') as f:
         f.write("%s," % train_F1)
             
-    with open('output/F1_test.txt', '+a') as f:
+    with open('output2/F1_test.txt', '+a') as f:
         f.write("%s," % test_F1)
             
-    with open('output/F1_manual.txt', '+a') as f:
+    with open('output2/F1_manual.txt', '+a') as f:
         f.write("%s," % manual_F1)
             
     #### WRITING AUC
-    with open('output/AUC_train.txt', '+a') as f:
+    with open('output2/AUC_train.txt', '+a') as f:
         f.write("%s," % train_AUC)
             
-    with open('output/AUC_test.txt', '+a') as f:
+    with open('output2/AUC_test.txt', '+a') as f:
         f.write("%s," % test_AUC)
             
-    with open('output/AUC_manual.txt', '+a') as f:
+    with open('output2/AUC_manual.txt', '+a') as f:
         f.write("%s," % manual_AUC)
         
         
@@ -483,9 +744,23 @@ def write_fasttext_stats(train_loss, train_class_error, train_precision, train_r
 
 
 def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test,
-                      y_manual, nclasses, A, B, N_train, N_test, N_manual, trialnum):
+                      y_manual, nclasses, A, B, N_train, N_test, N_manual, trialnum, dictionary):
     #### train ################################################
 
+    #dir_man_coun = '/local_d/RESEARCH/bias_vs_eff/locations_manual/countries/'
+    #dir_man_state = '/local_d/RESEARCH/bias_vs_eff/locations_manual/states/'
+    
+    #dir_self_count = '/local_d/RESEARCH/simple-queries/data/country_datasets/'
+    #dir_self_state = '/local_d/RESEARCH/simple-queries/data/state_datasets/'
+    
+    files_man_states = get_man_statesets()
+    files_man_coun = get_man_countrysets()
+    
+    files_self_states = get_self_statesets()
+    files_self_coun = get_self_countrysets()
+    
+    #######
+    
     losses_train = []
     losses_test = []
     losses_manual = []
@@ -582,6 +857,7 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
         
         manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
         
+        
         classerr_train.append(train_class_error)
         classerr_test.append(test_class_error)
         classerr_manual.append(manual_class_error)
@@ -614,6 +890,86 @@ def train_fastKMMtext(beta, EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_t
         
         fname = "./kmmmodels/fastKMMtext_trial"+str(trialnum)+"epoch"+str(i)+".pkl"
         save_model_tofile(A, B, fname)
+        
+        #print("Testing manual countries")
+        #for f in files_man_coun:
+            #s = open(f, encoding='utf8').readlines()
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #state = f.split("_")[-1]
+            #state = state[:-4]
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(f, " class error (fasttext manual set): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/fkmmt/' # manualset country
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+
+        #print("Testing manual states")
+        #for f in files_man_states:
+            #s = open(f, encoding='utf8').readlines()
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #state = f.split("_")[-1]
+            #state = state[:-4]
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(state, " class error (fasttext manual set): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/fkmmt/' # manualset state
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+            
+        #print("Testing self states")
+        #for f in files_self_states:
+            #s = open(f, encoding='utf8').readlines()
+            #del s[0]
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+            
+            #state = f.split("_")[-1]
+            #state = state[:-6]
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(state, " class error (fasttext): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/fkmmt/' # selfset state
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
+            
+        #print("testing self countries")
+        #for f in files_self_coun:
+            #state = f.split("_")[-1]
+            #state = state[:-6]
+            
+            #s = open(f, encoding='utf8').readlines()
+            #del s[0]
+            
+            #dictionary.create_instances_and_labels_SUBSETS(s)
+            #X_state = dictionary.create_statecountry_bagngrams()
+            #y_state = dictionary.create_statecountry_labels()
+            #N = dictionary.get_n_subset_instances()
+
+            
+            #class_error, precision, recall, F1, roc_auc, fpr, tpr = metrics_subset(X_state, y_state, A, B, N)
+            ##print(state, " class error (fasttext): ", class_error)
+            
+            #dirft = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/fkmmt/' # selfset country
+            
+            #loss = get_total_loss(A, B, X_state, y_state, N)
+            #write_stats(dirft, state, loss, class_error, precision, recall, F1, roc_auc)
         
         i += 1
         
@@ -652,63 +1008,63 @@ def write_fastKMMtext_stats(train_loss, train_class_error, train_precision, trai
                             manual_F1, manual_AUC):
     
     #### WRITING LOSSES
-    with open('KMMoutput/loss_train.txt', '+a') as f:
+    with open('KMMoutput2/loss_train.txt', '+a') as f:
         f.write("%s," % train_loss)
             
-    with open('KMMoutput/loss_test.txt', '+a') as f:
+    with open('KMMoutput2/loss_test.txt', '+a') as f:
         f.write("%s," % test_loss)
             
-    with open('KMMoutput/loss_manual.txt', '+a') as f:
+    with open('KMMoutput2/loss_manual.txt', '+a') as f:
         f.write("%s," % manual_loss)
             
     #### WRITING ERROR
-    with open('KMMoutput/error_train.txt', '+a') as f:
+    with open('KMMoutput2/error_train.txt', '+a') as f:
         f.write("%s," % train_class_error)
     
-    with open('KMMoutput/error_test.txt', '+a') as f:
+    with open('KMMoutput2/error_test.txt', '+a') as f:
         f.write("%s," % test_class_error)
             
-    with open('KMMoutput/error_manual.txt', '+a') as f:
+    with open('KMMoutput2/error_manual.txt', '+a') as f:
         f.write("%s," % manual_class_error)
             
     #### WRITING PRECISION
-    with open('KMMoutput/precision_train.txt', '+a') as f:
+    with open('KMMoutput2/precision_train.txt', '+a') as f:
         f.write("%s," % train_precision)
             
-    with open('KMMoutput/precision_test.txt', '+a') as f:
+    with open('KMMoutput2/precision_test.txt', '+a') as f:
         f.write("%s," % test_precision)
             
-    with open('KMMoutput/precision_manual.txt', '+a') as f:
+    with open('KMMoutput2/precision_manual.txt', '+a') as f:
         f.write("%s," % manual_precision)
             
     #### WRITING RECALL
-    with open('KMMoutput/recall_train.txt', '+a') as f:
+    with open('KMMoutput2/recall_train.txt', '+a') as f:
         f.write("%s," % train_recall)
             
-    with open('KMMoutput/recall_test.txt', '+a') as f:
+    with open('KMMoutput2/recall_test.txt', '+a') as f:
         f.write("%s," % test_recall)
             
-    with open('KMMoutput/recall_manual.txt', '+a') as f:
+    with open('KMMoutput2/recall_manual.txt', '+a') as f:
         f.write("%s," % manual_recall)
             
     #### WRITING F1
-    with open('KMMoutput/F1_train.txt', '+a') as f:
+    with open('KMMoutput2/F1_train.txt', '+a') as f:
         f.write("%s," % train_F1)
             
-    with open('KMMoutput/F1_test.txt', '+a') as f:
+    with open('KMMoutput2/F1_test.txt', '+a') as f:
         f.write("%s," % test_F1)
             
-    with open('KMMoutput/F1_manual.txt', '+a') as f:
+    with open('KMMoutput2/F1_manual.txt', '+a') as f:
         f.write("%s," % manual_F1)
             
     #### WRITING AUC
-    with open('KMMoutput/AUC_train.txt', '+a') as f:
+    with open('KMMoutput2/AUC_train.txt', '+a') as f:
         f.write("%s," % train_AUC)
             
-    with open('KMMoutput/AUC_test.txt', '+a') as f:
+    with open('KMMoutput2/AUC_test.txt', '+a') as f:
         f.write("%s," % test_AUC)
             
-    with open('KMMoutput/AUC_manual.txt', '+a') as f:
+    with open('KMMoutput2/AUC_manual.txt', '+a') as f:
         f.write("%s," % manual_AUC)
 
     
@@ -721,10 +1077,14 @@ def write_fastKMMtext_stats(train_loss, train_class_error, train_precision, trai
     
     
 def main():
+
+    if not sys.warnoptions:
+        warnings.simplefilter("ignore")
+    
     # args from Simple Queries paper
     DIM=30
     WORDGRAMS=2
-    MINCOUNT=3
+    MINCOUNT=2  #2 
     MINN=3
     MAXN=3
     BUCKET=1000000
@@ -736,7 +1096,7 @@ def main():
 
     KERN = 'lin'        # lin or rbf or poly
     NUM_RUNS = 10        # number of test runs
-    SUBSET_VAL = 10000   # number of subset instances for self reported dataset
+    SUBSET_VAL = 100   # number of subset instances for self reported dataset
     LIN_C = 0.9          # hyperparameter for linear kernel
     
     BATCHSIZE = 100       # number of instances in each batch
@@ -744,118 +1104,165 @@ def main():
     model = 'kmm'
     #model = 'original'   # 'kmm' for kmm implementation
     
-    file_names_fasttext = ['output/loss_train.txt', 'output/loss_test.txt', 'output/loss_manual.txt',
-                  'output/error_train.txt', 'output/error_test.txt', 'output/error_manual.txt',
-                  'output/precision_train.txt', 'output/precision_test.txt', 'output/precision_manual.txt',
-                  'output/recall_train.txt', 'output/recall_test.txt', 'output/recall_manual.txt',
-                  'output/F1_train.txt', 'output/F1_test.txt', 'output/F1_manual.txt',
-                  'output/AUC_train.txt', 'output/AUC_test.txt', 'output/AUC_manual.txt']
+    file_names_fasttext = ['output2/loss_train.txt', 'output2/loss_test.txt', 'output2/loss_manual.txt',
+                  'output2/error_train.txt', 'output2/error_test.txt', 'output2/error_manual.txt',
+                  'output2/precision_train.txt', 'output2/precision_test.txt', 'output2/precision_manual.txt',
+                  'output2/recall_train.txt', 'output2/recall_test.txt', 'output2/recall_manual.txt',
+                  'output2/F1_train.txt', 'output2/F1_test.txt', 'output2/F1_manual.txt',
+                  'output2/AUC_train.txt', 'output2/AUC_test.txt', 'output2/AUC_manual.txt']
     
-    file_names_fastKMMtext = ['KMMoutput/loss_train.txt', 'KMMoutput/loss_test.txt', 'KMMoutput/loss_manual.txt',
-                  'KMMoutput/error_train.txt', 'KMMoutput/error_test.txt', 'KMMoutput/error_manual.txt',
-                  'KMMoutput/precision_train.txt', 'KMMoutput/precision_test.txt', 'KMMoutput/precision_manual.txt',
-                  'KMMoutput/recall_train.txt', 'KMMoutput/recall_test.txt', 'KMMoutput/recall_manual.txt',
-                  'KMMoutput/F1_train.txt', 'KMMoutput/F1_test.txt', 'KMMoutput/F1_manual.txt',
-                  'KMMoutput/AUC_train.txt', 'KMMoutput/AUC_test.txt', 'KMMoutput/AUC_manual.txt']
+    file_names_fastKMMtext = ['KMMoutput2/loss_train.txt', 'KMMoutput2/loss_test.txt', 'KMMoutput2/loss_manual.txt',
+                  'KMMoutput2/error_train.txt', 'KMMoutput2/error_test.txt', 'KMMoutput2/error_manual.txt',
+                  'KMMoutput2/precision_train.txt', 'KMMoutput2/precision_test.txt', 'KMMoutput2/precision_manual.txt',
+                  'KMMoutput2/recall_train.txt', 'KMMoutput2/recall_test.txt', 'KMMoutput2/recall_manual.txt',
+                  'KMMoutput2/F1_train.txt', 'KMMoutput2/F1_test.txt', 'KMMoutput2/F1_manual.txt',
+                  'KMMoutput2/AUC_train.txt', 'KMMoutput2/AUC_test.txt', 'KMMoutput2/AUC_manual.txt']
     
     
     create_readme(DIM, WORDGRAMS, MINCOUNT, MINN, MAXN, BUCKET, EPOCH, LR, KMMLR, NUM_RUNS, SUBSET_VAL, KERN, LIN_C, BATCHSIZE)
     
+    types = ['loss', 'error', 'precision', 'recall', 'F1', 'AUC']
     
-    #########################################################
     
-    
-    for run in range(NUM_RUNS):
-        print("*******************************************************RUN NUMBER: ", run)
-        print("KMMlr = ", KMMLR, " LR = ", LR)
-        print()
-    
-        dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model)
-        
-        nwords = dictionary.get_nwords()
-        nclasses = dictionary.get_nclasses()
-        
-        #initialize testing
-        X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
-        print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-        N_train = dictionary.get_n_train_instances()
-        N_test = dictionary.get_n_test_instances()
-        
-        print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
-        ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
-        ntest_eachclass = dictionary.get_nlabels_eachclass_test()
-        print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
-        
-        
-        # manual labeled set (Kaggle dataset)
-        X_manual = dictionary.get_manual_testset()
-        y_manual = dictionary.get_manual_set_labels()
-        N_manual = dictionary.get_n_manual_instances()
-        print()
-        print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
-        nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
-        print("N each class Manual testing instances: ", nmanual_eachclass)
-        
-        
-        p = X_train.shape[1]
-        
-        # A
-        #A_n = nwords + BUCKET   # cols
-        A_n = p
-        A_m = DIM               # rows
-        uniform_val = 1.0 / DIM
-        np.random.seed(0)
-        A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
-        Akmm = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))  # for kmm implementation
+    ##### manual set filenames
+    f1 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Manual_Country_data.csv'
+    dir1 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/ft/'      # manualset country
+    dir2 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_coun_out/fkmmt/'   # manualset country
 
-        # B
-        B_n = DIM               # cols
-        B_m = nclasses          # rows
-        B = np.zeros((B_m, B_n))
-        Bkmm = np.zeros((B_m, B_n))   # for kmm implementation
-        
-        
-        beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
-        #print(beta)
-        
+    man_coun_ft_filenames = create_filenames_mancouns(dir1, f1, types)
+    man_coun_fkmmt_filenames = create_filenames_mancouns(dir2, f1, types)
     
-        # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
-        #beta = np.ones((N_train, 1))  
-        print("Beta Dimensions: ", beta.shape)
-        
-        print("#####################################")
-        #*******************************************************************
-        
-        losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual = train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test,
-                       y_manual, nclasses, A, B, N_train, N_test, N_manual, run)
-        
-        # writing newline to file after each trial
-        for name in file_names_fasttext:
-            with open(name, '+a') as f:
-                f.write('\n')
-        
-        KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual = train_fastKMMtext(beta, EPOCH, KMMLR, BATCHSIZE, X_train, X_test, X_manual, y_train,
-                    y_test, y_manual, nclasses, Akmm, Bkmm, N_train, N_test, N_manual, run)
-        
-        #writing newline to file after each trial
-        for name in file_names_fastKMMtext:
-            with open(name, '+a') as f:
-                f.write('\n')
-        
-        show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual,
-                KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual,
-                N_train, N_test, N_manual, run)
-        
-        run += 1
+    f2 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Manual_State.csv'
+    dir3 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/ft/'     # manualset state
+    dir4 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/manual_state_out/fkmmt/'  # manualset state
+
+    man_state_ft_filenames = create_filenames_manstates(dir3, f2, types)
+    man_state_fkmmt_filenames = create_filenames_manstates(dir4, f2, types)
+    
+    
+    ##### self labeled set filenames
+    f3 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Self_Country_data.csv'
+    dir5 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/ft/'        # selfset country
+    dir6 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_coun_out/fkmmt/'     # selfset country
+
+    self_coun_ft_filenames = create_filenames_mancouns(dir5, f3, types)
+    self_coun_fkmmt_filenames = create_filenames_mancouns(dir6, f3, types)
+    
+    f4 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/location/Self_State_data.csv'
+    dir7 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/ft/'        # selfset state
+    dir8 = '/local_d/RESEARCH/bias_vs_eff/bias_vs_labelefficiency/self_state_out/fkmmt/'     # selfset state
+
+    #self_state_ft_filenames = create_filenames_manstates(dir7, f4, types)
+    #self_state_fkmmt_filenames = create_filenames_manstates(dir8, f4, types)
+    
     
     #########################################################
     
+    run = 0
+    
+    #while run<NUM_RUNS:
+    #print("*******************************************************RUN NUMBER: ", run)
+    print("*******************************************************RUN NUMBER: ", run)
+    print("KMMlr = ", KMMLR, " LR = ", LR)
+    print()
+
+    dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, run, model)
+    
+    nwords = dictionary.get_nwords()
+    nclasses = dictionary.get_nclasses()
+    
+    #initialize testing
+    X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
+    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    N_train = dictionary.get_n_train_instances()
+    N_test = dictionary.get_n_test_instances()
+    
+    print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
+    ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
+    ntest_eachclass = dictionary.get_nlabels_eachclass_test()
+    print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
     
     
+    # manual labeled set (Kaggle dataset)
+    X_manual = dictionary.get_manual_testset()
+    y_manual = dictionary.get_manual_set_labels()
+    N_manual = dictionary.get_n_manual_instances()
+    #X_manual = dictionary.get_manual_testset_full()
+    #y_manual = dictionary.get_manual_set_labels_full()
+    #N_manual = dictionary.get_n_manual_instances_full()
+    print()
+    print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+    nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
+    print("N each class Manual testing instances: ", nmanual_eachclass)
     
     
+    p = X_train.shape[1]
+    
+    # A
+    #A_n = nwords + BUCKET   # cols
+    A_n = p
+    A_m = DIM               # rows
+    uniform_val = 1.0 / DIM
+    np.random.seed(0)
+    A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
+    Akmm = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))  # for kmm implementation
+
+    # B
+    B_n = DIM               # cols
+    B_m = nclasses          # rows
+    B = np.zeros((B_m, B_n))
+    Bkmm = np.zeros((B_m, B_n))   # for kmm implementation
     
     
+    beta = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
+    #print(beta)
+    
+
+    # NOTE: run with ones to check implementation. Should get values close to original (w/out reweithting coef)
+    #beta = np.ones((N_train, 1))  
+    print("Beta Dimensions: ", beta.shape)
+    
+    print("#####################################")
+    #*******************************************************************
+    
+    #man_states = get_man_statesets()
+    #man_countries = get_man_countrysets()
+    
+    #self_states = get_self_statesets()
+    #self_countries = get_self_countrysets()
+    
+    losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual = train_fasttext(EPOCH, LR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test, y_manual, nclasses, A, B, N_train, N_test, N_manual, run, dictionary)
+    
+    
+    KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual = train_fastKMMtext(beta, EPOCH, KMMLR, BATCHSIZE, X_train, X_test, X_manual, y_train, y_test, y_manual, nclasses, Akmm, Bkmm, N_train, N_test, N_manual, run, dictionary)
+    
+    
+    # writing newline to file after each trial
+    for name in file_names_fasttext:
+        with open(name, '+a') as f:
+            f.write('\n')
+            
+    #writing newline to file after each trial
+    for name in file_names_fastKMMtext:
+        with open(name, '+a') as f:
+            f.write('\n')
+            
+    #dirs = [dir1, dir2, dir3, dir4, dir5, dir6, dir7, dir8]
+    
+    #for d in dirs:
+        #for filename in os.listdir(d):
+            #with open(filename, 'a+') as f:
+                #f.write('\n')
+    
+    #show_plots(EPOCH, losses_train, losses_test, losses_manual, classerr_train, classerr_test, classerr_manual,
+            #KMMlosses_train, KMMlosses_test, KMMlosses_manual, KMMclasserr_train, KMMclasserr_test, KMMclasserr_manual,
+            #N_train, N_test, N_manual, run)
+    
+    #run += 1
+    
+    #########################################################
+    
+
  
  
 if __name__ == '__main__':
