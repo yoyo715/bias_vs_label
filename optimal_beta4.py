@@ -40,6 +40,51 @@ from cvxopt import matrix, solvers, spmatrix, sparse, mul
     #print(coef[0:10])
     #return coef  
     
+
+# Z is training data, X is testing data
+def kernel_mean_matching_NEW(X, Z, y_labels, lin_c, kern='lin', B0=1.0, B1=1.0, eps=None):
+    nx = X.shape[0]
+    nz = Z.shape[0]
+    
+    print("nx: ", nx, " nz: ", nz)
+    print("B0: ", B0, " B1: ", B1)
+    
+    if eps == None:
+        avg = (B0 + B1)* 1.0/2.0
+        eps = avg/math.sqrt(nz)
+        
+    if kern == 'lin':
+        K = np.dot(Z, Z.T) 
+        K = K.todense() + lin_c   #+ 0.9
+        kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+        
+    elif kern == 'rbf':
+        K = compute_rbf(Z,Z)
+        kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
+        
+    else:
+        raise ValueError('unknown kernel')
+    
+    K = K.astype(np.double)
+    K = matrix(K)
+    
+    kappa = matrix(kappa)
+    G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
+    #h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
+    
+    true_label_max = np.argmax(y_labels, axis=1)
+    updatedm = np.ones((nz,))
+    updatedm[true_label_max==1] = B0
+    updatedm[true_label_max==0] = B1
+    
+    h = matrix(np.r_[nz*(1+eps), nz*(eps-1), updatedm, np.zeros((nz,))])
+    
+    sol = solvers.qp(K, -kappa, G, h)
+    coef = np.array(sol['x'])
+    return coef
+
+
+
     
 # Z is training data, X is testing data
 def kernel_mean_matching(X, Z, lin_c, kern='lin', B=1.0, eps=None):
