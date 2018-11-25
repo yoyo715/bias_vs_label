@@ -64,14 +64,14 @@ def main():
             ]
     
     
-    ftdir = '/project/lsrtwitter/mcooley3/output_data/fasttext/model_outputs/labels'
-    wftdir = '/project/lsrtwitter/mcooley3/output_data/wfasttext/model_outputs/labels'
-    wftcfdir = '/project/lsrtwitter/mcooley3/output_data/wfasttext_cf/model_outputs/labels'
-    wftckdir = '/project/lsrtwitter/mcooley3/output_data/wfasttext_ck/model_outputs/labels'
+    ftdir = '/project/lsrtwitter/mcooley3/output_data/fasttext/model_outputs/labels/'
+    wftdir = '/project/lsrtwitter/mcooley3/output_data/wfasttext/model_outputs/labels/'
+    wftcfdir = '/project/lsrtwitter/mcooley3/output_data/wfasttext_cf/model_outputs/labels/'
+    wftckdir = '/project/lsrtwitter/mcooley3/output_data/wfasttext_ck/model_outputs/labels/'
     
     
     #list_ = ["train_", "test_", "manual"]
-    list_ = ["train_", "test_", "manual"]
+    list_ = ["test_", "manual"]
     
     dirs = [ftdir, wftdir, wftcfdir, wftckdir]
     

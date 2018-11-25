@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import random, re
 import time
+import os
 
 #from optimal_beta3 import kernel_mean_matching
 from optimal_beta4 import kernel_mean_matching
@@ -55,7 +56,8 @@ class Dictionary:
         #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()  # laptop
         #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()  # work comp
         #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()  # home desk comp
-        self.manual_set = open('/project/lsrtwitter/mcooley3/data/manually_labeled_set.txt', encoding='utf8').readlines()  # TETON
+        #self.manual_set = open('/project/lsrtwitter/mcooley3/data/manually_labeled_set.txt', encoding='utf8').readlines()  # TETON
+        self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()  # TETON
         #self.manual_set_full = open('/local_d/RESEARCH/bias_vs_eff/locations_manual/FULL_manual_set.txt', encoding='utf8').readlines()  # home desk comp
         
         #random.shuffle(self.manual_set)
@@ -103,42 +105,58 @@ class Dictionary:
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
         
-        directory = './indices/'
+        directory = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'
         for filename in os.listdir(directory):
-            if str(run)+'.txt' in filename:
-                subset = np.loadtxt(filename, dtype=np.object)
+            if '_'+str(self.run_number)+'.txt' in filename:
+                temp = filename
+                subset = np.loadtxt(directory+filename, dtype=np.object)
         
-        print(self.file_train[subset].shape, subset.shape)
-        for x in self.file_train[subset]:
-            i = 0
-            inst = ''
-            label = x[0:10]
+        #print(temp)
+        #print(subset.shape)
+        subset = subset.astype(int).tolist()
+        
+        #print(type(self.file_train))
+        #print(type(subset[0]))
+        #print(subset)
+        index = 0       
+        sub = [self.file_train[i] for i in subset]
+ 
+        for x in sub:
+            #if index in subset:
+            if index == 0:
+                i = 0
+                inst = ''
+                label = x[0:10]
             
-            if label[0:9] != '__label__':
-                print("ERROR in label creation. label: ", label)
-                break
-            else:
-                labels.append(float(label[-1]))
+                if label[0:9] != '__label__':
+                    print("ERROR in label creation. label: ", label)
+                    break
+                else:
+                    labels.append(float(label[-1]))
                 
-            sent = ''
-            word = ''
-            for w in x[10:]:
-                if w in whitelist:
-                    if w == '\t':
-                        inst = inst + '\t' + sent
-                        sent = ''
-                        word = ''
-                        i += 1
-                    elif w != ' ':
-                        word = word + w
-                    else:
-                        if "http" not in word and word != "RT" and word != "rt":
-                            sent = sent + ' ' + word
+                sent = ''
+                word = ''
+                for w in x[10:]:
+                    if w in whitelist:
+                        if w == '\t':
+                            inst = inst + '\t' + sent
+                            sent = ''
                             word = ''
+                            i += 1
+                        elif w != ' ':
+                            word = word + w
                         else:
-                            word = ''
+                            if "http" not in word and word != "RT" and word != "rt":
+                                sent = sent + ' ' + word
+                                word = ''
+                            else:
+                                word = ''
             
-            documents.append(inst)
+                documents.append(inst)
+
+            #index += 1
+
+        print("**** ", len(documents))
         self.train_instances = documents
         self.train_labels = labels
         
@@ -576,21 +594,35 @@ class Dictionary:
         #opt_beta = kernel_mean_matching(self.train_bag_ngrams, self.manual_test_bag_ngrams,
         #                            self.n_train_instances, self.n_test_instances, self.lin_c, kern=self.kernel, 
         #                            B=10, eps=None)
-        
-        self.manual_subsetval = 90
+        #directory = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices_manset/'
+        #for filename in os.listdir(directory):
+        #    if '_'+str(self.run_number)+'.txt' in filename:
+        #        temp = filename
+        #        subset = np.loadtxt(directory+filename, dtype=np.object)
+
+        #print(temp)
+        #print(subset.shape)
+        #subset = subset.astype(int).tolist()
+
+        #print(type(self.file_train))
+        #print(type(subset[0]))
+        #print(subset)
+        #index = 0
+        #sub = [self.file_train[i] for i in subset]
+        #out1 = self.manual_test_bag_ngrams.tocsr()[subset, :] 
+
+        #self.manual_subsetval = 90
         # take random subsample of rows or manual set due to memeory errrors
-        out1 = self.manual_test_bag_ngrams.tocsr()[0:self.manual_subsetval, :]
-        print("**beta subset value: 9000 instances: ", out1.shape, self.train_bag_ngrams.shape)
+        #out1 = self.manual_test_bag_ngrams.tocsr()[0:self.manual_subsetval, :]
+        #print("**beta subset value: 9000 instances: ", out1.shape, self.train_bag_ngrams.shape)
         
-        #opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, self.train_bag_ngrams, self.lin_c,
-                                    #kern=self.kernel, B=10.0, eps=None)
+        opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, self.train_bag_ngrams, self.lin_c, kern=self.kernel, B=6.0, eps=None)
                                     
-        opt_beta = kernel_mean_matching(out1, self.train_bag_ngrams, self.lin_c,
-                                    kern=self.kernel, B=1.0, eps=None)
+        #opt_beta = kernel_mean_matching(out1, self.train_bag_ngrams, self.lin_c, kern=self.kernel, B=10.0, eps=None)
                                     
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
-        print(opt_beta)
+        #print(opt_beta)
         
         self.opt_beta = opt_beta
         
