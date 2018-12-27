@@ -1,7 +1,15 @@
+#CLASS_fasttext.py
+
+"""
+
+
+"""
 
 
 class FastText:
-    def __init__(self, dictionary):
+    def __init__(self, dictionary, learning_rate):
+        self.LR = learning_rate
+        
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
         
@@ -36,13 +44,11 @@ class FastText:
         uniform_val = 1.0 / DIM
         np.random.seed(0)
         self.A = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))
-        #Akmm = np.random.uniform(-uniform_val, uniform_val, (A_m, A_n))  # for kmm implementation
 
         # B
         B_n = DIM               # cols
         B_m = nclasses          # rows
         self.B = np.zeros((B_m, B_n))
-        #Bkmm = np.zeros((B_m, B_n))   # for kmm implementation
         
     
     def stable_softmax(X): 

@@ -10,12 +10,12 @@ def get_args():
 
 
 # model_version: 'original' or 'kmm;
-def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, run, model_version):
+def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run):
     print("starting dictionary creation") 
 
     # dictionary must be recreated each run to get different subsample each time
     start = time.time()
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, run, model=model_version)
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     end = time.time()
     print("dictionary took ", (end - start)/60.0, " time to create.")
     
@@ -41,16 +41,11 @@ def main():
     LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
     KMMLR = 0.018   #0.014         #0.015 pretty good
 
-    KERN = 'lin'         # lin or rbf or poly
     NUM_RUNS = 10        # number of test runs
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
-    LIN_C = 1.0          # hyperparameter for linear kernel
     
     BATCHSIZE = 100      # number of instances in each batch
     
-    #model = 'kmm'
-    model = 'original'   # 'kmm' for kmm implementation
-    
-    dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, run, model)
+    dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     
     

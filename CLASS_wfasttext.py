@@ -6,7 +6,9 @@
 """
 
 class wFastText:
-    def __init__(self, dictionary):
+    def __init__(self, dictionary, learning_rate):
+        self.LR = learning_rate
+        
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
         
@@ -46,8 +48,74 @@ class wFastText:
         B_m = nclasses          # rows
         self.B = np.zeros((B_m, B_n))
         
-        self.betas = dictionary.get_optbeta()       # NOTE: optimal KMM reweighting coefficient
+
+        self.lin_c = 0.9                    # hyperparameter for linear kernel
+        self.kernel = 'lin'   
+        self.betas = create_optbeta()       # NOTE: optimal KMM reweighting coefficient
         
+        
+    
+    def create_optbeta(self):
+        print("starting beta optimization..............................")
+        
+        start = time.time()
+        
+        opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, self.train_bag_ngrams, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        
+        end = time.time()
+        print("Beta took ", (end - start)/60.0, " minutes to optimize.")
+        
+        return opt_beta
+    
+    
+    # Z is training data, X is testing data
+    def kernel_mean_matching(X, Z, lin_c, kern='lin', B=1.0, eps=None):
+        nx = X.shape[0]
+        nz = Z.shape[0]
+        
+        print("nx: ", nx, " nz: ", nz)
+        
+        if eps == None:
+            eps = B/math.sqrt(nz)
+            
+        if kern == 'lin':
+            K = np.dot(Z, Z.T) 
+            K = K.todense() + self.lin_c  
+            kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            
+        #elif kern == 'rbf':
+            #K = compute_rbf(Z,Z)
+            #kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
+            
+        else:
+            raise ValueError('unknown kernel')
+        
+        
+        K = K.astype(np.double)
+        K = matrix(K)
+        
+        kappa = matrix(kappa)
+        G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
+        h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
+        
+        sol = solvers.qp(K, -kappa, G, h)
+        coef = np.array(sol['x'])
+        return coef
+
+
+    # doesnt work
+    def compute_rbf(X, Z, sigma=1.0):
+        K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
+        Z = Z.todense()
+        
+        for i, vx in enumerate(X):
+            vx = vx.todense()
+            K[i,:] = np.exp(-np.sum(np.square(vx-Z), axis=1)/(2.0*sigma)).flatten()
+        return K
+        
+        
+###########################################################################################################
+
       
     def stable_softmax(X): 
         axis = 0  # across rows

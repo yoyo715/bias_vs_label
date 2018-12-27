@@ -7,7 +7,7 @@ import  math
 import scipy as sp
 import time
 from cvxopt import matrix, solvers, spmatrix, sparse, mul
-#from dictionary3 import Dictionary
+from dictionary3 import Dictionary
 
 
 # an implementation of Kernel Mean Matchin
@@ -97,26 +97,54 @@ def kernel_mean_matching(X, Z, lin_c, kern='lin', B=1.0, eps=None):
         eps = B/math.sqrt(nz)
         
     if kern == 'lin':
+        start = time.time()
         K = np.dot(Z, Z.T) 
-        K = K.todense() + lin_c   #+ 0.9
-        kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+        end = time.time()
+        print("K took ", (end - start)/60.0, " minutes to optimize.")
         
-    elif kern == 'rbf':
-        K = compute_rbf(Z,Z)
-        kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
+        K = K.todense() + lin_c   #+ 0.9
+        
+        print()
+        start = time.time()
+        kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+        end = time.time()
+        print("kappa took ", (end - start)/60.0, " minutes to optimize.")
+        
+    #elif kern == 'rbf':
+        #K = compute_rbf(Z,Z)
+        #kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
         
     else:
         raise ValueError('unknown kernel')
     
+    print("K: ", K.shape, " kappa: ", kappa.shape)
     
     K = K.astype(np.double)
     K = matrix(K)
     
     kappa = matrix(kappa)
-    G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
-    h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
     
+    print()
+    start = time.time()
+    G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
+    end = time.time()
+    print("G took ", (end - start)/60.0, " minutes to optimize.")
+    
+    print("G: ", np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)].shape)
+    print("h: ", np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))].shape)
+    
+    print()
+    start = time.time()
+    h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
+    end = time.time()
+    print("h took ", (end - start)/60.0, " minutes to optimize.")
+    
+    print()
+    start = time.time()
     sol = solvers.qp(K, -kappa, G, h)
+    end = time.time()
+    print("solvers.qp took ", (end - start)/60.0, " minutes to optimize.")
+    
     coef = np.array(sol['x'])
     return coef
 
@@ -174,41 +202,43 @@ def kernel(x_i, x_j, kern, lin_c):
 
 
 # only run as script for testing, otherwise dictionary calls kernel_means_matching()
-#def main():
-    ## args from Simple Queries paper
-    #DIM=30
-    #WORDGRAMS=2
-    #MINCOUNT=8
-    #MINN=3
-    #MAXN=3
-    #BUCKET=1000000
+def main():
+    # args from Simple Queries paper
+    DIM=30
+    WORDGRAMS=2
+    MINCOUNT=8
+    MINN=3
+    MAXN=3
+    BUCKET=1000000
 
-    ## adjust these
-    #EPOCH=5
-    #LR=0.15             # 0.15 good for ~5000
-    #KERN = 'lin'        # lin or rbf or poly
-    #NUM_RUNS = 1        # number of test runs
-    #SUBSET_VAL = 300   # number of subset instances for self reported dataset
-    #LIN_C = 0.90        # hyperparameter for linear kernel
+    # adjust these
+    EPOCH=5
+    LR=0.15             # 0.15 good for ~5000
+    KERN = 'lin'        # lin or rbf or poly
+    NUM_RUNS = 1        # number of test runs
+    SUBSET_VAL = 300    # number of subset instances for self reported dataset
+    LIN_C = 0.90        # hyperparameter for linear kernel
 
-    #print("starting dictionary creation.............................") 
-    #dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, KERN, SUBSET_VAL, LIN_C, model='original')
-    #X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
-    #print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    run = 0
     
-    #n_train = dictionary.get_n_train_instances()
-    #n_test = dictionary.get_n_manual_instances()
+    print("starting dictionary creation.............................") 
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
+    X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
+    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    
+    n_train = dictionary.get_n_train_instances()
+    n_test = dictionary.get_n_manual_instances()
 
-    #X_train = dictionary.get_trainset()
-    #X_test = dictionary.get_manual_testset()
+    X_train = dictionary.get_trainset()
+    X_test = dictionary.get_manual_testset()
         
-    #print()
-    #print("starting optimization")
-    ##coef = kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=10)
-    #coef = kernel_mean_matching(X_test, X_train, kern='lin', B=10)
-    #print(coef)
+    print()
+    print("starting optimization")
+    #coef = kernel_mean_matching(X_train, X_test, n_train, n_test, kern='lin', B=10)
+    coef = kernel_mean_matching(X_test, X_train[0], LIN_C, kern='lin', B=10)
+    print(coef)
     
-    #print    
+
  
-#if __name__ == '__main__':
-    #main()
+if __name__ == '__main__':
+    main()
