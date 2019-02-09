@@ -23,22 +23,26 @@ class Dictionary:
         
         #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()     # laptop
         #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines()                           # work comp
-        #self.file_train = open('../../simple-queries/data/query_gender.train', encoding='utf8').readlines()                            # home desk comp
-        self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()                     # TETON
+        self.file_train = open('../../../simple-queries/data/query_gender.train', encoding='utf8').readlines()                            # home desk comp
+        #self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()                     # TETON
         del self.file_train[0]
         self.len_file_train = len(self.file_train)
 
         #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines()                             # work comp 
         #self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines()                  # laptop
-        #self.file_test = open('../../simple-queries/data/query_gender.test', encoding='utf8').readlines()                              # home desk comp
-        self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()                       # TETON
+        self.file_test = open('../../../simple-queries/data/query_gender.test', encoding='utf8').readlines()                              # home desk comp
+        #self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()                       # TETON
     
         # This is the Kaggle dataset
         #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()               # laptop
         #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()                     # work comp
-        #self.manual_set = open('../manually_labeled_set.txt', encoding='utf8').readlines()                                             # home desk comp
+        #self.manual_set = open('../../manually_labeled_set.txt', encoding='utf8').readlines()                                          # home desk
+        self.manual_set = open('../../FULL_manual_set.txt', encoding='utf8').readlines()                                                # home deskcomp
         #self.manual_set = open('/project/lsrtwitter/mcooley3/data/manually_labeled_set.txt', encoding='utf8').readlines()              # TETON
-        self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                    # TETON
+        #self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
+        
+        #self.indice_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
+        self.index_dir = './indices/'   # teton
         
         
         print("- creating manual instances")
@@ -67,6 +71,7 @@ class Dictionary:
         
         
         
+        
     # adds each instance a separate element in list
     # each 'tweet' is separated by tab
     def create_train_instances_and_labels(self):
@@ -75,17 +80,17 @@ class Dictionary:
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
         
-        directory = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'
-        for filename in os.listdir(directory):
+        
+        for filename in os.listdir(self.index_dir):
             if '_'+str(self.run_number)+'.txt' in filename:
                 temp = filename
-                subset = np.loadtxt(directory+filename, dtype=np.object)
+                subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
         
         subset = subset.astype(int).tolist()
         index = 0       
         sub = [self.file_train[i] for i in subset]
  
-        for x in sub:
+        for x in sub[0:1000]:
             #if index in subset:
             if index == 0:
                 i = 0
@@ -162,6 +167,8 @@ class Dictionary:
                             word = ''
             
             documents.append(inst)
+            
+        print("**** ", len(documents))
         self.test_instances = documents
         self.test_labels = labels
         
@@ -208,6 +215,8 @@ class Dictionary:
                 
                 documents.append(inst)
             num += 1
+        
+        print("**** ", len(documents))
         self.manual_instances = documents
         self.y_manual = labels
         
@@ -289,11 +298,11 @@ class Dictionary:
         #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
         #data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
-        #data_features = self.vectorizer.fit_transform(self.X_train) 
+        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,self.ngrams), max_features=self.bucket)
-        data_features = self.vectorizer.fit_transform(self.X_train)
+        #self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,self.ngrams), max_features=self.bucket)
+        #data_features = self.vectorizer.fit_transform(self.X_train)
            
         self.train_bag_ngrams = data_features
         
@@ -384,24 +393,6 @@ class Dictionary:
             
         self.manual_label_vec = labels
         
-        labels = np.zeros((self.n_manual_instances_full, self.nclasses))
-        #print("manual labels shape:", labels.shape)
-        
-        self.manual_males_full = 0
-        self.manual_females_full = 0
-        
-        i = 0
-        for label in labels:
-            if self.y_manual_full[i] == 0:
-                label[0] = 1.0
-                self.manual_males_full += 1        #NOTE: need to double check 
-            elif self.y_manual_full[i] == 1:
-                label[1] = 1.0
-                self.manual_females_full += 1      #NOTE: need to double check 
-            
-            i += 1
-            
-        self.manual_label_vec_full = labels
 
     # index 0: label 0
     # index 1: label 1

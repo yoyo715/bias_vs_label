@@ -5,38 +5,51 @@
 
 """
 
+import numpy as np
+from scipy import sparse
+from sklearn.preprocessing import normalize
+from cvxopt import matrix, solvers
+import time, math
+
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+from sklearn.preprocessing import normalize
+from sklearn.metrics import confusion_matrix
+
+
 class wFastText:
-    def __init__(self, dictionary, learning_rate):
+    def __init__(self, dictionary, learning_rate, DIM, EPOCH):
         self.LR = learning_rate
+        self.EPOCH = EPOCH
         
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
         
         #initialize testing
-        X_train, X_test, y_train, y_test = dictionary.get_train_and_test()
-        print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-        N_train = dictionary.get_n_train_instances()
-        N_test = dictionary.get_n_test_instances()
+        self.X_train, self.X_test, self.y_train, self.y_test = dictionary.get_train_and_test()
+        print(self.X_train.shape, self.X_test.shape, self.y_train.shape, self.y_test.shape)
+        self.N_train = dictionary.get_n_train_instances()
+        self.N_test = dictionary.get_n_test_instances()
         
-        print("Number of Train instances: ", N_train, " Number of Test instances: ", N_test)
+        print("Number of Train instances: ", self.N_train, " Number of Test instances: ", self.N_test)
         ntrain_eachclass = dictionary.get_nlabels_eachclass_train()
         ntest_eachclass = dictionary.get_nlabels_eachclass_test()
         print("N each class TRAIN: ", ntrain_eachclass, " N each class TEST: ", ntest_eachclass)
         
         
         # manual labeled set (Kaggle dataset)
-        X_manual = dictionary.get_manual_testset()
-        y_manual = dictionary.get_manual_set_labels()
-        N_manual = dictionary.get_n_manual_instances()
+        self.X_manual = dictionary.get_manual_testset()
+        self.y_manual = dictionary.get_manual_set_labels()
+        self.N_manual = dictionary.get_n_manual_instances()
         
         print()
-        print("Number of Manual testing instances: ", N_manual, " shape: ", X_manual.shape)
+        print("Number of Manual testing instances: ", self.N_manual, " shape: ", self.X_manual.shape)
         nmanual_eachclass = dictionary.get_nlabels_eachclass_manual()
         print("N each class Manual testing instances: ", nmanual_eachclass)
         
         
         # A
-        p = X_train.shape[1]    # cols
+        p = self.X_train.shape[1]    # cols
         A_n = p
         A_m = DIM               # rows
         uniform_val = 1.0 / DIM
@@ -51,7 +64,7 @@ class wFastText:
 
         self.lin_c = 0.9                    # hyperparameter for linear kernel
         self.kernel = 'lin'   
-        self.betas = create_optbeta()       # NOTE: optimal KMM reweighting coefficient
+        #self.betas = create_optbeta()       # NOTE: optimal KMM reweighting coefficient
         
         
     
@@ -67,13 +80,27 @@ class wFastText:
         
         return opt_beta
     
+
+    def create_optbeta_single(self, x):
+        #print("starting beta optimization (for one instance) .......................")
+        
+        #start = time.time()
+        
+        opt_beta = self.kernel_mean_matching(self.X_manual, x, 
+                                        self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        
+        #end = time.time()
+        #print("Beta took ", (end - start)/60.0, " minutes to optimize.")
+        
+        return opt_beta
+    
     
     # Z is training data, X is testing data
-    def kernel_mean_matching(X, Z, lin_c, kern='lin', B=1.0, eps=None):
+    def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
         nx = X.shape[0]
         nz = Z.shape[0]
         
-        print("nx: ", nx, " nz: ", nz)
+        #print("nx: ", nx, " nz: ", nz)
         
         if eps == None:
             eps = B/math.sqrt(nz)
@@ -98,13 +125,14 @@ class wFastText:
         G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
         
+        solvers.options['show_progress'] = False
         sol = solvers.qp(K, -kappa, G, h)
         coef = np.array(sol['x'])
         return coef
 
 
     # doesnt work
-    def compute_rbf(X, Z, sigma=1.0):
+    def compute_rbf(self, X, Z, sigma=1.0):
         K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
         Z = Z.todense()
         
@@ -117,7 +145,7 @@ class wFastText:
 ###########################################################################################################
 
       
-    def stable_softmax(X): 
+    def stable_softmax(self, X): 
         axis = 0  # across rows
 
         # subtract the max for numerical stability
@@ -136,13 +164,13 @@ class wFastText:
 
 
     # calculates total loss using matrix operations (quicker than looping)
-    def get_total_loss(A, B, X, y, N):
+    def get_total_loss(self, A, B, X, y, N):
         hidden = sparse.csr_matrix.dot(A, X.T)      
         
         a1 = normalize(hidden, axis=0, norm='l1')
         z2 = np.dot(B, a1)
         
-        Y_hat = stable_softmax(z2)
+        Y_hat = self.stable_softmax(z2)
         loglike = np.log(Y_hat)
         
         loss = -np.multiply(y, loglike.T)  # need to multiply element wise here
@@ -152,7 +180,7 @@ class wFastText:
         
         
     # finds gradient of B and returns an up
-    def KMMgradient_B(B, A, label, alpha, hidden, Y_hat, beta):    
+    def KMMgradient_B(self, B, A, label, alpha, hidden, Y_hat, beta):    
         first = np.multiply(beta.T, np.subtract(Y_hat.T, label).T)
         gradient = alpha *  np.dot(first, hidden.T)
         B_new = np.subtract(B, gradient)
@@ -161,7 +189,7 @@ class wFastText:
 
 
     # update rule for weight matrix A
-    def KMMgradient_A(B, A, X, label, alpha, Y_hat, beta):
+    def KMMgradient_A(self, B, A, X, label, alpha, Y_hat, beta):
         A_old = A
         a = np.multiply(beta.T, np.subtract(Y_hat.T, label).T)
         first = np.dot(a.T, B)
@@ -169,10 +197,84 @@ class wFastText:
         
         A = np.subtract(A_old, gradient) 
         
-        return A        
+        return A       
+    
+    
+    # function to return prediction error, precision, recall, F1 score
+    def metrics(X, Y, A, B, N, test, trialnum, epoch):
+        # get predicted classes
+        hidden = sparse.csr_matrix.dot(A, X.T)        
+        a1 = normalize(hidden, axis=0, norm='l1')
+        z2 = np.dot(B, a1)
+        Y_hat = stable_softmax(z2)
+
+        # compare to actual classes
+        prediction_max = np.argmax(Y_hat, axis=0)
+        true_label_max = np.argmax(Y, axis=1)
+
+        
+        class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
+        class_acc = np.sum(true_label_max == prediction_max.T) * 1.0 / N
+        
+        if ( class_error + class_acc ) != 1:
+            print("ERROR in computing class errror")
+        
+        #print(confusion_matrix(true_label_max, prediction_max))
+
+        true_neg, false_pos, false_neg, true_pos = confusion_matrix(true_label_max, prediction_max, labels=[0,1]).ravel()
+        
+        # Compute fpr, tpr, thresholds and roc auc
+        fpr, tpr, thresholds = roc_curve(true_label_max, prediction_max)
+        roc_auc = auc(fpr, tpr)
+        
+        #print("AUC score: ", roc_auc)
+        #print()
+
+        precision = true_pos / (true_pos + false_pos)           # true pos rate (TRP)
+        recall = true_pos / (true_pos + false_neg)              # 
+        F1 = 2 * ((precision * recall) / (precision + recall))
         
         
-    def train_batch():
+        # write labels to a file for future use
+        #if test == 'train':
+            #fname = 'label_output/train_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'test':
+            #fname = 'label_output/test_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'manual':
+            #fname = 'label_output/manual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+            
+        #elif test == 'KMMtrain':
+            #fname = 'KMMlabel_output/kmmtrain_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'KMMtest':
+            #fname = 'KMMlabel_output/kmmtest_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'KMMmanual':
+            #fname = 'KMMlabel_output/kmmmanual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        
+        #write_labels_tofile(fname, Y, Y_hat)
+        
+        #dir_ = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/'
+        
+        # TETON
+        #if test == 'train':
+            #fname = dir_+'label_output/train_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'test':
+            #fname = dir_+'label_output/test_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'manual':
+            #fname = dir_+'label_output/manual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+            
+        #elif test == 'KMMtrain':
+            #fname = dir_+'KMMlabel_output/kmmtrain_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'KMMtest':
+            #fname = dir_+'KMMlabel_output/kmmtest_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        #elif test == 'KMMmanual':
+            #fname = dir_+'KMMlabel_output/kmmmanual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
+        
+        #write_labels_tofile(fname, Y, Y_hat)
+
+        return class_error, precision, recall, F1, roc_auc, fpr, tpr
+        
+        
+    def train_batch(self):
         losses_train = []
         losses_test = []
         losses_manual = []
@@ -308,7 +410,7 @@ class wFastText:
         print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
         
     
-    def train():
+    def train(self):
         losses_train = []
         losses_test = []
         losses_manual = []
@@ -320,83 +422,86 @@ class wFastText:
         print()
         print()
         
-        X_train = normalize(X_train, axis=1, norm='l1')
-        X_test = normalize(X_test, axis=1, norm='l1')
-        X_manual = normalize(X_manual, axis=1, norm='l1')
+        X_train = normalize(self.X_train, axis=1, norm='l1')
+        X_test = normalize(self.X_test, axis=1, norm='l1')
+        X_manual = normalize(self.X_manual, axis=1, norm='l1')
         
         traintime_start = time.time()
-        for i in range(EPOCH):
+        for i in range(self.EPOCH):
             print()
             print("wFastText EPOCH: ", i)
             
             # linearly decaying lr alpha
-            alpha = LR * ( 1 - i / EPOCH)
+            alpha = self.LR * ( 1 - i / self.EPOCH)
             
             l = 0
             
             for x in X_train:
-                label = y_train[l]
-                beta = betas[l]
-                B_old = B
-                A_old = A
+                label = self.y_train[l]
+                #beta = betas[l]
+                beta = self.create_optbeta_single(x)
+                
+                B_old = self.B
+                A_old = self.A
                 
                 # Forward Propogation
-                hidden = sparse.csr_matrix.dot(A, x.T)
+                hidden = sparse.csr_matrix.dot(self.A, x.T)
                 a1 = normalize(hidden, axis=0, norm='l1')
-                z2 = np.dot(B, a1)
-                Y_hat = stable_softmax(z2)
+                z2 = np.dot(self.B, a1)
+                Y_hat = self.stable_softmax(z2)
         
                 # Back prop with alt optimization
-                B = KMMgradient_B(B_old, A_old, label, alpha, a1, Y_hat, beta)  
-                A = KMMgradient_A(B_old, A_old, x, label, alpha, Y_hat, beta)
+                self.B = self.KMMgradient_B(B_old, A_old, label, alpha, a1, Y_hat, beta)  
+                self.A = self.KMMgradient_A(B_old, A_old, x, label, alpha, Y_hat, beta)
 
-                # TRAINING LOSS
-                train_loss = get_total_loss(A, B, X_train, y_train, N_train)
-                print("KMM Train:   ", train_loss)
 
-                ## TESTING LOSS
-                test_loss = get_total_loss(A, B, X_test, y_test, N_test)
-                print("KMM Test:    ", test_loss)
-                
-                ## MANUAL SET TESTING LOSS
-                manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
-                print("KMM Manual Set:    ", manual_loss)
-                print()
+            # TRAINING LOSS
+            train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
+            print("KMM Train:   ", train_loss)
 
-                losses_train.append(train_loss)
-                losses_test.append(test_loss)
-                losses_manual.append(manual_loss)
+            ## TESTING LOSS
+            test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
+            print("KMM Test:    ", test_loss)
             
-            train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
-            
-            test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, 'KMMtest', trialnum, i)
-            
-            manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
-            
-            
-            classerr_train.append(train_class_error)
-            classerr_test.append(test_class_error)
-            classerr_manual.append(manual_class_error)
-
+            ## MANUAL SET TESTING LOSS
+            manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
+            print("KMM Manual:    ", manual_loss)
             print()
-            print("KMMTRAIN:")
-            print("         Classification Err: ", train_class_error)
-            print("         Precision:          ", train_precision)
-            print("         Recall:             ", train_recall)
-            print("         F1:                 ", train_F1)
 
-            print("KMMTEST:")
-            print("         Classification Err: ", test_class_error)
-            print("         Precision:          ", test_precision)
-            print("         Recall:             ", test_recall)
-            print("         F1:                 ", test_F1)
+            losses_train.append(train_loss)
+            losses_test.append(test_loss)
+            losses_manual.append(manual_loss)
             
-            print()
-            print("KMMMANUAL:")
-            print("         Classification Err: ", manual_class_error)
-            print("         Precision:          ", manual_precision)
-            print("         Recall:             ", manual_recall)
-            print("         F1:                 ", manual_F1)
+            #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
+            
+            #test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, 'KMMtest', trialnum, i)
+            
+            #manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
+            
+            
+            #classerr_train.append(train_class_error)
+            #classerr_test.append(test_class_error)
+            #classerr_manual.append(manual_class_error)
+
+            #print()
+            #print("KMMTRAIN:")
+            #print("         Classification Err: ", train_class_error)
+            #print("         Precision:          ", train_precision)
+            #print("         Recall:             ", train_recall)
+            #print("         F1:                 ", train_F1)
+
+            #print("KMMTEST:")
+            #print("         Classification Err: ", test_class_error)
+            #print("         Precision:          ", test_precision)
+            #print("         Recall:             ", test_recall)
+            #print("         F1:                 ", test_F1)
+            
+            #print()
+            #print("KMMMANUAL:")
+            #print("         Classification Err: ", manual_class_error)
+            #print("         Precision:          ", manual_precision)
+            #print("         Recall:             ", manual_recall)
+            #print("         F1:                 ", manual_F1)
             
             
             #write_fastKMMtext_stats(trialnum, train_loss, train_class_error, train_precision, train_recall, train_F1,
