@@ -59,35 +59,56 @@ if __name__ == '__main__':
     index2 = np.arange(wft_ck_betas.shape[0])
     index3 = np.arange(wft_cf_betas.shape[0])
     
-    plt.bar(index, wft_betas.flatten(), color='g', alpha = 0.5)
-    plt.bar(index, wft_ck_betas.flatten(), color='r', alpha = 0.5)
-    plt.bar(index, wft_cf_betas.flatten(), color='b', alpha = 0.5)
-    plt.xlabel("Male and Females beta weights - All methods")
-    plt.show()
+    #plt.figure(figsize=(20,15))
+    #plt.bar(index, wft_betas.flatten(), color='g', alpha = 0.5)
+    #plt.bar(index, wft_ck_betas.flatten(), color='r', alpha = 0.5)
+    #plt.bar(index, wft_cf_betas.flatten(), color='b', alpha = 0.5)
+    #plt.gca().legend(('wFastText', 'wFastText-ck', 'wFastText-cf'))
+    #plt.xlabel("Instance Number", size=15)
+    #plt.ylabel("Beta Weight", size=15)
+    #plt.title("Male and Females beta weights - All methods", size=20)
+    #plt.show()
 
 
     index = [i for i,x in enumerate(true_label_max) if x == 1]
     index2 = [i for i,x in enumerate(true_label_max) if x == 0]
     
 
-    # wFastText
+    ##wFastText
+    #plt.figure(figsize=(20,15))
     #plt.bar(index, wft_betas[true_label_max==1].flatten(), color='g', alpha = 0.5)
     #plt.bar(index2, wft_betas[true_label_max==0].flatten(), color='b', alpha = 0.5)
-    #plt.xlabel("Male and Females beta weights - wFastText")
+    #plt.gca().legend(('Female','Male'))
+    #plt.xlabel("Instance Number", size=15)
+    #plt.ylabel("Beta Weight", size=15)
+    #plt.title("Male and Females beta weights - wFastText", size=20)
     #plt.show()
     
+    #print(len(wft_ck_betas[true_label_max==1].flatten()))
+    #print(len(wft_ck_betas[true_label_max==0].flatten()))
     
-    #wFastText-ck
+    ##wFastText-ck
+    #plt.figure(figsize=(20,15))
     #plt.bar(index, wft_ck_betas[true_label_max==1].flatten(), color='g', alpha = 0.5)
     #plt.bar(index2, wft_ck_betas[true_label_max==0].flatten(), color='b', alpha = 0.5)
-    #plt.xlabel("Male and Females beta weights - wFastText-ck")
+    #plt.gca().legend(('Female','Male'))
+    #plt.xlabel("Instance Number", size=15)
+    #plt.ylabel("Beta Weight", size=15)
+    #plt.title("Male and Females beta weights - wFastText-ck", size=20)
     #plt.show()
 
+    #print()
+    #print(len(wft_cf_betas[true_label_max==1].flatten()))
+    #print(len(wft_cf_betas[true_label_max==0].flatten()))
     
     #wFastText-cf
+    #plt.figure(figsize=(20,15))
     #plt.bar(index, wft_cf_betas[true_label_max==1].flatten(), color='g', alpha = 0.5)
     #plt.bar(index2, wft_cf_betas[true_label_max==0].flatten(), color='b', alpha = 0.5)
-    #plt.xlabel("Male and Females beta weights - wFastText-cf")
+    #plt.gca().legend(('Female','Male'))
+    #plt.xlabel("Instance Number", size=15)
+    #plt.ylabel("Beta Weight", size=15)
+    #plt.title("Male and Females beta weights - wFastText-cf", size=20)
     #plt.show()
     
     

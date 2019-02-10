@@ -64,16 +64,15 @@ class wFastText:
 
         self.lin_c = 0.9                    # hyperparameter for linear kernel
         self.kernel = 'lin'   
-        self.betas = self.create_optbeta()       # NOTE: optimal KMM reweighting coefficient
         
         
     
-    def create_optbeta(self):
+    def create_optbeta(self, ft_input):
         print("starting beta optimization..............................")
         
         start = time.time()
         
-        opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, self.train_bag_ngrams, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
@@ -429,6 +428,8 @@ class wFastText:
         for i in range(self.EPOCH):
             print()
             print("wFastText EPOCH: ", i)
+            
+            self.betas = self.create_optbeta(sparse.csr_matrix.dot(self.A, X_train.T))       # NOTE: optimal KMM reweighting coefficient
             
             # linearly decaying lr alpha
             alpha = self.LR * ( 1 - i / self.EPOCH)
