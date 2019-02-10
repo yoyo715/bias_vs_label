@@ -17,7 +17,7 @@ from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
 
 
-class wFastText:
+class wFastText_new:
     def __init__(self, dictionary, learning_rate, DIM, EPOCH):
         self.LR = learning_rate
         self.EPOCH = EPOCH
@@ -72,7 +72,8 @@ class wFastText:
         
         start = time.time()
         
-        opt_beta = kernel_mean_matching(self.manual_test_bag_ngrams, ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        opt_beta = self.kernel_mean_matching(self.X_manual, ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        #opt_beta = self.kernel_mean_matching(sparse.csr_matrix.dot(self.A, self.X_manual.T), ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
@@ -98,15 +99,22 @@ class wFastText:
         nx = X.shape[0]
         nz = Z.shape[0]
         
-        #print("nx: ", nx, " nz: ", nz)
+        print(X.shape, Z.shape)
+        print("nx: ", nx, " nz: ", nz)
         
         if eps == None:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
+            print("lin kerel")
             K = np.dot(Z, Z.T) 
+            print(K.shape)
             K = K.todense() + self.lin_c  
+            #K = K + self.lin_c
+            print("kappa")
+            #print(np.dot(Z.T, X.T))
             kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            #kappa = np.sum(np.dot(X.T, Z)*float(nz)/float(nx),axis=1)
             
         #elif kern == 'rbf':
             #K = compute_rbf(Z,Z)
@@ -115,6 +123,8 @@ class wFastText:
         else:
             raise ValueError('unknown kernel')
         
+        print("matrices")
+        print(K.shape, kappa.shape)
         
         K = K.astype(np.double)
         K = matrix(K)
@@ -122,8 +132,10 @@ class wFastText:
         kappa = matrix(kappa)
         G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
+    
         
-        solvers.options['show_progress'] = False
+        #solvers.options['show_progress'] = False
+        print("starting solver")
         sol = solvers.qp(K, -kappa, G, h)
         coef = np.array(sol['x'])
         return coef
@@ -424,12 +436,16 @@ class wFastText:
         X_test = normalize(self.X_test, axis=1, norm='l1')
         X_manual = normalize(self.X_manual, axis=1, norm='l1')
         
+        self.create_optbeta(self.X_train) 
+        
         traintime_start = time.time()
         for i in range(self.EPOCH):
             print()
             print("wFastText EPOCH: ", i)
             
-            self.betas = self.create_optbeta(sparse.csr_matrix.dot(self.A, X_train.T))       # NOTE: optimal KMM reweighting coefficient
+            # NOTE: optimal KMM reweighting coefficient
+            print(type(sparse.csr_matrix.dot(self.A, X_train.T)))
+            self.betas = self.create_optbeta(sparse.csr_matrix.dot(self.A, X_train.T))  
             
             # linearly decaying lr alpha
             alpha = self.LR * ( 1 - i / self.EPOCH)
