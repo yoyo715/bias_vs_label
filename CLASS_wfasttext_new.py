@@ -67,12 +67,15 @@ class wFastText_new:
         
         
     
-    def create_optbeta(self, ft_input):
+    def create_optbeta(self):
         print("starting beta optimization..............................")
         
         start = time.time()
+        X = sparse.csr_matrix.dot(self.A, self.X_manual.T)
+        Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
-        opt_beta = self.kernel_mean_matching(self.X_manual, ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        #opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         #opt_beta = self.kernel_mean_matching(sparse.csr_matrix.dot(self.A, self.X_manual.T), ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
         end = time.time()
@@ -92,6 +95,57 @@ class wFastText_new:
         #print("Beta took ", (end - start)/60.0, " minutes to optimize.")
         
         return opt_beta
+    
+    def kmm_new(self, Xtrain, Xtest, sigma):
+        """
+        From https://github.com/sksom/Classification-using-KMM-Kernel-Mean-Matching-/blob/master/KMM/kmmClassification.py
+        """
+        
+        #def kmm(Xtrain, Xtest, sigma):
+        n_tr = len(Xtrain)
+        n_te = len(Xtest)
+
+        # calculate Kernel
+        print('Computing kernel for training data ...')
+        K_ns = sk.rbf_kernel(Xtrain, Xtrain, sigma)
+        # make it symmetric
+        K = 0.9 * (K_ns + K_ns.transpose())
+
+        # calculate kappa
+        print('Computing kernel for kappa ...')
+        kappa_r = sk.rbf_kernel(Xtrain, Xtest, sigma)
+        ones = numpy.ones(shape=(n_te, 1))
+        kappa = numpy.dot(kappa_r, ones)
+        kappa = -(float(n_tr) / float(n_te)) * kappa
+
+        # calculate eps
+        eps = (math.sqrt(n_tr) - 1) / math.sqrt(n_tr)
+
+        # constraints
+        A0 = numpy.ones(shape=(1, n_tr))
+        A1 = -numpy.ones(shape=(1, n_tr))
+        A = numpy.vstack([A0, A1, -numpy.eye(n_tr), numpy.eye(n_tr)])
+        b = numpy.array([[n_tr * (eps + 1), n_tr * (eps - 1)]])
+        b = numpy.vstack([b.T, -numpy.zeros(shape=(n_tr, 1)), numpy.ones(shape=(n_tr, 1)) * 1000])
+
+        print('Solving quadratic program for beta ...')
+        P = matrix(K, tc='d')
+        q = matrix(kappa, tc='d')
+        G = matrix(A, tc='d')
+        h = matrix(b, tc='d')
+        beta = solvers.qp(P, q, G, h)
+        return [i for i in beta['x']]
+    
+    def getBeta(trainX, testX, maxvar):
+        beta = []
+        # gammab = 0.001
+        gammab = computeKernelWidth(trainX)
+        print("Gammab:", gammab)
+
+        beta = kmm(trainX, testX, gammab)
+        print("{0} Beta: {1}".format(len(beta), beta))
+
+        return beta
     
     
     # Z is training data, X is testing data
@@ -114,7 +168,6 @@ class wFastText_new:
             print("kappa")
             #print(np.dot(Z.T, X.T))
             kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
-            #kappa = np.sum(np.dot(X.T, Z)*float(nz)/float(nx),axis=1)
             
         #elif kern == 'rbf':
             #K = compute_rbf(Z,Z)
@@ -420,6 +473,7 @@ class wFastText_new:
         print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
         
     
+
     def train(self):
         losses_train = []
         losses_test = []
@@ -436,7 +490,7 @@ class wFastText_new:
         X_test = normalize(self.X_test, axis=1, norm='l1')
         X_manual = normalize(self.X_manual, axis=1, norm='l1')
         
-        self.create_optbeta(self.X_train) 
+        #self.create_optbeta(self.X_train) 
         
         traintime_start = time.time()
         for i in range(self.EPOCH):
@@ -444,8 +498,7 @@ class wFastText_new:
             print("wFastText EPOCH: ", i)
             
             # NOTE: optimal KMM reweighting coefficient
-            print(type(sparse.csr_matrix.dot(self.A, X_train.T)))
-            self.betas = self.create_optbeta(sparse.csr_matrix.dot(self.A, X_train.T))  
+            self.betas = self.create_optbeta()  
             
             # linearly decaying lr alpha
             alpha = self.LR * ( 1 - i / self.EPOCH)
