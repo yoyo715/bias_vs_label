@@ -15,6 +15,8 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
+import math, numpy, sklearn.metrics.pairwise as sk
+
 
 
 class wFastText_new:
@@ -74,7 +76,10 @@ class wFastText_new:
         X = sparse.csr_matrix.dot(self.A, self.X_manual.T)
         Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
-        opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        #sigma = self.computeKernelWidth(self.X_train)
+        sigma = 0.001
+        opt_beta = self.kmm_new(self.X_train, self.X_manual, sigma)
+        #opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         #opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         #opt_beta = self.kernel_mean_matching(sparse.csr_matrix.dot(self.A, self.X_manual.T), ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
@@ -101,15 +106,15 @@ class wFastText_new:
         From https://github.com/sksom/Classification-using-KMM-Kernel-Mean-Matching-/blob/master/KMM/kmmClassification.py
         """
         
-        #def kmm(Xtrain, Xtest, sigma):
-        n_tr = len(Xtrain)
-        n_te = len(Xtest)
+        n_tr = Xtrain.shape[0]
+        n_te = Xtest.shape[0]
 
         # calculate Kernel
         print('Computing kernel for training data ...')
         K_ns = sk.rbf_kernel(Xtrain, Xtrain, sigma)
         # make it symmetric
         K = 0.9 * (K_ns + K_ns.transpose())
+        print("K.shape: ", K.shape)
 
         # calculate kappa
         print('Computing kernel for kappa ...')
@@ -117,6 +122,7 @@ class wFastText_new:
         ones = numpy.ones(shape=(n_te, 1))
         kappa = numpy.dot(kappa_r, ones)
         kappa = -(float(n_tr) / float(n_te)) * kappa
+        print("kappa.shape: ", kappa.shape)
 
         # calculate eps
         eps = (math.sqrt(n_tr) - 1) / math.sqrt(n_tr)
@@ -134,18 +140,20 @@ class wFastText_new:
         G = matrix(A, tc='d')
         h = matrix(b, tc='d')
         beta = solvers.qp(P, q, G, h)
-        return [i for i in beta['x']]
+        coef = np.array(beta['x'])
+        return coef
     
-    def getBeta(trainX, testX, maxvar):
-        beta = []
-        # gammab = 0.001
-        gammab = computeKernelWidth(trainX)
-        print("Gammab:", gammab)
-
-        beta = kmm(trainX, testX, gammab)
-        print("{0} Beta: {1}".format(len(beta), beta))
-
-        return beta
+    """
+    Kernel width is the median of distances between instances of sparse data
+    """
+    def computeKernelWidth(self, data):
+        dist = []
+        for i in range(data.shape[0]):
+            for j in range(i + 1, data.shape[0]):
+                # s = self.__computeDistanceSq(data[i], data[j])
+                # dist.append(math.sqrt(s))
+                dist.append(numpy.sqrt(numpy.sum((numpy.array(data[i]) - numpy.array(data[j])) ** 2)))
+        return numpy.median(numpy.array(dist))
     
     
     # Z is training data, X is testing data
@@ -163,11 +171,12 @@ class wFastText_new:
             print("lin kerel")
             K = np.dot(Z, Z.T) 
             print(K.shape)
-            K = K.todense() + self.lin_c  
-            #K = K + self.lin_c
+            #K = K.todense() + self.lin_c  
+            K = K + self.lin_c
             print("kappa")
             #print(np.dot(Z.T, X.T))
-            kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            #kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            kappa = np.sum(np.dot(X.T, Z)*float(nz)/float(nx),axis=1)
             
         #elif kern == 'rbf':
             #K = compute_rbf(Z,Z)
@@ -490,7 +499,7 @@ class wFastText_new:
         X_test = normalize(self.X_test, axis=1, norm='l1')
         X_manual = normalize(self.X_manual, axis=1, norm='l1')
         
-        #self.create_optbeta(self.X_train) 
+        self.betas = self.create_optbeta() 
         
         traintime_start = time.time()
         for i in range(self.EPOCH):
@@ -498,7 +507,7 @@ class wFastText_new:
             print("wFastText EPOCH: ", i)
             
             # NOTE: optimal KMM reweighting coefficient
-            self.betas = self.create_optbeta()  
+            #self.betas = self.create_optbeta()  
             
             # linearly decaying lr alpha
             alpha = self.LR * ( 1 - i / self.EPOCH)
@@ -583,6 +592,7 @@ class wFastText_new:
             #save_model_tofile(A, B, fnameB, fnameA)
             
             i += 1
+            print("---------------------------------------------------")
             
         traintime_end = time.time()
         print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")

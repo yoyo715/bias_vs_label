@@ -90,7 +90,7 @@ class Dictionary:
         index = 0       
         sub = [self.file_train[i] for i in subset]
  
-        for x in sub[0:1000]:
+        for x in sub:
             #if index in subset:
             if index == 0:
                 i = 0
@@ -137,7 +137,7 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
 
         # loop through each instance in training data, gets labels
-        for x in self.file_test[0:1000]:
+        for x in self.file_test:
             i = 0
             inst = ''
             label = x[0:10]
@@ -184,7 +184,7 @@ class Dictionary:
         #print(self.manual_set[358])
     
         # loop through each instance in training data, gets labels
-        for x in self.manual_set[0:1000]:
+        for x in self.manual_set:
             if num != 361 and num != 360 and num != 359:
                 i = 0
                 inst = ''
