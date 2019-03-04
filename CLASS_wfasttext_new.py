@@ -16,6 +16,7 @@ from sklearn.metrics import auc
 from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
 import math, numpy, sklearn.metrics.pairwise as sk
+from scipy import stats
 
 
 
@@ -63,10 +64,18 @@ class wFastText_new:
         B_m = nclasses          # rows
         self.B = np.zeros((B_m, B_n))
         
+        print("A.shape: ", self.A.shape)
+        print("B.shape: ", self.B.shape)
+        print("Xtrain.shape: ", self.X_train.shape)
+        print("manual.shape: ", self.X_manual.shape)
+        
 
         self.lin_c = 0.9                    # hyperparameter for linear kernel
         self.kernel = 'lin'   
+        #self.kernel = 'rbf'
         
+        print("Learning rate: ", self.LR, " Kernel: ", self.kernel)
+        print()
         
     
     def create_optbeta(self):
@@ -77,14 +86,18 @@ class wFastText_new:
         Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
         #sigma = self.computeKernelWidth(self.X_train)
-        sigma = 0.001
-        opt_beta = self.kmm_new(self.X_train, self.X_manual, sigma)
-        #opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        
+        #opt_beta = self.kmm_new(self.X_train, self.X_manual, sigma)
+        opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         #opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         #opt_beta = self.kernel_mean_matching(sparse.csr_matrix.dot(self.A, self.X_manual.T), ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
+        print("About Beta: ")
+        print(stats.describe(opt_beta))
+        print()
+        
         
         return opt_beta
     
@@ -105,6 +118,7 @@ class wFastText_new:
         """
         From https://github.com/sksom/Classification-using-KMM-Kernel-Mean-Matching-/blob/master/KMM/kmmClassification.py
         """
+        sigma = 0.001
         
         n_tr = Xtrain.shape[0]
         n_te = Xtest.shape[0]
@@ -158,35 +172,48 @@ class wFastText_new:
     
     # Z is training data, X is testing data
     def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
-        nx = X.shape[0]
-        nz = Z.shape[0]
+        #nx = X.shape[0]
+        #nz = Z.shape[0]
+        print("X.shape: ", X.shape, "Z.shape: ", Z.shape)
         
-        print(X.shape, Z.shape)
+        nx = X.shape[1]
+        nz = Z.shape[1]
+        sigma = 0.001
+        
         print("nx: ", nx, " nz: ", nz)
         
         if eps == None:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            print("lin kerel")
-            K = np.dot(Z, Z.T) 
-            print(K.shape)
+            #print("lin kerel")
+            #K = np.dot(Z, Z.T) 
+            #print(K.shape)
             #K = K.todense() + self.lin_c  
-            K = K + self.lin_c
-            print("kappa")
-            #print(np.dot(Z.T, X.T))
-            #kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
-            kappa = np.sum(np.dot(X.T, Z)*float(nz)/float(nx),axis=1)
             
-        #elif kern == 'rbf':
+            #### NOTE these are same!!
+            #K= sk.linear_kernel(Z.T, Z.T)
+            K = np.dot(Z.T, Z)  
+            
+            #K = K + self.lin_c
+            #print("kappa")
+            #print(np.dot(Z.T, X.T))
+            kappa = np.sum(np.dot(Z.T, X)*float(nz)/float(nx),axis=1)
+
+            #kappa = np.sum(sk.linear_kernel(Z.T, X.T), axis=1)*float(nz)/float(nx)
+            
+        elif kern == 'rbf':
             #K = compute_rbf(Z,Z)
             #kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
+            K= sk.rbf_kernel(Z.T, Z.T, sigma)
+            kappa = np.sum(sk.rbf_kernel(Z.T, X.T), axis=1)*float(nz)/float(nx)
             
         else:
             raise ValueError('unknown kernel')
         
         print("matrices")
-        print(K.shape, kappa.shape)
+        print("K.shape: ", K.shape)
+        print("kappa.shape: ", kappa.shape)
         
         K = K.astype(np.double)
         K = matrix(K)
@@ -195,23 +222,26 @@ class wFastText_new:
         G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
     
+        print("G.shape: ", np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)].shape)
+        print("h.shape: ", np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))].shape)
         
         #solvers.options['show_progress'] = False
         print("starting solver")
         sol = solvers.qp(K, -kappa, G, h)
+        print(sol)
         coef = np.array(sol['x'])
         return coef
 
 
-    # doesnt work
-    def compute_rbf(self, X, Z, sigma=1.0):
-        K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
-        Z = Z.todense()
+    ## doesnt work
+    #def compute_rbf(self, X, Z, sigma=1.0):
+        #K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
+        #Z = Z.todense()
         
-        for i, vx in enumerate(X):
-            vx = vx.todense()
-            K[i,:] = np.exp(-np.sum(np.square(vx-Z), axis=1)/(2.0*sigma)).flatten()
-        return K
+        #for i, vx in enumerate(X):
+            #vx = vx.todense()
+            #K[i,:] = np.exp(-np.sum(np.square(vx-Z), axis=1)/(2.0*sigma)).flatten()
+        #return K
         
         
 ###########################################################################################################
@@ -499,7 +529,7 @@ class wFastText_new:
         X_test = normalize(self.X_test, axis=1, norm='l1')
         X_manual = normalize(self.X_manual, axis=1, norm='l1')
         
-        self.betas = self.create_optbeta() 
+        #self.betas = self.create_optbeta() 
         
         traintime_start = time.time()
         for i in range(self.EPOCH):
@@ -507,7 +537,9 @@ class wFastText_new:
             print("wFastText EPOCH: ", i)
             
             # NOTE: optimal KMM reweighting coefficient
-            #self.betas = self.create_optbeta()  
+            self.betas = self.create_optbeta()  
+            
+            print("starting training with new betas")
             
             # linearly decaying lr alpha
             alpha = self.LR * ( 1 - i / self.EPOCH)
