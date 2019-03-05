@@ -101,18 +101,6 @@ class wFastText_new:
         
         return opt_beta
     
-
-    def create_optbeta_single(self, x):
-        #print("starting beta optimization (for one instance) .......................")
-        
-        #start = time.time()
-        
-        opt_beta = self.kernel_mean_matching(self.X_manual, x, self.lin_c, kern=self.kernel, B=6.0, eps=None)
-        
-        #end = time.time()
-        #print("Beta took ", (end - start)/60.0, " minutes to optimize.")
-        
-        return opt_beta
     
     def kmm_new(self, Xtrain, Xtest, sigma):
         """
@@ -211,9 +199,9 @@ class wFastText_new:
         else:
             raise ValueError('unknown kernel')
         
-        print("matrices")
-        print("K.shape: ", K.shape)
-        print("kappa.shape: ", kappa.shape)
+        #print("matrices")
+        #print("K.shape: ", K.shape)
+        #print("kappa.shape: ", kappa.shape)
         
         K = K.astype(np.double)
         K = matrix(K)
@@ -222,8 +210,8 @@ class wFastText_new:
         G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
     
-        print("G.shape: ", np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)].shape)
-        print("h.shape: ", np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))].shape)
+        #print("G.shape: ", np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)].shape)
+        #print("h.shape: ", np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))].shape)
         
         #solvers.options['show_progress'] = False
         print("starting solver")
@@ -231,17 +219,6 @@ class wFastText_new:
         print(sol)
         coef = np.array(sol['x'])
         return coef
-
-
-    ## doesnt work
-    #def compute_rbf(self, X, Z, sigma=1.0):
-        #K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
-        #Z = Z.todense()
-        
-        #for i, vx in enumerate(X):
-            #vx = vx.todense()
-            #K[i,:] = np.exp(-np.sum(np.square(vx-Z), axis=1)/(2.0*sigma)).flatten()
-        #return K
         
         
 ###########################################################################################################
