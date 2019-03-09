@@ -108,11 +108,11 @@ class wFastText:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            #K = np.dot(Z, Z.T) 
-            #K = K.todense() + self.lin_c  
-            #kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
-            K= sk.linear_kernel(Z, Z)  ##WARNING double check this
-            kappa = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
+            K = np.dot(Z, Z.T) 
+            K = K.todense() + self.lin_c  
+            kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            #K= sk.linear_kernel(Z, Z)  ##WARNING double check this
+            #kappa = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
             
         #elif kern == 'rbf':
             #K = compute_rbf(Z,Z)
