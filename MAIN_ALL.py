@@ -20,7 +20,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Enter trial number and Learning Rate')
     parser.add_argument('-r', "--run", action='store', help="trial number", required=True)
     
-    parser.add_argument('-l', "--learning-rate", action='store', help="KMM Learning Rate", required=True)
+    parser.add_argument('-l', "--learning_rate", action='store', help="KMM Learning Rate", required=True)
     args = vars(parser.parse_args())
 
     return args
@@ -58,7 +58,7 @@ def main():
     # adjust these
     EPOCH=20
     LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
-    KMMLR = args['learning-rate']
+    KMMLR = float(args['learning_rate'])
     #KMMLR = 0.015   #0.014         #0.015 pretty good
     #KMMLR = 0.0001
     #KMMLR = 0.001
