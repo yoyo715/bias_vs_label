@@ -41,8 +41,8 @@ class Dictionary:
         #self.manual_set = open('/project/lsrtwitter/mcooley3/data/manually_labeled_set.txt', encoding='utf8').readlines()              # TETON
         self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
         
-        #self.indice_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
-        self.index_dir = './indices/'   # teton
+        self.index_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
+        #self.index_dir = './indices/'   # teton
         
         
         print("- creating manual instances")
@@ -298,11 +298,12 @@ class Dictionary:
         #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
         #data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
-        data_features = self.vectorizer.fit_transform(self.X_train) 
+        #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
+        #data_features = self.vectorizer.fit_transform(self.X_train) 
         
-        #self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,self.ngrams), max_features=self.bucket)
-        #data_features = self.vectorizer.fit_transform(self.X_train)
+	#********
+        self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,self.ngrams), max_features=self.bucket)
+        data_features = self.vectorizer.fit_transform(self.X_train)
            
         self.train_bag_ngrams = data_features
         

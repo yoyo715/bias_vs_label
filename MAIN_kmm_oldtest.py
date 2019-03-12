@@ -7,8 +7,9 @@
 """
 
 from CLASS_dictionary import Dictionary
-from CLASS_wfasttext_new import wFastText_new
-from CLASS_wfasttext import wFastText
+#from CLASS_wfasttext_new import wFastText_new
+#from CLASS_wfasttext import wFastText
+from CLASS_wfasttext_oldtest import wFastText
 
 import argparse, time
 import numpy as np
@@ -57,7 +58,7 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
+    #LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
     KMMLR = float(args['learning_rate'])
     #KMMLR = 0.015   #0.014         #0.015 pretty good
     #KMMLR = 0.0001
@@ -70,7 +71,7 @@ def main():
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     
-    wfasttext = wFastText_new(dictionary, KMMLR, DIM, EPOCH)
+    wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)
     wfasttext.train()
     
     #wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)

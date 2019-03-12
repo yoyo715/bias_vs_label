@@ -70,7 +70,7 @@ def main():
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     
-    wfasttext = wFastText_new(dictionary, KMMLR, DIM, EPOCH)
+    wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)
     wfasttext.train()
     
     #wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)
