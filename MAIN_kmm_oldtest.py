@@ -7,8 +7,6 @@
 """
 
 from CLASS_dictionary import Dictionary
-#from CLASS_wfasttext_new import wFastText_new
-#from CLASS_wfasttext import wFastText
 from CLASS_wfasttext_oldtest import wFastText
 
 import argparse, time
@@ -74,8 +72,6 @@ def main():
     wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)
     wfasttext.train()
     
-    #wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)
-    #wfasttext.train()
     
     
     

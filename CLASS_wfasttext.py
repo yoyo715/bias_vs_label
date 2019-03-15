@@ -87,18 +87,22 @@ class wFastText:
     def create_optbeta_single(self, x):
         #print("starting beta optimization (for one instance) .......................")
         
-        #start = time.time()
+        start = time.time()
         
         opt_beta = self.kernel_mean_matching(self.X_manual, x, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
-        #end = time.time()
-        #print("Beta took ", (end - start)/60.0, " minutes to optimize.")
+        end = time.time()
+        print("Beta took ", (end - start)/60.0, " minutes to optimize.")
         
         return opt_beta
     
     
     # Z is training data, X is testing data
     def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
+        
+        Xtemp = sparse.csr_matrix.dot(self.A, self.X_manual.T)
+        Ztemp = sparse.csr_matrix.dot(self.A, self.X_train.T)
+        
         nx = X.shape[0]
         nz = Z.shape[0]
         
@@ -108,11 +112,24 @@ class wFastText:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            K = np.dot(Z, Z.T) 
-            K = K.todense() + self.lin_c  
-            kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
-            #K= sk.linear_kernel(Z, Z)  ##WARNING double check this
-            #kappa = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
+            print("***Old version")
+            K1 = np.dot(Z, Z.T) 
+            K1 = K1.todense() + self.lin_c  
+            kappa1 = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            
+            K2 = sk.linear_kernel(Z, Z)  ##WARNING double check this
+            kappa2 = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
+            
+            print("K1 == K2?? " + (K1==K2))
+            
+            print()
+            print("**** New version")
+            
+            K3 = sk.linear_kernel(Ztemp.T, Ztemp.T)
+            K4 = np.dot(Ztemp.T, Ztemp)  
+            
+            print("K3 == K4?? " + (K3==K4))
+            
             
         #elif kern == 'rbf':
             #K = compute_rbf(Z,Z)
@@ -122,29 +139,18 @@ class wFastText:
             raise ValueError('unknown kernel')
         
         
-        K = K.astype(np.double)
-        K = matrix(K)
+        #K = K.astype(np.double)
+        #K = matrix(K)
         
-        kappa = matrix(kappa)
-        G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
-        h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
+        #kappa = matrix(kappa)
+        #G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
+        #h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
         
-        #solvers.options['show_progress'] = False
-        sol = solvers.qp(K, -kappa, G, h)
-        print(sol)
-        coef = np.array(sol['x'])
+        ##solvers.options['show_progress'] = False
+        #sol = solvers.qp(K, -kappa, G, h)
+        #coef = np.array(sol['x'])
         return coef
 
-
-    ## doesnt work
-    #def compute_rbf(self, X, Z, sigma=1.0):
-        #K = np.zeros((X.shape[0], Z.shape[0]), dtype=float)
-        #Z = Z.todense()
-        
-        #for i, vx in enumerate(X):
-            #vx = vx.todense()
-            #K[i,:] = np.exp(-np.sum(np.square(vx-Z), axis=1)/(2.0*sigma)).flatten()
-        #return K
         
         
 ###########################################################################################################

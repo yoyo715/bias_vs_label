@@ -85,12 +85,7 @@ class wFastText_new:
         X = sparse.csr_matrix.dot(self.A, self.X_manual.T)
         Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
-        #sigma = self.computeKernelWidth(self.X_train)
-        
-        #opt_beta = self.kmm_new(self.X_train, self.X_manual, sigma)
         opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
-        #opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, self.lin_c, kern=self.kernel, B=6.0, eps=None)
-        #opt_beta = self.kernel_mean_matching(sparse.csr_matrix.dot(self.A, self.X_manual.T), ft_input, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
