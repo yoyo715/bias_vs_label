@@ -85,7 +85,7 @@ class wFastText_new:
         X = sparse.csr_matrix.dot(self.A, self.X_manual.T)
         Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
-        opt_beta = self.kernel_mean_matching(X, Z, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        opt_beta = self.kernel_mean_matching(X.T, Z.T, self.lin_c, kern=self.kernel, B=6.0, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
@@ -155,12 +155,13 @@ class wFastText_new:
     
     # Z is training data, X is testing data
     def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
-        #nx = X.shape[0]
-        #nz = Z.shape[0]
+        
+        nx = X.shape[0]
+        nz = Z.shape[0]
         print("X.shape: ", X.shape, "Z.shape: ", Z.shape)
         
-        nx = X.shape[1]
-        nz = Z.shape[1]
+        #nx = X.shape[1]
+        #nz = Z.shape[1]
         sigma = 0.001
         
         print("nx: ", nx, " nz: ", nz)
@@ -169,19 +170,18 @@ class wFastText_new:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            #print("lin kerel")
-            #K = np.dot(Z, Z.T) 
+            print("starting K")
+            K = np.dot(Z, Z.T) + self.lin_c 
             #print(K.shape)
-            #K = K.todense() + self.lin_c  
+            #K = K.todense() + self.lin_c 
+            
+            print("starting kappa")
+            kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
             
             #### NOTE these are same!!
             #K= sk.linear_kernel(Z.T, Z.T)
-            K = np.dot(Z.T, Z)  
-            
-            #K = K + self.lin_c
-            #print("kappa")
-            #print(np.dot(Z.T, X.T))
-            kappa = np.sum(np.dot(Z.T, X)*float(nz)/float(nx),axis=1)
+            #K = np.dot(Z.T, Z)  
+            #kappa = np.sum(np.dot(Z.T, X)*float(nz)/float(nx),axis=1)
 
             #kappa = np.sum(sk.linear_kernel(Z.T, X.T), axis=1)*float(nz)/float(nx)
             

@@ -5,7 +5,7 @@
 
 
 #Assign Job Name
-#SBATCH --job-name=kmm_014_old
+#SBATCH --job-name=kmm10
 
 #Assign Account Name
 #SBATCH --account=lsrtwitter
@@ -38,4 +38,4 @@
 source activate test_project
 
 
-srun  python /project/lsrtwitter/mcooley3/bias_vs_labelefficiency/MAIN_kmm_oldtest.py --run 0 --learning_rate 0.014 > outfiles/014_kmm_oldtest.txt
+srun  python /project/lsrtwitter/mcooley3/bias_vs_labelefficiency/MAIN_ALL.py --run 0 --learning_rate 10.0 > outfiles/10.txt

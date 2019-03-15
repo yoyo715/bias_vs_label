@@ -99,36 +99,24 @@ class wFastText:
     
     # Z is training data, X is testing data
     def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
-        
-        Xtemp = sparse.csr_matrix.dot(self.A, self.X_manual.T)
-        Ztemp = sparse.csr_matrix.dot(self.A, self.X_train.T)
-        
         nx = X.shape[0]
         nz = Z.shape[0]
         
-        #print("nx: ", nx, " nz: ", nz)
+        print("nx: ", nx, " nz: ", nz)
         
         if eps == None:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            print("***Old version")
-            K1 = np.dot(Z, Z.T) 
-            K1 = K1.todense() + self.lin_c  
-            kappa1 = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
+            print("starting K")
+            K = np.dot(Z, Z.T) 
+            K = K.todense() + self.lin_c  
             
-            K2 = sk.linear_kernel(Z, Z)  ##WARNING double check this
-            kappa2 = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
+            print("starting kappa")
+            kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
             
-            print("K1 == K2?? " + (K1==K2))
-            
-            print()
-            print("**** New version")
-            
-            K3 = sk.linear_kernel(Ztemp.T, Ztemp.T)
-            K4 = np.dot(Ztemp.T, Ztemp)  
-            
-            print("K3 == K4?? " + (K3==K4))
+            #K2 = sk.linear_kernel(Z.T, Z.T)             ##WARNING double check this
+            #kappa2 = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
             
             
         #elif kern == 'rbf':
@@ -139,16 +127,18 @@ class wFastText:
             raise ValueError('unknown kernel')
         
         
-        #K = K.astype(np.double)
-        #K = matrix(K)
+        K = K.astype(np.double)
+        K = matrix(K)
         
-        #kappa = matrix(kappa)
-        #G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
-        #h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
+        kappa = matrix(kappa)
+        G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
+        h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
         
-        ##solvers.options['show_progress'] = False
-        #sol = solvers.qp(K, -kappa, G, h)
-        #coef = np.array(sol['x'])
+        print("starting solver")
+        #solvers.options['show_progress'] = False
+        sol = solvers.qp(K, -kappa, G, h)
+        print(sol)
+        coef = np.array(sol['x'])
         return coef
 
         

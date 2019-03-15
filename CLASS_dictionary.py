@@ -42,7 +42,7 @@ class Dictionary:
         self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
         
         self.index_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
-        #self.index_dir = './indices/'   # teton
+        #self.index_dir = './indices/'   # home desk comp
         
         
         print("- creating manual instances")
