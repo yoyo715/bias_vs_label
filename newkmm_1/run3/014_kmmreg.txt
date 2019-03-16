@@ -1,0 +1,193 @@
+STARTING
+{'learning_rate': '0.014', 'run': '0'}
+starting dictionary creation
+- creating manual instances
+****  10798
+- creating train instances
+****  9999
+- creating testing instances
+****  9781
+dictionary took  4.732054849465688  time to create.
+(9999, 805818) (9781, 805818) (9999, 2) (9781, 2)
+Number of Train instances:  9999  Number of Test instances:  9781
+N each class TRAIN:  (6536, 3463)  N each class TEST:  (6450, 3331)
+
+Number of Manual testing instances:  10798  shape:  (10798, 805818)
+N each class Manual testing instances:  (5040, 5758)
+starting beta optimization..............................
+nx:  10798  nz:  9999
+starting K
+starting kappa
+starting solver
+     pcost       dcost       gap    pres   dres
+ 0: -9.3247e+12 -9.3214e+12  7e+11  6e+01  2e-14
+ 1: -9.3236e+12 -9.3189e+12  5e+11  4e+01  1e-14
+ 2: -9.3215e+12 -9.3107e+12  5e+11  3e+01  1e-14
+ 3: -9.3195e+12 -9.3031e+12  4e+11  2e+01  9e-15
+ 4: -9.3114e+12 -9.2826e+12  4e+11  2e+01  7e-15
+ 5: -9.3037e+12 -9.2620e+12  4e+11  1e+01  6e-15
+ 6: -9.2891e+12 -9.2235e+12  3e+11  1e+01  5e-15
+ 7: -9.2545e+12 -9.1663e+12  4e+11  9e+00  4e-15
+ 8: -9.2227e+12 -9.0962e+12  4e+11  7e+00  4e-15
+ 9: -9.1870e+12 -9.0225e+12  3e+11  5e+00  3e-15
+10: -9.1464e+12 -8.9421e+12  4e+11  4e+00  3e-15
+11: -9.1176e+12 -8.8843e+12  4e+11  4e+00  3e-15
+12: -9.0488e+12 -8.7750e+12  4e+11  3e+00  2e-15
+13: -9.0089e+12 -8.7036e+12  4e+11  2e+00  2e-15
+14: -8.9341e+12 -8.5857e+12  4e+11  2e+00  2e-15
+15: -8.8671e+12 -8.4740e+12  4e+11  2e+00  2e-15
+16: -8.8025e+12 -8.3665e+12  4e+11  1e+00  1e-15
+17: -8.7086e+12 -8.2174e+12  4e+11  1e+00  1e-15
+18: -8.6174e+12 -8.0677e+12  5e+11  9e-01  1e-15
+19: -8.5044e+12 -7.8996e+12  5e+11  8e-01  1e-15
+20: -8.3571e+12 -7.7145e+12  5e+11  6e-01  9e-16
+21: -8.2411e+12 -7.5885e+12  5e+11  5e-01  9e-16
+22: -8.1217e+12 -7.4819e+12  6e+11  4e-01  8e-16
+23: -7.9857e+12 -7.3833e+12  6e+11  4e-01  8e-16
+24: -7.7794e+12 -7.2751e+12  5e+11  3e-01  8e-16
+25: -7.6026e+12 -7.2083e+12  5e+11  2e-01  7e-16
+26: -7.4680e+12 -7.1718e+12  4e+11  1e-01  7e-16
+27: -7.3940e+12 -7.1576e+12  4e+11  1e-01  7e-16
+28: -7.2657e+12 -7.1289e+12  3e+11  7e-02  7e-16
+29: -7.1959e+12 -7.1156e+12  2e+11  5e-02  7e-16
+30: -7.1413e+12 -7.1028e+12  2e+11  3e-02  7e-16
+31: -7.1173e+12 -7.0930e+12  1e+11  2e-02  7e-16
+32: -7.0849e+12 -7.0828e+12  1e+11  1e-02  7e-16
+33: -7.0677e+12 -7.0700e+12  6e+10  7e-03  8e-16
+34: -7.0614e+12 -7.0651e+12  5e+10  5e-03  8e-16
+35: -7.0560e+12 -7.0615e+12  4e+10  4e-03  8e-16
+36: -7.0499e+12 -7.0554e+12  2e+10  2e-03  9e-16
+37: -7.0482e+12 -7.0528e+12  1e+10  1e-03  1e-15
+38: -7.0475e+12 -7.0521e+12  1e+10  7e-04  1e-15
+39: -7.0467e+12 -7.0491e+12  4e+09  2e-04  9e-16
+40: -7.0470e+12 -7.0474e+12  7e+08  3e-05  5e-15
+41: -7.0471e+12 -7.0472e+12  1e+08  4e-06  9e-15
+42: -7.0471e+12 -7.0471e+12  4e+06  8e-08  1e-14
+Optimal solution found.
+{'dual slack': 0.17506431438028727, 'gap': 4106855.258483188, 'z': <20000x1 matrix, tc='d'>, 'iterations': 42, 'primal slack': 1.9351785806645193e-06, 'y': <0x1 matrix, tc='d'>, 'status': 'optimal', 'relative gap': 5.827720922513998e-07, 'primal objective': -7047103512828.386, 'dual objective': -7047106795569.839, 's': <20000x1 matrix, tc='d'>, 'x': <9999x1 matrix, tc='d'>, 'dual infeasibility': 1.1070225307396681e-14, 'primal infeasibility': 8.409519137386717e-08}
+Beta took  14.245689181486766  minutes to optimize.
+About Beta: 
+DescribeResult(nobs=9999, minmax=(array([-5.09938702e-06]), array([6.0000065])), mean=array([1.060003]), variance=array([5.18833103]), skewness=array([1.69507992]), kurtosis=array([0.88580125]))
+
+
+
+wFastText EPOCH:  0
+KMM Train:    0.6931240492492804
+KMM Test:     0.6931235842614606
+KMM Manual:     0.6931527130667944
+
+
+wFastText EPOCH:  1
+KMM Train:    0.6931020813612262
+KMM Test:     0.6931011747126751
+KMM Manual:     0.6931579711358962
+
+
+wFastText EPOCH:  2
+KMM Train:    0.6930812758205495
+KMM Test:     0.6930799508253884
+KMM Manual:     0.6931629544353678
+
+
+wFastText EPOCH:  3
+KMM Train:    0.6930616316139719
+KMM Test:     0.6930599115743057
+KMM Manual:     0.6931676626495747
+
+
+wFastText EPOCH:  4
+KMM Train:    0.6930431477892928
+KMM Test:     0.6930410559961144
+KMM Manual:     0.6931720954793232
+
+
+wFastText EPOCH:  5
+KMM Train:    0.6930258234545602
+KMM Test:     0.6930233831886174
+KMM Manual:     0.6931762526420471
+
+
+wFastText EPOCH:  6
+KMM Train:    0.6930096577772963
+KMM Test:     0.6930068923099173
+KMM Manual:     0.6931801338719801
+
+
+wFastText EPOCH:  7
+KMM Train:    0.6929946499837703
+KMM Test:     0.6929915825776541
+KMM Manual:     0.6931837389203203
+
+
+wFastText EPOCH:  8
+KMM Train:    0.6929807993583219
+KMM Test:     0.6929774532682959
+KMM Manual:     0.6931870675553871
+
+
+wFastText EPOCH:  9
+KMM Train:    0.6929681052427304
+KMM Test:     0.6929645037164809
+KMM Manual:     0.6931901195627637
+
+
+wFastText EPOCH:  10
+KMM Train:    0.6929565670356557
+KMM Test:     0.6929527333144202
+KMM Manual:     0.6931928947454286
+
+
+wFastText EPOCH:  11
+KMM Train:    0.6929461841921019
+KMM Test:     0.6929421415113267
+KMM Manual:     0.693195392923881
+
+
+wFastText EPOCH:  12
+KMM Train:    0.6929369562229142
+KMM Test:     0.6929327278129136
+KMM Manual:     0.6931976139362459
+
+
+wFastText EPOCH:  13
+KMM Train:    0.6929288826943761
+KMM Test:     0.6929244917809556
+KMM Manual:     0.6931995576383816
+
+
+wFastText EPOCH:  14
+KMM Train:    0.692921963227821
+KMM Test:     0.6929174330328812
+KMM Manual:     0.6932012239039668
+
+
+wFastText EPOCH:  15
+KMM Train:    0.6929161974992957
+KMM Test:     0.6929115512414221
+KMM Manual:     0.6932026126245793
+
+
+wFastText EPOCH:  16
+KMM Train:    0.6929115852392762
+KMM Test:     0.6929068461343131
+KMM Manual:     0.6932037237097611
+
+
+wFastText EPOCH:  17
+KMM Train:    0.6929081262324285
+KMM Test:     0.6929033174940421
+KMM Manual:     0.6932045570870813
+
+
+wFastText EPOCH:  18
+KMM Train:    0.6929058203174189
+KMM Test:     0.6929009651576494
+KMM Manual:     0.6932051127021803
+
+
+wFastText EPOCH:  19
+KMM Train:    0.6929046673867709
+KMM Test:     0.6928997890165793
+KMM Manual:     0.6932053905187978
+
+KMM model took  1850.6520248214404  time to train
