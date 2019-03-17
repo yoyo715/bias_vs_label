@@ -82,20 +82,7 @@ class wFastText:
         print(stats.describe(opt_beta))
         
         return opt_beta
-    
 
-    def create_optbeta_single(self, x):
-        #print("starting beta optimization (for one instance) .......................")
-        
-        start = time.time()
-        
-        opt_beta = self.kernel_mean_matching(self.X_manual, x, self.lin_c, kern=self.kernel, B=6.0, eps=None)
-        
-        end = time.time()
-        print("Beta took ", (end - start)/60.0, " minutes to optimize.")
-        
-        return opt_beta
-    
     
     # Z is training data, X is testing data
     def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
@@ -117,11 +104,6 @@ class wFastText:
             
             #K2 = sk.linear_kernel(Z.T, Z.T)             ##WARNING double check this
             #kappa2 = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
-            
-            
-        #elif kern == 'rbf':
-            #K = compute_rbf(Z,Z)
-            #kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
             
         else:
             raise ValueError('unknown kernel')
@@ -202,7 +184,7 @@ class wFastText:
     
     
     # function to return prediction error, precision, recall, F1 score
-    def metrics(X, Y, A, B, N, test, trialnum, epoch):
+    def metrics(self, X, Y, A, B, N, test, trialnum, epoch):
         # get predicted classes
         hidden = sparse.csr_matrix.dot(A, X.T)        
         a1 = normalize(hidden, axis=0, norm='l1')
@@ -440,7 +422,6 @@ class wFastText:
             for x in X_train:
                 label = self.y_train[l]
                 beta = self.betas[l]
-                #beta = self.create_optbeta_single(x)
                 
                 B_old = self.B
                 A_old = self.A
@@ -473,36 +454,36 @@ class wFastText:
             losses_test.append(test_loss)
             losses_manual.append(manual_loss)
             
-            #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
+            train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = self.metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
             
-            #test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, 'KMMtest', trialnum, i)
+            test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = self.metrics(X_test, y_test, A, B, N_test, 'KMMtest', trialnum, i)
             
-            #manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
+            manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, self.manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
             
             
-            #classerr_train.append(train_class_error)
-            #classerr_test.append(test_class_error)
-            #classerr_manual.append(manual_class_error)
+            classerr_train.append(train_class_error)
+            classerr_test.append(test_class_error)
+            classerr_manual.append(manual_class_error)
 
-            #print()
-            #print("KMMTRAIN:")
-            #print("         Classification Err: ", train_class_error)
-            #print("         Precision:          ", train_precision)
-            #print("         Recall:             ", train_recall)
-            #print("         F1:                 ", train_F1)
+            print()
+            print("KMMTRAIN:")
+            print("         Classification Err: ", train_class_error)
+            print("         Precision:          ", train_precision)
+            print("         Recall:             ", train_recall)
+            print("         F1:                 ", train_F1)
 
-            #print("KMMTEST:")
-            #print("         Classification Err: ", test_class_error)
-            #print("         Precision:          ", test_precision)
-            #print("         Recall:             ", test_recall)
-            #print("         F1:                 ", test_F1)
+            print("KMMTEST:")
+            print("         Classification Err: ", test_class_error)
+            print("         Precision:          ", test_precision)
+            print("         Recall:             ", test_recall)
+            print("         F1:                 ", test_F1)
             
-            #print()
-            #print("KMMMANUAL:")
-            #print("         Classification Err: ", manual_class_error)
-            #print("         Precision:          ", manual_precision)
-            #print("         Recall:             ", manual_recall)
-            #print("         F1:                 ", manual_F1)
+            print()
+            print("KMMMANUAL:")
+            print("         Classification Err: ", manual_class_error)
+            print("         Precision:          ", manual_precision)
+            print("         Recall:             ", manual_recall)
+            print("         F1:                 ", manual_F1)
             
             
             #write_fastKMMtext_stats(trialnum, train_loss, train_class_error, train_precision, train_recall, train_F1,

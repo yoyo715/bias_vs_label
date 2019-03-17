@@ -9,7 +9,7 @@ import os
 from matplotlib import pyplot as plt
 import numpy as np
 
-directory = './newkmm_1/run2/'
+directory = './newkmm_1/run3/'
 numfiles = len(os.listdir(directory))   # number of plots needed 
 
 epochs = [l for l in range(20)]
