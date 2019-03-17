@@ -66,7 +66,7 @@ def main():
     NUM_RUNS = 10        # number of test runs
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
     
-    BATCHSIZE = 100      # number of instances in each batch
+    BATCHSIZE = 50      # number of instances in each batch
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     

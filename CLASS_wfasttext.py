@@ -346,7 +346,7 @@ class wFastText:
             i += 1
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
+        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         
     
     def train(self):
@@ -443,5 +443,5 @@ class wFastText:
             i += 1
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
+        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         

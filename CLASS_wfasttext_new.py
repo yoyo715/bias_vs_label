@@ -21,9 +21,11 @@ from scipy import stats
 
 
 class wFastText_new:
-    def __init__(self, dictionary, learning_rate, DIM, EPOCH):
+    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize):
         self.LR = learning_rate
         self.EPOCH = EPOCH
+        self.kmmB = kmmB
+        self.BATCHSIZE = batchsize
         
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
@@ -95,63 +97,7 @@ class wFastText_new:
         
         
         return opt_beta
-    
-    
-    def kmm_new(self, Xtrain, Xtest, sigma):
-        """
-        From https://github.com/sksom/Classification-using-KMM-Kernel-Mean-Matching-/blob/master/KMM/kmmClassification.py
-        """
-        sigma = 0.001
-        
-        n_tr = Xtrain.shape[0]
-        n_te = Xtest.shape[0]
 
-        # calculate Kernel
-        print('Computing kernel for training data ...')
-        K_ns = sk.rbf_kernel(Xtrain, Xtrain, sigma)
-        # make it symmetric
-        K = 0.9 * (K_ns + K_ns.transpose())
-        print("K.shape: ", K.shape)
-
-        # calculate kappa
-        print('Computing kernel for kappa ...')
-        kappa_r = sk.rbf_kernel(Xtrain, Xtest, sigma)
-        ones = numpy.ones(shape=(n_te, 1))
-        kappa = numpy.dot(kappa_r, ones)
-        kappa = -(float(n_tr) / float(n_te)) * kappa
-        print("kappa.shape: ", kappa.shape)
-
-        # calculate eps
-        eps = (math.sqrt(n_tr) - 1) / math.sqrt(n_tr)
-
-        # constraints
-        A0 = numpy.ones(shape=(1, n_tr))
-        A1 = -numpy.ones(shape=(1, n_tr))
-        A = numpy.vstack([A0, A1, -numpy.eye(n_tr), numpy.eye(n_tr)])
-        b = numpy.array([[n_tr * (eps + 1), n_tr * (eps - 1)]])
-        b = numpy.vstack([b.T, -numpy.zeros(shape=(n_tr, 1)), numpy.ones(shape=(n_tr, 1)) * 1000])
-
-        print('Solving quadratic program for beta ...')
-        P = matrix(K, tc='d')
-        q = matrix(kappa, tc='d')
-        G = matrix(A, tc='d')
-        h = matrix(b, tc='d')
-        beta = solvers.qp(P, q, G, h)
-        coef = np.array(beta['x'])
-        return coef
-    
-    """
-    Kernel width is the median of distances between instances of sparse data
-    """
-    def computeKernelWidth(self, data):
-        dist = []
-        for i in range(data.shape[0]):
-            for j in range(i + 1, data.shape[0]):
-                # s = self.__computeDistanceSq(data[i], data[j])
-                # dist.append(math.sqrt(s))
-                dist.append(numpy.sqrt(numpy.sum((numpy.array(data[i]) - numpy.array(data[j])) ** 2)))
-        return numpy.median(numpy.array(dist))
-    
     
     # Z is training data, X is testing data
     def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
@@ -194,19 +140,12 @@ class wFastText_new:
         else:
             raise ValueError('unknown kernel')
         
-        #print("matrices")
-        #print("K.shape: ", K.shape)
-        #print("kappa.shape: ", kappa.shape)
-        
         K = K.astype(np.double)
         K = matrix(K)
         
         kappa = matrix(kappa)
         G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
-    
-        #print("G.shape: ", np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)].shape)
-        #print("h.shape: ", np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))].shape)
         
         #solvers.options['show_progress'] = False
         print("starting solver")
@@ -275,12 +214,12 @@ class wFastText_new:
     
     
     # function to return prediction error, precision, recall, F1 score
-    def metrics(X, Y, A, B, N, test, trialnum, epoch):
+    def metrics(self, X, Y, A, B, N, test, epoch):
         # get predicted classes
         hidden = sparse.csr_matrix.dot(A, X.T)        
         a1 = normalize(hidden, axis=0, norm='l1')
         z2 = np.dot(B, a1)
-        Y_hat = stable_softmax(z2)
+        Y_hat = self.stable_softmax(z2)
 
         # compare to actual classes
         prediction_max = np.argmax(Y_hat, axis=0)
@@ -307,45 +246,9 @@ class wFastText_new:
         precision = true_pos / (true_pos + false_pos)           # true pos rate (TRP)
         recall = true_pos / (true_pos + false_neg)              # 
         F1 = 2 * ((precision * recall) / (precision + recall))
-        
-        
-        # write labels to a file for future use
-        #if test == 'train':
-            #fname = 'label_output/train_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'test':
-            #fname = 'label_output/test_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'manual':
-            #fname = 'label_output/manual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-            
-        #elif test == 'KMMtrain':
-            #fname = 'KMMlabel_output/kmmtrain_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'KMMtest':
-            #fname = 'KMMlabel_output/kmmtest_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'KMMmanual':
-            #fname = 'KMMlabel_output/kmmmanual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        
-        #write_labels_tofile(fname, Y, Y_hat)
-        
-        #dir_ = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/'
-        
-        # TETON
-        #if test == 'train':
-            #fname = dir_+'label_output/train_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'test':
-            #fname = dir_+'label_output/test_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'manual':
-            #fname = dir_+'label_output/manual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-            
-        #elif test == 'KMMtrain':
-            #fname = dir_+'KMMlabel_output/kmmtrain_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'KMMtest':
-            #fname = dir_+'KMMlabel_output/kmmtest_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        #elif test == 'KMMmanual':
-            #fname = dir_+'KMMlabel_output/kmmmanual_trial'+str(trialnum)+'_epoch'+str(epoch)+'.pkl'
-        
-        #write_labels_tofile(fname, Y, Y_hat)
 
-        return class_error, precision, recall, F1, roc_auc, fpr, tpr
+
+        return class_error #, precision, recall, F1, roc_auc, fpr, tpr
         
         
     def train_batch(self):
@@ -360,88 +263,93 @@ class wFastText_new:
         print()
         print()
         
-        X_train = normalize(X_train, axis=1, norm='l1')
-        X_test = normalize(X_test, axis=1, norm='l1')
-        X_manual = normalize(X_manual, axis=1, norm='l1')
+        X_train = normalize(self.X_train, axis=1, norm='l1')
+        X_test = normalize(self.X_test, axis=1, norm='l1')
+        X_manual = normalize(self.X_manual, axis=1, norm='l1')
         
         traintime_start = time.time()
-        for i in range(EPOCH):
+        for i in range(self.EPOCH):
             print()
             print("wFastText EPOCH: ", i)
             
+            # NOTE: optimal KMM reweighting coefficient
+            self.betas = self.create_optbeta()  
+            
+            print("starting training with new betas")
+            
             # linearly decaying lr alpha
-            alpha = LR * ( 1 - i / EPOCH)
+            alpha = self.LR * ( 1 - i / self.EPOCH)
             
             l = 0
             train_loss = 0
             
             start = 0
             batchnum = 0
-            while start <= N_train:
-                batch = X_train.tocsr()[start:start+BATCHSIZE, :]
-                y_train_batch = y_train[start:start+BATCHSIZE, :] 
-                beta_batch = beta[start:start+BATCHSIZE, :] 
+            while start <= self.N_train:
+                batch = X_train.tocsr()[start:start+self.BATCHSIZE, :]
+                y_train_batch = self.y_train[start:start+self.BATCHSIZE, :] 
+                beta_batch = self.betas[start:start+self.BATCHSIZE, :] 
 
-                B_old = B
-                A_old = A
+                B_old = self.B
+                A_old = self.A
                 
                 # Forward Propogation
-                hidden = sparse.csr_matrix.dot(A, batch.T)
+                hidden = sparse.csr_matrix.dot(self.A, batch.T)
                 a1 = normalize(hidden, axis=0, norm='l1')
-                z2 = np.dot(B, a1)
-                Y_hat = stable_softmax(z2)
+                z2 = np.dot(self.B, a1)
+                Y_hat = self.stable_softmax(z2)
         
                 # Back prop with alt optimization
-                B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
-                A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
+                self.B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
+                self.A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
                 
                 batchnum += 1
 
                 # NOTE figure this out, Might be missing last sample
-                if start+BATCHSIZE >= N_train and start < N_train-1:   
+                if start+self.BATCHSIZE >= self.N_train and start < self.N_train-1:   
                     batch = X_train.tocsr()[start:-1, :]   # rest of train set
-                    y_train_batch = y_train[start:-1, :] 
-                    beta_batch = beta[start:-1]
+                    y_train_batch = self.y_train[start:-1, :] 
+                    beta_batch = self.betas[start:-1]
                     
-                    B_old = B
-                    A_old = A
+                    B_old = self.B
+                    A_old = self.A
                     
                     # Forward Propogation
-                    hidden = sparse.csr_matrix.dot(A, batch.T)
+                    hidden = sparse.csr_matrix.dot(self.A, batch.T)
                     a1 = normalize(hidden, axis=0, norm='l1')
-                    z2 = np.dot(B, a1)
+                    z2 = np.dot(self.B, a1)
                     Y_hat = stable_softmax(z2)
             
                     # Back prop with alt optimization
-                    B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
-                    A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
+                    self.B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
+                    self.A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
                     break
                 else:
-                    start = start + BATCHSIZE
+                    start = start + self.BATCHSIZE
 
-                
+
             # TRAINING LOSS
-            train_loss = get_total_loss(A, B, X_train, y_train, N_train)
-            print("KMM Train:   ", train_loss)
+            train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
+            print("KMM Train Loss:   ", train_loss)
 
             ## TESTING LOSS
-            test_loss = get_total_loss(A, B, X_test, y_test, N_test)
-            print("KMM Test:    ", test_loss)
+            test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
+            print("KMM Test Loss:    ", test_loss)
             
             ## MANUAL SET TESTING LOSS
-            manual_loss = get_total_loss(A, B, X_manual, y_manual, N_manual)
-            print("KMM Manual Set:    ", manual_loss)
+            manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
+            print("KMM Manual Set Loss:    ", manual_loss)
             print()
 
             losses_train.append(train_loss)
             losses_test.append(test_loss)
             losses_manual.append(manual_loss)
             
-            train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
+            train_class_error = self.metrics(X_train, self.y_train, self.A, self.B, self.N_train, 'KMMtrain', i)
             
-            test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, 'KMMtest', trialnum, i)
+            test_class_error = self.metrics(X_test, self.y_test, self.A, self.B, self.N_test, 'KMMtest', i)
             
-            manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
+            manual_class_error = self.metrics(X_manual, self.y_manual, self.A, self.B, self.N_manual, 'KMMmanual', i)
             
             
             classerr_train.append(train_class_error)
@@ -449,39 +357,28 @@ class wFastText_new:
             classerr_manual.append(manual_class_error)
 
             print()
-            print("KMMTRAIN:")
-            print("         Classification Err: ", train_class_error)
-            print("         Precision:          ", train_precision)
-            print("         Recall:             ", train_recall)
-            print("         F1:                 ", train_F1)
+            print("KMMTRAIN Classification Err: ", train_class_error)
+            #print("         Precision:          ", train_precision)
+            #print("         Recall:             ", train_recall)
+            #print("         F1:                 ", train_F1)
 
-            print("KMMTEST:")
-            print("         Classification Err: ", test_class_error)
-            print("         Precision:          ", test_precision)
-            print("         Recall:             ", test_recall)
-            print("         F1:                 ", test_F1)
+            print("KMMTEST Classification Err:", test_class_error)
+            #print("         Precision:          ", test_precision)
+            #print("         Recall:             ", test_recall)
+            #print("         F1:                 ", test_F1)
             
             print()
-            print("KMMMANUAL:")
-            print("         Classification Err: ", manual_class_error)
-            print("         Precision:          ", manual_precision)
-            print("         Recall:             ", manual_recall)
-            print("         F1:                 ", manual_F1)
+            print("KMMMANUAL Classification Err: ", manual_class_error)
+            #print("         Precision:          ", manual_precision)
+            #print("         Recall:             ", manual_recall)
+            #print("         F1:                 ", manual_F1)
             
-            
-            #write_fastKMMtext_stats(trialnum, train_loss, train_class_error, train_precision, train_recall, train_F1,
-                                    #train_AUC, test_loss, test_class_error, test_precision, test_recall,
-                                    #test_F1, test_AUC, manual_loss, manual_class_error, manual_precision,
-                                    #manual_recall, manual_F1, manual_AUC)
-            
-            #fnameB = "/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/kmmmodels/fastKMMtext_trial_B_"+str(trialnum)+"epoch"+str(i)  #+".pkl"
-            #fnameA = "/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/kmmmodels/fastKMMtext_trial_A_"+str(trialnum)+"epoch"+str(i)
-            #save_model_tofile(A, B, fnameB, fnameA)
+            print("_____________________________________________________")
             
             i += 1
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
+        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         
     
 
@@ -554,50 +451,38 @@ class wFastText_new:
             losses_test.append(test_loss)
             losses_manual.append(manual_loss)
             
-            #train_class_error, train_precision, train_recall, train_F1, train_AUC, train_FPR, train_TPR = metrics(X_train, y_train, A, B, N_train, 'KMMtrain', trialnum, i)
+            train_class_error = self.metrics(X_train, self.y_train, self.A, self.B, self.N_train, 'KMMtrain', i)
             
-            #test_class_error, test_precision, test_recall, test_F1, test_AUC, test_FPR, test_TPR = metrics(X_test, y_test, A, B, N_test, 'KMMtest', trialnum, i)
+            test_class_error = self.metrics(X_test, self.y_test, self.A, self.B, self.N_test, 'KMMtest', i)
             
-            #manual_class_error, manual_precision, manual_recall, manual_F1, manual_AUC, manual_FPR, manual_TPR = metrics(X_manual, y_manual, A, B, N_manual, 'KMMmanual', trialnum, i)
+            manual_class_error = self.metrics(X_manual, self.y_manual, self.A, self.B, self.N_manual, 'KMMmanual', i)
             
             
-            #classerr_train.append(train_class_error)
-            #classerr_test.append(test_class_error)
-            #classerr_manual.append(manual_class_error)
+            classerr_train.append(train_class_error)
+            classerr_test.append(test_class_error)
+            classerr_manual.append(manual_class_error)
 
-            #print()
-            #print("KMMTRAIN:")
-            #print("         Classification Err: ", train_class_error)
+            print()
+            print("KMMTRAIN Classification Err: ", train_class_error)
             #print("         Precision:          ", train_precision)
             #print("         Recall:             ", train_recall)
             #print("         F1:                 ", train_F1)
 
-            #print("KMMTEST:")
-            #print("         Classification Err: ", test_class_error)
+            print("KMMTEST Classification Err:", test_class_error)
             #print("         Precision:          ", test_precision)
             #print("         Recall:             ", test_recall)
             #print("         F1:                 ", test_F1)
             
-            #print()
-            #print("KMMMANUAL:")
-            #print("         Classification Err: ", manual_class_error)
+            print("KMMMANUAL Classification Err: ", manual_class_error)
             #print("         Precision:          ", manual_precision)
             #print("         Recall:             ", manual_recall)
             #print("         F1:                 ", manual_F1)
             
+            print("_____________________________________________________")
             
-            #write_fastKMMtext_stats(trialnum, train_loss, train_class_error, train_precision, train_recall, train_F1,
-                                    #train_AUC, test_loss, test_class_error, test_precision, test_recall,
-                                    #test_F1, test_AUC, manual_loss, manual_class_error, manual_precision,
-                                    #manual_recall, manual_F1, manual_AUC)
-            
-            #fnameB = "/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/kmmmodels/fastKMMtext_trial_B_"+str(trialnum)+"epoch"+str(i)  #+".pkl"
-            #fnameA = "/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/kmmmodels/fastKMMtext_trial_A_"+str(trialnum)+"epoch"+str(i)
-            #save_model_tofile(A, B, fnameB, fnameA)
             
             i += 1
-            print("---------------------------------------------------")
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " time to train")
+        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         
