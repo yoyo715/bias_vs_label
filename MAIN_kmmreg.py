@@ -58,6 +58,7 @@ def main():
     EPOCH=20
     LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
     KMMLR = float(args['learning_rate'])
+    B = 10.0
     #KMMLR = 0.015   #0.014         #0.015 pretty good
     #KMMLR = 0.0001
     #KMMLR = 0.001
@@ -69,8 +70,8 @@ def main():
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     
-    wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH)
-    wfasttext.train()
+    wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE)
+    wfasttext.train_batch()
     
     
     
