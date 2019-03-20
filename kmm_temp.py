@@ -55,19 +55,18 @@ def stochastic_kmm(X, Z, sum_betas, kern='lin', B=1.0, eps=None):
 def kernel_mean_matching(X, Z, kern='lin', B=1.0, eps=None):
     nx = X.shape[0]
     nz = Z.shape[0]
+    print("X.shape: ", X.shape, "Z.shape: ", Z.shape)
     if eps == None:
         eps = B/math.sqrt(nz)
     if kern == 'lin':
-        #Ztemp = Z.reshape(1, -1)
+        K2 = np.dot(Z, Z.T)
         K = sk.linear_kernel(Z, Z) 
-        #K = K  * 0.5
-        #print(Ztemp.shape, X.shape)
-        #K = sk.linear_kernel(Ztemp, Ztemp)
+        
+        print((K2==K).all())
         kappa = np.sum(sk.linear_kernel(Z,X),axis=1)*float(nz)/float(nx)
     elif kern == 'rbf':
         sigma = 1.0
         K = sk.rbf_kernel(Z, Z, sigma)
-        K = K * 0.5
         kappa = np.sum(sk.rbf_kernel(Z,X),axis=1)*float(nz)/float(nx)
     else:
         raise ValueError('unknown kernel')
@@ -159,7 +158,7 @@ def getBeta(trainX, testX):
 
 
 def main():
-    numtrain = 300
+    numtrain = 100
     x = 11*np.random.random(numtrain)- 6.0
     y = x**2 + 10*np.random.random(numtrain) - 5
     Z = np.c_[x, y]  # TRAINSET
@@ -172,7 +171,7 @@ def main():
     print("X (testset) shape: ", X.shape)
 
     start = time.time()
-    coef = kernel_mean_matching(X,Z, kern='rbf', B=10)
+    coef = kernel_mean_matching(X.T,Z.T, kern='lin', B=10)
     end = time.time()
     print("1nd version took: ", (end - start)/60.0, " time")
     

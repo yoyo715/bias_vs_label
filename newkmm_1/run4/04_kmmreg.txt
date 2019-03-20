@@ -1,0 +1,316 @@
+STARTING
+{'learning_rate': '0.04', 'run': '0'}
+starting dictionary creation
+- creating manual instances
+****  10798
+- creating train instances
+****  9999
+- creating testing instances
+****  9781
+dictionary took  4.672135742505391  time to create.
+(9999, 805818) (9781, 805818) (9999, 2) (9781, 2)
+Number of Train instances:  9999  Number of Test instances:  9781
+N each class TRAIN:  (6536, 3463)  N each class TEST:  (6450, 3331)
+
+Number of Manual testing instances:  10798  shape:  (10798, 805818)
+N each class Manual testing instances:  (5040, 5758)
+starting beta optimization..............................
+nx:  10798  nz:  9999
+starting K
+starting kappa
+starting solver
+     pcost       dcost       gap    pres   dres
+ 0: -9.3247e+12 -9.3216e+12  7e+11  6e+01  2e-14
+ 1: -9.3236e+12 -9.3192e+12  5e+11  4e+01  1e-14
+ 2: -9.3216e+12 -9.3112e+12  5e+11  3e+01  1e-14
+ 3: -9.3195e+12 -9.3036e+12  4e+11  2e+01  9e-15
+ 4: -9.3113e+12 -9.2831e+12  4e+11  2e+01  8e-15
+ 5: -9.3037e+12 -9.2629e+12  4e+11  1e+01  7e-15
+ 6: -9.2898e+12 -9.2259e+12  3e+11  1e+01  5e-15
+ 7: -9.2611e+12 -9.1693e+12  4e+11  9e+00  4e-15
+ 8: -9.2280e+12 -9.1005e+12  3e+11  7e+00  4e-15
+ 9: -9.1911e+12 -9.0266e+12  3e+11  5e+00  3e-15
+10: -9.1485e+12 -8.9447e+12  3e+11  4e+00  3e-15
+11: -9.1225e+12 -8.8926e+12  4e+11  4e+00  3e-15
+12: -9.0516e+12 -8.7824e+12  3e+11  3e+00  2e-15
+13: -9.0201e+12 -8.7250e+12  4e+11  2e+00  2e-15
+14: -8.9416e+12 -8.6061e+12  4e+11  2e+00  2e-15
+15: -8.8818e+12 -8.5058e+12  4e+11  2e+00  1e-15
+16: -8.8198e+12 -8.4059e+12  4e+11  1e+00  1e-15
+17: -8.7373e+12 -8.2765e+12  4e+11  1e+00  1e-15
+18: -8.6772e+12 -8.1782e+12  4e+11  1e+00  1e-15
+19: -8.5882e+12 -8.0448e+12  4e+11  9e-01  1e-15
+20: -8.4874e+12 -7.9038e+12  5e+11  7e-01  9e-16
+21: -8.3596e+12 -7.7546e+12  5e+11  6e-01  9e-16
+22: -8.2344e+12 -7.6307e+12  5e+11  5e-01  8e-16
+23: -8.1090e+12 -7.5313e+12  5e+11  4e-01  8e-16
+24: -7.9477e+12 -7.4296e+12  5e+11  3e-01  8e-16
+25: -7.8088e+12 -7.3632e+12  5e+11  2e-01  8e-16
+26: -7.6396e+12 -7.2982e+12  4e+11  2e-01  7e-16
+27: -7.5363e+12 -7.2677e+12  4e+11  1e-01  7e-16
+28: -7.4379e+12 -7.2425e+12  3e+11  1e-01  7e-16
+29: -7.3597e+12 -7.2185e+12  3e+11  7e-02  7e-16
+30: -7.3063e+12 -7.2018e+12  2e+11  5e-02  7e-16
+31: -7.2543e+12 -7.1838e+12  2e+11  4e-02  7e-16
+32: -7.2255e+12 -7.1723e+12  2e+11  3e-02  7e-16
+33: -7.1928e+12 -7.1644e+12  2e+11  2e-02  7e-16
+34: -7.1667e+12 -7.1539e+12  1e+11  2e-02  7e-16
+35: -7.1529e+12 -7.1487e+12  1e+11  1e-02  7e-16
+36: -7.1365e+12 -7.1433e+12  9e+10  8e-03  7e-16
+37: -7.1260e+12 -7.1345e+12  7e+10  6e-03  7e-16
+38: -7.1183e+12 -7.1264e+12  4e+10  3e-03  8e-16
+39: -7.1124e+12 -7.1190e+12  2e+10  2e-03  1e-15
+40: -7.1106e+12 -7.1155e+12  1e+10  9e-04  9e-16
+41: -7.1089e+12 -7.1129e+12  8e+09  4e-04  8e-16
+42: -7.1092e+12 -7.1100e+12  2e+09  7e-05  1e-15
+43: -7.1093e+12 -7.1094e+12  3e+08  9e-06  2e-15
+44: -7.1093e+12 -7.1093e+12  7e+06  2e-07  2e-15
+45: -7.1093e+12 -7.1093e+12  1e+05  4e-09  1e-14
+Optimal solution found.
+{'primal slack': 9.637918036052385e-08, 'relative gap': 1.9433432355123445e-08, 'iterations': 45, 'z': <20000x1 matrix, tc='d'>, 'status': 'optimal', 'dual infeasibility': 1.3590680828583535e-14, 'dual objective': -7109311545635.179, 'primal objective': -7109311458125.165, 's': <20000x1 matrix, tc='d'>, 'primal infeasibility': 4.3810778259502015e-09, 'dual slack': 0.0034034812104598087, 'gap': 138158.32331297942, 'y': <0x1 matrix, tc='d'>, 'x': <9999x1 matrix, tc='d'>}
+Beta took  14.681695119539897  minutes to optimize.
+About Beta: 
+DescribeResult(nobs=9999, minmax=(array([-3.07857058e-07]), array([10.00000034])), mean=array([1.100005]), variance=array([9.63187068]), skewness=array([2.49422994]), kurtosis=array([4.25580407]))
+
+
+
+wFastText EPOCH:  0
+KMM Train Loss:    0.6488569359655224
+KMM Test Loss:     0.6455998392779932
+KMM Manual Set Loss:     0.8094731669033322
+
+
+KMMTRAIN Classification Err:  0.3459345934593459
+KMMTEST Classification Err: 0.3406604641652183
+
+KMMMANUAL Classification Err:  0.5292646786441934
+_____________________________________________________
+
+wFastText EPOCH:  1
+KMM Train Loss:    0.6356330840808443
+KMM Test Loss:     0.6440535673056038
+KMM Manual Set Loss:     0.8157545446658805
+
+
+KMMTRAIN Classification Err:  0.3384338433843384
+KMMTEST Classification Err: 0.34321644003680607
+
+KMMMANUAL Classification Err:  0.5250972402296722
+_____________________________________________________
+
+wFastText EPOCH:  2
+KMM Train Loss:    0.6319576263491803
+KMM Test Loss:     0.6558197450228065
+KMM Manual Set Loss:     0.8368150931990644
+
+
+KMMTRAIN Classification Err:  0.33023302330233023
+KMMTEST Classification Err: 0.3471015233616195
+
+KMMMANUAL Classification Err:  0.5166697536580849
+_____________________________________________________
+
+wFastText EPOCH:  3
+KMM Train Loss:    0.6358040618506741
+KMM Test Loss:     0.6781432218682243
+KMM Manual Set Loss:     0.8472588986894755
+
+
+KMMTRAIN Classification Err:  0.33163316331633164
+KMMTEST Classification Err: 0.357223187813107
+
+KMMMANUAL Classification Err:  0.5029635117614373
+_____________________________________________________
+
+wFastText EPOCH:  4
+KMM Train Loss:    0.6584790318849967
+KMM Test Loss:     0.7208682004590292
+KMM Manual Set Loss:     0.8462863838359885
+
+
+KMMTRAIN Classification Err:  0.3436343634363436
+KMMTEST Classification Err: 0.38165831714548615
+
+KMMMANUAL Classification Err:  0.4887942211520652
+_____________________________________________________
+
+wFastText EPOCH:  5
+KMM Train Loss:    0.7032609788201377
+KMM Test Loss:     0.7860563506339612
+KMM Manual Set Loss:     0.8411614049626153
+
+
+KMMTRAIN Classification Err:  0.3584358435843584
+KMMTEST Classification Err: 0.4124322666394029
+
+KMMMANUAL Classification Err:  0.47258751620670497
+_____________________________________________________
+
+wFastText EPOCH:  6
+KMM Train Loss:    0.7241708822076711
+KMM Test Loss:     0.8178164389070453
+KMM Manual Set Loss:     0.8525275677810722
+
+
+KMMTRAIN Classification Err:  0.35913591359135916
+KMMTEST Classification Err: 0.4164195889990798
+
+KMMMANUAL Classification Err:  0.4697166141878126
+_____________________________________________________
+
+wFastText EPOCH:  7
+KMM Train Loss:    0.7441976540650475
+KMM Test Loss:     0.8466635012352051
+KMM Manual Set Loss:     0.87050618129212
+
+
+KMMTRAIN Classification Err:  0.3623362336233623
+KMMTEST Classification Err: 0.4209181065330743
+
+KMMMANUAL Classification Err:  0.4668457121689202
+_____________________________________________________
+
+wFastText EPOCH:  8
+KMM Train Loss:    0.7614703626884047
+KMM Test Loss:     0.8727033141871354
+KMM Manual Set Loss:     0.9070292887112138
+
+
+KMMTRAIN Classification Err:  0.3566356635663566
+KMMTEST Classification Err: 0.41928228197525813
+
+KMMMANUAL Classification Err:  0.4688831265049083
+_____________________________________________________
+
+wFastText EPOCH:  9
+KMM Train Loss:    0.7726004790069733
+KMM Test Loss:     0.8935823399460486
+KMM Manual Set Loss:     0.9696985825622696
+
+
+KMMTRAIN Classification Err:  0.34963496349634965
+KMMTEST Classification Err: 0.4075247929659544
+
+KMMMANUAL Classification Err:  0.47360622337469904
+_____________________________________________________
+
+wFastText EPOCH:  10
+KMM Train Loss:    0.7767927311952575
+KMM Test Loss:     0.9064660110557776
+KMM Manual Set Loss:     1.0675105821393922
+
+
+KMMTRAIN Classification Err:  0.33283328332833284
+KMMTEST Classification Err: 0.39075759124833864
+
+KMMMANUAL Classification Err:  0.48203370994628636
+_____________________________________________________
+
+wFastText EPOCH:  11
+KMM Train Loss:    0.8064909081669587
+KMM Test Loss:     0.9493849914951606
+KMM Manual Set Loss:     1.1316539925768172
+
+
+KMMTRAIN Classification Err:  0.3284328432843284
+KMMTEST Classification Err: 0.38912176669052245
+
+KMMMANUAL Classification Err:  0.4824967586590109
+_____________________________________________________
+
+wFastText EPOCH:  12
+KMM Train Loss:    0.8382361285969729
+KMM Test Loss:     0.9970739118673565
+KMM Manual Set Loss:     1.148696550246322
+
+
+KMMTRAIN Classification Err:  0.3288328832883288
+KMMTEST Classification Err: 0.39556282588692365
+
+KMMMANUAL Classification Err:  0.476940174106316
+_____________________________________________________
+
+wFastText EPOCH:  13
+KMM Train Loss:    0.8684751766376954
+KMM Test Loss:     1.0389924451779924
+KMM Manual Set Loss:     1.1798783031089544
+
+
+KMMTRAIN Classification Err:  0.32913291329132915
+KMMTEST Classification Err: 0.3970964114098763
+
+KMMMANUAL Classification Err:  0.4760140766808668
+_____________________________________________________
+
+wFastText EPOCH:  14
+KMM Train Loss:    0.888190944314116
+KMM Test Loss:     1.066484015130534
+KMM Manual Set Loss:     1.2322752164636783
+
+
+KMMTRAIN Classification Err:  0.325032503250325
+KMMTEST Classification Err: 0.3887128105510684
+
+KMMMANUAL Classification Err:  0.4779588812743101
+_____________________________________________________
+
+wFastText EPOCH:  15
+KMM Train Loss:    0.9052883557604212
+KMM Test Loss:     1.0890046613289273
+KMM Manual Set Loss:     1.286497462264187
+
+
+KMMTRAIN Classification Err:  0.3207320732073207
+KMMTEST Classification Err: 0.38094264390144156
+
+KMMMANUAL Classification Err:  0.48129283200592704
+_____________________________________________________
+
+wFastText EPOCH:  16
+KMM Train Loss:    0.9221077125539519
+KMM Test Loss:     1.1109219882939307
+KMM Manual Set Loss:     1.3255687398082479
+
+
+KMMTRAIN Classification Err:  0.31823182318231824
+KMMTEST Classification Err: 0.37879562416930784
+
+KMMMANUAL Classification Err:  0.4829598073717355
+_____________________________________________________
+
+wFastText EPOCH:  17
+KMM Train Loss:    0.9364652000205841
+KMM Test Loss:     1.1292047980178732
+KMM Manual Set Loss:     1.355875007800149
+
+
+KMMTRAIN Classification Err:  0.31723172317231724
+KMMTEST Classification Err: 0.37767099478580923
+
+KMMMANUAL Classification Err:  0.4842563437673643
+_____________________________________________________
+
+wFastText EPOCH:  18
+KMM Train Loss:    0.9460898129058782
+KMM Test Loss:     1.1433020095807367
+KMM Manual Set Loss:     1.3611920167659126
+
+
+KMMTRAIN Classification Err:  0.3175317531753175
+KMMTEST Classification Err: 0.37879562416930784
+
+KMMMANUAL Classification Err:  0.48212631968883124
+_____________________________________________________
+
+wFastText EPOCH:  19
+KMM Train Loss:    0.9522077787201791
+KMM Test Loss:     1.1543065572064728
+KMM Manual Set Loss:     1.3425016797013682
+
+
+KMMTRAIN Classification Err:  0.3191319131913191
+KMMTEST Classification Err: 0.38176055618034965
+
+KMMMANUAL Classification Err:  0.4793480274124838
+_____________________________________________________
+KMM model took  43.10975446303686  minutes to train

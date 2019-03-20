@@ -9,7 +9,7 @@ import os
 from matplotlib import pyplot as plt
 import numpy as np
 
-directory = './newkmm_1/run3/'
+directory = './newkmm_1/run4/'
 numfiles = len(os.listdir(directory))   # number of plots needed 
 
 epochs = [l for l in range(20)]
@@ -26,19 +26,23 @@ for filename in os.listdir(directory):
         
         content = f.readlines()
         for line in content:
-            if "KMM Train" in line:
+            if "KMMTRAIN" in line:
                 val = float(line.split()[-1])
                 train.append(val)
-            if "KMM Test" in line:
+            if "KMMTEST" in line:
                 val = float(line.split()[-1])
                 test.append(val)
-            if "KMM Manual" in line:
+            if "KMMMANUAL" in line:
                 val = float(line.split()[-1])
                 man.append(val)
                 
         train = np.array(train)
         test = np.array(test)
         man = np.array(man)
+        
+        print(filename)
+        print(man)
+        print()
     
         axs[i].plot(epochs, train, 'm', label="train")
         axs[i].plot(epochs, test, 'c', label="test")

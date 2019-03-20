@@ -19,14 +19,17 @@ import sklearn.metrics.pairwise as sk
 
 
 class wFastText:
-    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize):
+    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize, kernel):
         self.LR = learning_rate
         self.EPOCH = EPOCH
         self.kmmB = kmmB
         self.BATCHSIZE = batchsize
+        self.kernel = kernel
         
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
+        
+        print("TRIAL: ", dictionary.run_number)
         
         #initialize testing
         self.X_train, self.X_test, self.y_train, self.y_test = dictionary.get_train_and_test()
@@ -64,9 +67,6 @@ class wFastText:
         B_m = nclasses          # rows
         self.B = np.zeros((B_m, B_n))
         
-
-        self.lin_c = 0.9                    # hyperparameter for linear kernel
-        self.kernel = 'lin'   
         self.betas = self.create_optbeta()       # NOTE: optimal KMM reweighting coefficient
         
         
@@ -76,8 +76,7 @@ class wFastText:
         
         start = time.time()
         
-        #opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, self.lin_c, kern=self.kernel, B=6.0, eps=None)
-        opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, self.lin_c, kern=self.kernel, B=self.kmmB, eps=None)
+        opt_beta = self.kernel_mean_matching(self.X_manual, self.X_train, kern=self.kernel, B=self.kmmB, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
@@ -88,7 +87,7 @@ class wFastText:
 
     
     # Z is training data, X is testing data
-    def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
+    def kernel_mean_matching(self, X, Z, kern='lin', B=1.0, eps=None):
         nx = X.shape[0]
         nz = Z.shape[0]
         
@@ -98,15 +97,24 @@ class wFastText:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            print("starting K")
             K = np.dot(Z, Z.T) 
-            K = K.todense() + self.lin_c  
-            
-            print("starting kappa")
+            K = K.todense() #+ self.lin_c  
             kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
             
             #K2 = sk.linear_kernel(Z.T, Z.T)             ##WARNING double check this
             #kappa2 = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
+        elif kern == 'rbf':
+            K=sk.rbf_kernel(Z, Z)
+            kappa = np.sum(sk.rbf_kernel(Z, X), axis=1)*float(nz)/float(nx)
+        elif kern == 'poly':
+            K=sk.polynomial_kernel(Z, Z)
+            kappa = np.sum(sk.polynomial_kernel(Z, X), axis=1)*float(nz)/float(nx)
+        elif kern = 'laplacian':
+            K=sk.laplacian_kernel(Z, Z)
+            kappa = np.sum(sk.laplacian_kernel(Z, X), axis=1)*float(nz)/float(nx)
+        elif kern = 'sigmoid':
+            K=sk.sigmoid_kernel(Z, Z)
+            kappa = np.sum(sk.sigmoid_kernel(Z, X), axis=1)*float(nz)/float(nx)
             
         else:
             raise ValueError('unknown kernel')
@@ -120,7 +128,7 @@ class wFastText:
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
         
         print("starting solver")
-        #solvers.options['show_progress'] = False
+        solvers.options['show_progress'] = False
         sol = solvers.qp(K, -kappa, G, h)
         print(sol)
         coef = np.array(sol['x'])
@@ -367,6 +375,7 @@ class wFastText:
         
         traintime_start = time.time()
         for i in range(self.EPOCH):
+            epoch_st = time.time()
             print()
             print("wFastText EPOCH: ", i)
             
@@ -392,6 +401,8 @@ class wFastText:
                 self.B = self.KMMgradient_B(B_old, A_old, label, alpha, a1, Y_hat, beta)  
                 self.A = self.KMMgradient_A(B_old, A_old, x, label, alpha, Y_hat, beta)
 
+            epoch_et = time.time()
+            print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")
 
             # TRAINING LOSS
             train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
@@ -443,5 +454,5 @@ class wFastText:
             i += 1
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
+        print("~~~~KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         

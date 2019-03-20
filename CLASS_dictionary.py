@@ -82,16 +82,16 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
         
         
-        for filename in os.listdir(self.index_dir):
-            if '_'+str(self.run_number)+'.txt' in filename:
-                temp = filename
-                subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
+        #for filename in os.listdir(self.index_dir):
+            #if '_'+str(self.run_number)+'.txt' in filename:
+                #temp = filename
+                #subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
         
-        subset = subset.astype(int).tolist()
-        index = 0       
-        sub = [self.file_train[i] for i in subset]
+        #subset = subset.astype(int).tolist()
+        #index = 0       
+        #sub = [self.file_train[i] for i in subset]
  
-        for x in sub[0:-1]:
+        for x in self.manual_set[0:-1]:
             #if index in subset:
             if index == 0:
                 i = 0

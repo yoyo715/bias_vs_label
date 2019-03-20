@@ -1,7 +1,7 @@
-# CLASS_wfasttext.py
+# CLASS_wfasttext_new.py
 
 """
-    wFastText model class
+    wFastText_new model class
 
 """
 
@@ -21,14 +21,17 @@ from scipy import stats
 
 
 class wFastText_new:
-    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize):
+    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize, kernel):
         self.LR = learning_rate
         self.EPOCH = EPOCH
         self.kmmB = kmmB
         self.BATCHSIZE = batchsize
+        self.kernel = kernel
         
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
+        
+        print("TRIAL: ", dictionary.run_number)
         
         #initialize testing
         self.X_train, self.X_test, self.y_train, self.y_test = dictionary.get_train_and_test()
@@ -71,11 +74,6 @@ class wFastText_new:
         print("Xtrain.shape: ", self.X_train.shape)
         print("manual.shape: ", self.X_manual.shape)
         
-
-        self.lin_c = 0.9                    # hyperparameter for linear kernel
-        #self.kernel = 'lin'   
-        self.kernel = 'rbf'
-        
         print("Learning rate: ", self.LR, " Kernel: ", self.kernel)
         print()
         
@@ -87,7 +85,7 @@ class wFastText_new:
         X = sparse.csr_matrix.dot(self.A, self.X_manual.T)
         Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
-        opt_beta = self.kernel_mean_matching(X.T, Z.T, self.lin_c, kern=self.kernel, B=self.kmmB, eps=None)
+        opt_beta = self.kernel_mean_matching(X.T, Z.T, kern=self.kernel, B=self.kmmB, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
@@ -100,10 +98,10 @@ class wFastText_new:
 
     
     # Z is training data, X is testing data
-    def kernel_mean_matching(self, X, Z, lin_c, kern='lin', B=1.0, eps=None):
+    def kernel_mean_matching(self, X, Z, kern='lin', B=1.0, eps=None):
         
         nx = X.shape[0]
-        nz = Z.shape[0]
+        nz =    Z.shape[0]
         print("X.shape: ", X.shape, "Z.shape: ", Z.shape)
         
         #nx = X.shape[1]
@@ -116,25 +114,24 @@ class wFastText_new:
             eps = B/math.sqrt(nz)
             
         if kern == 'lin':
-            print("starting K")
-            K = np.dot(Z, Z.T) + self.lin_c 
-            #print(K.shape)
-            #K = K.todense() + self.lin_c 
-            
-            print("starting kappa")
+            K = np.dot(Z, Z.T) #+ self.lin_c  
             kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
             
             #### NOTE these are same!!
-            #K= sk.linear_kernel(Z.T, Z.T)
-            #K = np.dot(Z.T, Z)  
-            #kappa = np.sum(np.dot(Z.T, X)*float(nz)/float(nx),axis=1)
-
-            #kappa = np.sum(sk.linear_kernel(Z.T, X.T), axis=1)*float(nz)/float(nx)
-            
+            #K=sk.linear_kernel(Z, Z)  #K = np.dot(Z.T, Z)  
+            #kappa = np.sum(sk.linear_kernel(Z, X), axis=1)*float(nz)/float(nx)
         elif kern == 'rbf':
             K= sk.rbf_kernel(Z, Z)
             kappa = np.sum(sk.rbf_kernel(Z, X), axis=1)*float(nz)/float(nx)
-            
+        elif kern == 'poly':
+            K=sk.polynomial_kernel(Z, Z)
+            kappa = np.sum(sk.polynomial_kernel(Z, X), axis=1)*float(nz)/float(nx)
+        elif kern = 'laplacian':
+            K=sk.laplacian_kernel(Z, Z)
+            kappa = np.sum(sk.laplacian_kernel(Z, X), axis=1)*float(nz)/float(nx)
+        elif kern = 'sigmoid':
+            K=sk.sigmoid_kernel(Z, Z)
+            kappa = np.sum(sk.sigmoid_kernel(Z, X), axis=1)*float(nz)/float(nx)
         else:
             raise ValueError('unknown kernel')
         
@@ -145,7 +142,7 @@ class wFastText_new:
         G = matrix(np.r_[np.ones((1,nz)), -np.ones((1,nz)), np.eye(nz), -np.eye(nz)])
         h = matrix(np.r_[nz*(1+eps), nz*(eps-1), B*np.ones((nz,)), np.zeros((nz,))])
         
-        #solvers.options['show_progress'] = False
+        solvers.options['show_progress'] = False
         print("starting solver")
         sol = solvers.qp(K, -kappa, G, h)
         print(sol)
@@ -400,6 +397,7 @@ class wFastText_new:
         
         traintime_start = time.time()
         for i in range(self.EPOCH):
+            epoch_st = time.time()
             print()
             print("wFastText EPOCH: ", i)
             
@@ -430,6 +428,9 @@ class wFastText_new:
                 # Back prop with alt optimization
                 self.B = self.KMMgradient_B(B_old, A_old, label, alpha, a1, Y_hat, beta)  
                 self.A = self.KMMgradient_A(B_old, A_old, x, label, alpha, Y_hat, beta)
+                
+            epoch_et = time.time()
+            print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")
 
 
             # TRAINING LOSS
@@ -482,5 +483,5 @@ class wFastText_new:
             i += 1
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
+        print("~~~~KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         
