@@ -73,8 +73,8 @@ class wFastText_new:
         
 
         self.lin_c = 0.9                    # hyperparameter for linear kernel
-        self.kernel = 'lin'   
-        #self.kernel = 'rbf'
+        #self.kernel = 'lin'   
+        self.kernel = 'rbf'
         
         print("Learning rate: ", self.LR, " Kernel: ", self.kernel)
         print()
@@ -87,7 +87,7 @@ class wFastText_new:
         X = sparse.csr_matrix.dot(self.A, self.X_manual.T)
         Z = sparse.csr_matrix.dot(self.A, self.X_train.T)
         
-        opt_beta = self.kernel_mean_matching(X.T, Z.T, self.lin_c, kern=self.kernel, B=6.0, eps=None)
+        opt_beta = self.kernel_mean_matching(X.T, Z.T, self.lin_c, kern=self.kernel, B=self.kmmB, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
@@ -108,7 +108,7 @@ class wFastText_new:
         
         #nx = X.shape[1]
         #nz = Z.shape[1]
-        sigma = 0.001
+        sigma = 0.01
         
         print("nx: ", nx, " nz: ", nz)
         
@@ -132,10 +132,8 @@ class wFastText_new:
             #kappa = np.sum(sk.linear_kernel(Z.T, X.T), axis=1)*float(nz)/float(nx)
             
         elif kern == 'rbf':
-            #K = compute_rbf(Z,Z)
-            #kappa = np.sum(compute_rbf(Z,X),axis=1)*float(nz)/float(nx)
-            K= sk.rbf_kernel(Z.T, Z.T, sigma)
-            kappa = np.sum(sk.rbf_kernel(Z.T, X.T), axis=1)*float(nz)/float(nx)
+            K= sk.rbf_kernel(Z, Z)
+            kappa = np.sum(sk.rbf_kernel(Z, X), axis=1)*float(nz)/float(nx)
             
         else:
             raise ValueError('unknown kernel')
@@ -300,8 +298,8 @@ class wFastText_new:
                 Y_hat = self.stable_softmax(z2)
         
                 # Back prop with alt optimization
-                self.B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
-                self.A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
+                self.B = self.KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
+                self.A = self.KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
                 
                 batchnum += 1
 
@@ -318,11 +316,11 @@ class wFastText_new:
                     hidden = sparse.csr_matrix.dot(self.A, batch.T)
                     a1 = normalize(hidden, axis=0, norm='l1')
                     z2 = np.dot(self.B, a1)
-                    Y_hat = stable_softmax(z2)
+                    Y_hat = self.stable_softmax(z2)
             
                     # Back prop with alt optimization
-                    self.B = KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
-                    self.A = KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
+                    self.B = self.KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
+                    self.A = self.KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
                     break
                 else:
                     start = start + self.BATCHSIZE
