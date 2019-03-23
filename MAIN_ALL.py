@@ -22,6 +22,8 @@ def get_args():
     parser.add_argument('-l', "--learning_rate", action='store', help="KMM Learning Rate", required=True)
     
     parser.add_argument('-b', "--b_val", action='store', help="KMM B value", required=True)
+
+    parser.add_argument('-k', '--kernel', action='store', help='KMM Kernel', required=True)
     args = vars(parser.parse_args())
 
     return args
@@ -68,7 +70,7 @@ def main():
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
     BATCHSIZE = 50      # number of instances in each batch
     
-    KERNEL = 'lin'
+    KERNEL = args['kernel']
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     

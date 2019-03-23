@@ -88,7 +88,7 @@ class Dictionary:
                 #subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
         
         #subset = subset.astype(int).tolist()
-        #index = 0       
+        index = 0       
         #sub = [self.file_train[i] for i in subset]
  
         for x in self.manual_set[0:-1]:

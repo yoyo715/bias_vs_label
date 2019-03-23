@@ -126,10 +126,10 @@ class wFastText_new:
         elif kern == 'poly':
             K=sk.polynomial_kernel(Z, Z)
             kappa = np.sum(sk.polynomial_kernel(Z, X), axis=1)*float(nz)/float(nx)
-        elif kern = 'laplacian':
+        elif kern == 'laplacian':
             K=sk.laplacian_kernel(Z, Z)
             kappa = np.sum(sk.laplacian_kernel(Z, X), axis=1)*float(nz)/float(nx)
-        elif kern = 'sigmoid':
+        elif kern == 'sigmoid':
             K=sk.sigmoid_kernel(Z, Z)
             kappa = np.sum(sk.sigmoid_kernel(Z, X), axis=1)*float(nz)/float(nx)
         else:

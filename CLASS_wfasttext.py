@@ -17,6 +17,9 @@ from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
 import sklearn.metrics.pairwise as sk
 
+import sys
+
+#sys.stdout.flush()
 
 class wFastText:
     def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize, kernel):
@@ -66,9 +69,10 @@ class wFastText:
         B_n = DIM               # cols
         B_m = nclasses          # rows
         self.B = np.zeros((B_m, B_n))
-        
+
+        sys.stdout.flush()
         self.betas = self.create_optbeta()       # NOTE: optimal KMM reweighting coefficient
-        
+        sys.stdout.flush()
         
     
     def create_optbeta(self):
@@ -109,10 +113,10 @@ class wFastText:
         elif kern == 'poly':
             K=sk.polynomial_kernel(Z, Z)
             kappa = np.sum(sk.polynomial_kernel(Z, X), axis=1)*float(nz)/float(nx)
-        elif kern = 'laplacian':
+        elif kern == 'laplacian':
             K=sk.laplacian_kernel(Z, Z)
             kappa = np.sum(sk.laplacian_kernel(Z, X), axis=1)*float(nz)/float(nx)
-        elif kern = 'sigmoid':
+        elif kern == 'sigmoid':
             K=sk.sigmoid_kernel(Z, Z)
             kappa = np.sum(sk.sigmoid_kernel(Z, X), axis=1)*float(nz)/float(nx)
             
