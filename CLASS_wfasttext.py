@@ -9,7 +9,7 @@ import numpy as np
 from scipy import sparse, stats
 from sklearn.preprocessing import normalize
 from cvxopt import matrix, solvers
-import time, math
+import time, math, sys
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
@@ -17,9 +17,7 @@ from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
 import sklearn.metrics.pairwise as sk
 
-import sys
 
-#sys.stdout.flush()
 
 class wFastText:
     def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize, kernel):
@@ -354,6 +352,7 @@ class wFastText:
             #print("         F1:                 ", manual_F1)
             
             print("_____________________________________________________")
+            sys.stdout.flush()
             
             i += 1
             
@@ -453,6 +452,7 @@ class wFastText:
             #print("         F1:                 ", manual_F1)
             
             print("_____________________________________________________")
+            sys.stdout.flush()
             
             
             i += 1

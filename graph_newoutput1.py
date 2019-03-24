@@ -9,11 +9,11 @@ import os
 from matplotlib import pyplot as plt
 import numpy as np
 
-directory = './newkmm_1/run4/'
+directory = './newkmm_1/old1/'
 numfiles = len(os.listdir(directory))   # number of plots needed 
 
 epochs = [l for l in range(20)]
-fig, axs = plt.subplots(2, int(numfiles/2)+1, sharex=True, sharey=True)
+fig, axs = plt.subplots(4, int(numfiles/2)+1, sharex=True, sharey=True)
 
 axs = axs.ravel()
 i = 0

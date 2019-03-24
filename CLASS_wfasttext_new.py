@@ -6,17 +6,16 @@
 """
 
 import numpy as np
-from scipy import sparse
+from scipy import sparse, stats
 from sklearn.preprocessing import normalize
 from cvxopt import matrix, solvers
-import time, math
+import time, math, sys
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 from sklearn.preprocessing import normalize
 from sklearn.metrics import confusion_matrix
-import math, numpy, sklearn.metrics.pairwise as sk
-from scipy import stats
+import sklearn.metrics.pairwise as sk
 
 
 
@@ -76,6 +75,7 @@ class wFastText_new:
         
         print("Learning rate: ", self.LR, " Kernel: ", self.kernel)
         print()
+        sys.stdout.flush()
         
     
     def create_optbeta(self):
@@ -92,7 +92,7 @@ class wFastText_new:
         print("About Beta: ")
         print(stats.describe(opt_beta))
         print()
-        
+        sys.stdout.flush()
         
         return opt_beta
 
@@ -369,6 +369,7 @@ class wFastText_new:
             #print("         F1:                 ", manual_F1)
             
             print("_____________________________________________________")
+            sys.stdout.flush()
             
             i += 1
             
@@ -478,6 +479,7 @@ class wFastText_new:
             #print("         F1:                 ", manual_F1)
             
             print("_____________________________________________________")
+            sys.stdout.flush()
             
             
             i += 1

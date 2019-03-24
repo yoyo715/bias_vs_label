@@ -63,6 +63,7 @@ def main():
     LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
     KMMLR = float(args['learning_rate'])
     B = float(args['b_val'])
+    
     #KMMLR = 0.015   #0.014         #0.015 pretty good
     #KMMLR = 0.0001
     #KMMLR = 0.001

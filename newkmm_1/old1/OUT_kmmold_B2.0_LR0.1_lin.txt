@@ -1,0 +1,267 @@
+STARTING
+{'b_val': '2.0', 'run': '0', 'learning_rate': '0.1', 'kernel': 'lin'}
+starting dictionary creation
+- creating manual instances
+****  10798
+- creating train instances
+****  10801
+- creating testing instances
+****  9781
+dictionary took  5.240773332118988  time to create.
+TRIAL:  0
+(10801, 1000000) (9781, 1000000) (10801, 2) (9781, 2)
+Number of Train instances:  10801  Number of Test instances:  9781
+N each class TRAIN:  (5040, 5761)  N each class TEST:  (6450, 3331)
+
+Number of Manual testing instances:  10798  shape:  (10798, 1000000)
+N each class Manual testing instances:  (5040, 5758)
+starting beta optimization..............................
+nx:  10798  nz:  10801
+starting solver
+{'iterations': 0, 'status': 'optimal', 'y': <0x1 matrix, tc='d'>, 'dual infeasibility': 8.115942545342544e-16, 'gap': 4490514.497819404, 'z': <21604x1 matrix, tc='d'>, 'dual slack': 1.0, 'relative gap': 2.9911874641719327e-07, 's': <21604x1 matrix, tc='d'>, 'primal objective': -15012481001629.693, 'primal infeasibility': 9.448471423443848e-16, 'x': <10801x1 matrix, tc='d'>, 'primal slack': 0.0008279466777694868, 'dual objective': -15012485492144.191}
+Beta took  9.379078356424968  minutes to optimize.
+About Beta: 
+DescribeResult(nobs=10801, minmax=(array([0.00082795]), array([1.00077733])), mean=array([0.99999998]), variance=array([0.00027713]), skewness=array([-59.97761053]), kurtosis=array([3595.32257687]))
+
+
+
+wFastText EPOCH:  0
+~~~~Epoch took  122.69747661749521  minutes
+KMM Train:    2.5049825027034816
+KMM Test:     1.6031722996200697
+KMM Manual:     2.5043754994210334
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  1
+~~~~Epoch took  122.91539110342661  minutes
+KMM Train:    2.8639160584436048
+KMM Test:     1.8306290813390915
+KMM Manual:     2.863220774542791
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  2
+~~~~Epoch took  123.0680386741956  minutes
+KMM Train:    3.067672453060065
+KMM Test:     1.9601519396824418
+KMM Manual:     3.0669273131439914
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  3
+~~~~Epoch took  123.11075389385223  minutes
+KMM Train:    3.207688467181244
+KMM Test:     2.0492630956707005
+KMM Manual:     3.206909135062658
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  4
+~~~~Epoch took  123.14324708382289  minutes
+KMM Train:    3.3126226410626844
+KMM Test:     2.1160895966048896
+KMM Manual:     3.3118177106405513
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  5
+~~~~Epoch took  123.12218128442764  minutes
+KMM Train:    3.3952189906967303
+KMM Test:     2.1687112397248445
+KMM Manual:     3.394393924258017
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  6
+~~~~Epoch took  123.16831756830216  minutes
+KMM Train:    3.4622584563342076
+KMM Test:     2.2114332214677823
+KMM Manual:     3.4614170536271676
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  7
+~~~~Epoch took  123.18380846182505  minutes
+KMM Train:    3.5177742217634895
+KMM Test:     2.246818458303408
+KMM Manual:     3.5169192951496826
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  8
+~~~~Epoch took  123.27030345996221  minutes
+KMM Train:    3.5643546294248036
+KMM Test:     2.2765127363950914
+KMM Manual:     3.5634883582613033
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  9
+~~~~Epoch took  123.39355645179748  minutes
+KMM Train:    3.6037543580864093
+KMM Test:     2.301632287876234
+KMM Manual:     3.6028784929393702
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  10
+~~~~Epoch took  123.41909193595251  minutes
+KMM Train:    3.637212389886314
+KMM Test:     2.3229655732052823
+KMM Manual:     3.636328378732092
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  11
+~~~~Epoch took  123.49042148192724  minutes
+KMM Train:    3.6656307381112216
+KMM Test:     2.341086777943973
+KMM Manual:     3.664739808735503
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  12
+~~~~Epoch took  123.49960779746374  minutes
+KMM Train:    3.68968110302055
+KMM Test:     2.3564235776657783
+KMM Manual:     3.688784319301346
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  13
+~~~~Epoch took  123.53176673253377  minutes
+KMM Train:    3.709871591785746
+KMM Test:     2.3692995471736134
+KMM Manual:     3.708969893650533
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  14
+~~~~Epoch took  123.5165720462799  minutes
+KMM Train:    3.7265900387203317
+KMM Test:     2.3799617057075855
+KMM Manual:     3.7256842715090968
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  15
+~~~~Epoch took  123.58670346736908  minutes
+KMM Train:    3.7401329483192165
+KMM Test:     2.3885989256611406
+KMM Manual:     3.739223885072728
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  16
+~~~~Epoch took  123.62815279563269  minutes
+KMM Train:    3.7507252235278203
+KMM Test:     2.395354483354124
+KMM Manual:     3.749813582455409
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  17
+~~~~Epoch took  123.63087026278178  minutes
+KMM Train:    3.7585337467445465
+KMM Test:     2.4003347006812192
+KMM Manual:     3.7576202053744883
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  18
+~~~~Epoch took  123.65705830256144  minutes
+KMM Train:    3.763676687200047
+KMM Test:     2.4036148683421694
+KMM Manual:     3.7627618942570336
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+
+wFastText EPOCH:  19
+~~~~Epoch took  123.69297393957774  minutes
+KMM Train:    3.766229695201008
+KMM Test:     2.405243188329755
+KMM Manual:     3.7653142809712272
+
+
+KMMTRAIN Classification Err:  0.5337468752893251
+KMMTEST Classification Err: 0.3405582251303548
+KMMMANUAL Classification Err:  0.5336173365438044
+_____________________________________________________
+~~~~KMM model took  2469.2073509812353  minutes to train
