@@ -69,14 +69,14 @@ def main():
     #KMMLR = 0.001
 
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
-    BATCHSIZE = 50      # number of instances in each batch
+    BATCHSIZE = 10      # number of instances in each batch
     
     KERNEL = args['kernel']
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     
     wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE, KERNEL)
-    wfasttext.train()
+    wfasttext.train_batch()
     
     
     

@@ -249,7 +249,11 @@ class wFastText:
         X_train = normalize(self.X_train, axis=1, norm='l1')
         X_test = normalize(self.X_test, axis=1, norm='l1')
         X_manual = normalize(self.X_manual, axis=1, norm='l1')
-        
+       
+        print("Shuffling dataset")
+        sys.stdout.flush()
+        np.random.shuffle(X_train)
+ 
         traintime_start = time.time()
         for i in range(self.EPOCH):
             print()
