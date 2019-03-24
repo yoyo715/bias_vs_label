@@ -23,26 +23,26 @@ class Dictionary:
         
         #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()     # laptop
         #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines()                           # work comp
-        #self.file_train = open('../../../simple-queries/data/query_gender.train', encoding='utf8').readlines()                            # home desk comp
-        self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()                     # TETON
+        self.file_train = open('../../../simple-queries/data/query_gender.train', encoding='utf8').readlines()                            # home desk comp
+        #self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()                     # TETON
         del self.file_train[0]
         self.len_file_train = len(self.file_train)
 
         #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines()                             # work comp 
         #self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines()                  # laptop
-        #self.file_test = open('../../../simple-queries/data/query_gender.test', encoding='utf8').readlines()                              # home desk comp
-        self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()                       # TETON
+        self.file_test = open('../../../simple-queries/data/query_gender.test', encoding='utf8').readlines()                              # home desk comp
+        #self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()                       # TETON
     
         # This is the Kaggle dataset
         #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()               # laptop
         #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()                     # work comp
         #self.manual_set = open('../../manually_labeled_set.txt', encoding='utf8').readlines()                                          # home desk
-        #self.manual_set = open('../../FULL_manual_set.txt', encoding='utf8').readlines()                                                # home deskcomp
+        self.manual_set = open('../../FULL_manual_set.txt', encoding='utf8').readlines()                                                # home deskcomp
         #self.manual_set = open('/project/lsrtwitter/mcooley3/data/manually_labeled_set.txt', encoding='utf8').readlines()              # TETON
-        self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
+        #self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
         
-        self.index_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
-        #self.index_dir = './indices/'   # home desk comp
+        #self.index_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
+        self.index_dir = './indices/'   # home desk comp
         
         
         print("- creating manual instances")
@@ -82,49 +82,43 @@ class Dictionary:
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
         
         
-        #for filename in os.listdir(self.index_dir):
-            #if '_'+str(self.run_number)+'.txt' in filename:
-                #temp = filename
-                #subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
+        for filename in os.listdir(self.index_dir):
+            if '_'+str(self.run_number)+'.txt' in filename:
+                temp = filename
+                subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
         
-        #subset = subset.astype(int).tolist()
-        index = 0       
-        #sub = [self.file_train[i] for i in subset]
+        subset = subset.astype(int).tolist()  
+        sub = [self.file_train[i] for i in subset]
  
-        for x in self.manual_set[0:-1]:
-            #if index in subset:
-            if index == 0:
-                i = 0
-                inst = ''
-                label = x[0:10]
+        for x in sub[0:-1]:
+            inst = ''
+            label = x[0:10]
+        
+            if label[0:9] != '__label__':
+                print("ERROR in label creation. label: ", label)
+                break
+            else:
+                labels.append(float(label[-1]))
             
-                if label[0:9] != '__label__':
-                    print("ERROR in label creation. label: ", label)
-                    break
-                else:
-                    labels.append(float(label[-1]))
-                
-                sent = ''
-                word = ''
-                for w in x[10:]:
-                    if w in whitelist:
-                        if w == '\t':
-                            inst = inst + '\t' + sent
-                            sent = ''
+            sent = ''
+            word = ''
+            for w in x[10:]:
+                if w in whitelist:
+                    if w == '\t':
+                        inst = inst + '\t' + sent
+                        sent = ''
+                        word = ''
+                    elif w != ' ':
+                        word = word + w
+                    else:
+                        if "http" not in word and word != "RT" and word != "rt":
+                            sent = sent + ' ' + word
                             word = ''
-                            i += 1
-                        elif w != ' ':
-                            word = word + w
                         else:
-                            if "http" not in word and word != "RT" and word != "rt":
-                                sent = sent + ' ' + word
-                                word = ''
-                            else:
-                                word = ''
-            
-                documents.append(inst)
+                            word = ''
+        
+            documents.append(inst)
 
-            #index += 1
 
         print("**** ", len(documents))
         self.train_instances = documents
@@ -139,7 +133,6 @@ class Dictionary:
 
         # loop through each instance in training data, gets labels
         for x in self.file_test[0:-1]:
-            i = 0
             inst = ''
             label = x[0:10]
             
@@ -157,7 +150,6 @@ class Dictionary:
                         inst = inst + '\t' + sent
                         sent = ''
                         word = ''
-                        i += 1
                     elif w != ' ':
                         word = word + w
                     else:
@@ -187,7 +179,6 @@ class Dictionary:
         # loop through each instance in training data, gets labels
         for x in self.manual_set[0:-1]:
             if num != 361 and num != 360 and num != 359:
-                i = 0
                 inst = ''
                 label = x[0:10]
                 if label[0:9] != '__label__':
@@ -204,7 +195,6 @@ class Dictionary:
                             inst = inst + '\t' + sent
                             sent = ''
                             word = ''
-                            i += 1
                         elif w != ' ':
                             word = word + w
                         else:

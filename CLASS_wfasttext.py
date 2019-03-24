@@ -268,6 +268,8 @@ class wFastText:
             start = 0
             batchnum = 0
             while start <= self.N_train:
+                print(start)
+                
                 batch = X_train.tocsr()[start:start+self.BATCHSIZE, :]
                 y_train_batch = self.y_train[start:start+self.BATCHSIZE, :] 
                 beta_batch = self.betas[start:start+self.BATCHSIZE, :] 
