@@ -76,8 +76,8 @@ def main():
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
     
     wfasttext = wFastText(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE, KERNEL)
-    wfasttext.train()
-    
+    #wfasttext.train()
+    wfasttext.train_batch()
     
     
     

@@ -23,26 +23,26 @@ class Dictionary:
         
         #self.file_train = open('/Users/madim/Desktop/ML_research/data/query_gender_subset_train.txt', encoding='utf8').readlines()     # laptop
         #self.file_train = open('/home/mcooley/Desktop/data/query_gender.train', encoding='utf8').readlines()                           # work comp
-        self.file_train = open('../../../simple-queries/data/query_gender.train', encoding='utf8').readlines()                            # home desk comp
-        #self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()                     # TETON
+        #self.file_train = open('../../../simple-queries/data/query_gender.train', encoding='utf8').readlines()                            # home desk comp
+        self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()                     # TETON
         del self.file_train[0]
         self.len_file_train = len(self.file_train)
 
         #self.file_test = open('/home/mcooley/Desktop/data/query_gender.test', encoding='utf8').readlines()                             # work comp 
         #self.file_test = open('/Users/madim/Desktop/ML_research/data/query_gender.test', encoding='utf8').readlines()                  # laptop
-        self.file_test = open('../../../simple-queries/data/query_gender.test', encoding='utf8').readlines()                              # home desk comp
-        #self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()                       # TETON
+        #self.file_test = open('../../../simple-queries/data/query_gender.test', encoding='utf8').readlines()                              # home desk comp
+        self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()                       # TETON
     
         # This is the Kaggle dataset
         #self.manual_set = open('/Users/madim/Desktop/ML_research/manually_labeled_set.txt', encoding='utf8').readlines()               # laptop
         #self.manual_set = open('/home/mcooley/Desktop/data/manually_labeled_set.txt', encoding='utf8').readlines()                     # work comp
         #self.manual_set = open('../../manually_labeled_set.txt', encoding='utf8').readlines()                                          # home desk
-        self.manual_set = open('../../FULL_manual_set.txt', encoding='utf8').readlines()                                                # home deskcomp
+        #self.manual_set = open('../../FULL_manual_set.txt', encoding='utf8').readlines()                                                # home deskcomp
         #self.manual_set = open('/project/lsrtwitter/mcooley3/data/manually_labeled_set.txt', encoding='utf8').readlines()              # TETON
-        #self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
+        self.manual_set = open('/project/lsrtwitter/mcooley3/data/FULL_manual_set.txt', encoding='utf8').readlines()                   # TETON
         
-        #self.index_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
-        self.index_dir = './indices/'   # home desk comp
+        self.index_dir = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices/'   # teton
+        #self.index_dir = './indices/'   # home desk comp
         
         
         print("- creating manual instances")

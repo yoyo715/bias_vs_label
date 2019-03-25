@@ -384,12 +384,14 @@ class wFastText:
             for i in range(self.EPOCH):
                 print()
                 print("wFastText EPOCH: ", i)
-                
+               
+                epoch_st = time.time()
+ 
                 # linearly decaying lr alpha
                 alpha = self.LR * ( 1 - i / self.EPOCH)
                 
                 # Shuffle data
-                batch_indices = np.random.permutations(self.N_train)
+                batch_indices = np.random.permutation(self.N_train)
                 X_train = X_train.tocsr()[batch_indices]
                 y_train = self.y_train[batch_indices]
                 betas = self.betas[batch_indices]
@@ -412,6 +414,8 @@ class wFastText:
                     self.B = self.KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
                     self.A = self.KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
                     
+                epoch_et = time.time()
+                print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")               
                     
                 # TRAINING LOSS
                 train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
