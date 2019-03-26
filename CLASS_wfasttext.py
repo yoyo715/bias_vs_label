@@ -207,7 +207,6 @@ class wFastText:
         # compare to actual classes
         prediction_max = np.argmax(Y_hat, axis=0)
         true_label_max = np.argmax(Y, axis=1)
-
         
         class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
         class_acc = np.sum(true_label_max == prediction_max.T) * 1.0 / N
@@ -232,6 +231,23 @@ class wFastText:
 
 
         return class_error #, precision, recall, F1, roc_auc, fpr, tpr
+    
+    
+    def get_class_err(self, X, Y, A, B, N):
+        # get predicted classes
+        hidden = sparse.csr_matrix.dot(A, X.T)        
+        a1 = normalize(hidden, axis=0, norm='l1')
+        z2 = np.dot(B, a1)
+        Y_hat = self.stable_softmax(z2)
+        
+        # compare to actual classes
+        prediction_max = np.argmax(Y_hat, axis=0)
+        true_label_max = np.argmax(Y, axis=1)
+        
+        class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
+        #class_acc = np.sum(true_label_max == prediction_max.T) * 1.0 / N
+        
+        return class_error
         
         
     #def train_batch(self):
@@ -365,110 +381,84 @@ class wFastText:
         
 
     def train_batch(self):
-            losses_train = []
-            losses_test = []
-            losses_manual = []
+        print("Batch Training, BATCHSIZE:", self.BATCHSIZE)
 
-            classerr_train = []
-            classerr_test = []
-            classerr_manual = []
+        print()
+        print()
+        
+        X_train = normalize(self.X_train, axis=1, norm='l1')
+        X_test = normalize(self.X_test, axis=1, norm='l1')
+        X_manual = normalize(self.X_manual, axis=1, norm='l1')
+        
+        traintime_start = time.time()
+        for i in range(self.EPOCH):
+            print()
+            print("wFastText EPOCH: ", i)
+            
+            epoch_st = time.time()
+
+            # linearly decaying lr alpha
+            alpha = self.LR * ( 1 - i / self.EPOCH)
+            
+            # Shuffle data
+            batch_indices = np.random.permutation(self.N_train)
+            X_train_batch = X_train.tocsr()[batch_indices]
+            y_train_batch = self.y_train[batch_indices]
+            betas = self.betas[batch_indices]
+
+            for j in range(0, self.N_train, self.BATCHSIZE):
+                batch = X_train_batch[i:i+self.BATCHSIZE]
+                y_train_batch = y_train_batch[i:i+self.BATCHSIZE]
+                beta_batch = betas[i:i+self.BATCHSIZE]
+
+                B_old = self.B
+                A_old = self.A
+                
+                # Forward Propogation
+                hidden = sparse.csr_matrix.dot(self.A, batch.T)
+                a1 = normalize(hidden, axis=0, norm='l1')
+                z2 = np.dot(self.B, a1)
+                Y_hat = self.stable_softmax(z2)
+        
+                # Back prop with alt optimization
+                self.B = self.KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
+                self.A = self.KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
+                
+            epoch_et = time.time()
+            print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")               
+                
+            # TRAINING LOSS
+            train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
+            print("KMM Train Loss:   ", train_loss)
+
+            ## TESTING LOSS
+            test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
+            print("KMM Test Loss:    ", test_loss)
+            
+            ## MANUAL SET TESTING LOSS
+            manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
+            print("KMM Manual Set Loss:    ", manual_loss)
+            print()
+            
+            train_class_error = self.get_class_err(X_train, self.y_train, self.A, self.B, self.N_train)
+            test_class_error = self.get_class_err(X_test, self.y_test, self.A, self.B, self.N_test)
+            manual_class_error = self.get_class_err(X_manual, self.y_manual, self.A, self.B, self.N_manual)
 
             print()
+            print("KMMTRAIN Classification Err: ", train_class_error)
             print()
+            print("KMMTEST Classification Err:", test_class_error)
+            print()
+            print("KMMMANUAL Classification Err: ", manual_class_error)
+
             
-            X_train = normalize(self.X_train, axis=1, norm='l1')
-            X_test = normalize(self.X_test, axis=1, norm='l1')
-            X_manual = normalize(self.X_manual, axis=1, norm='l1')
+            print("_____________________________________________________")
+            sys.stdout.flush()
             
-            traintime_start = time.time()
-            for i in range(self.EPOCH):
-                print()
-                print("wFastText EPOCH: ", i)
-               
-                epoch_st = time.time()
- 
-                # linearly decaying lr alpha
-                alpha = self.LR * ( 1 - i / self.EPOCH)
-                
-                # Shuffle data
-                batch_indices = np.random.permutation(self.N_train)
-                X_train = X_train.tocsr()[batch_indices]
-                y_train = self.y_train[batch_indices]
-                betas = self.betas[batch_indices]
-
-                for j in range(0, self.N_train, self.BATCHSIZE):
-                    batch = X_train[i:i+self.BATCHSIZE]
-                    y_train_batch = y_train[i:i+self.BATCHSIZE]
-                    beta_batch = betas[i:i+self.BATCHSIZE]
-
-                    B_old = self.B
-                    A_old = self.A
-                    
-                    # Forward Propogation
-                    hidden = sparse.csr_matrix.dot(self.A, batch.T)
-                    a1 = normalize(hidden, axis=0, norm='l1')
-                    z2 = np.dot(self.B, a1)
-                    Y_hat = self.stable_softmax(z2)
+            i += 1
             
-                    # Back prop with alt optimization
-                    self.B = self.KMMgradient_B(B_old, A_old, y_train_batch, alpha, a1, Y_hat, beta_batch)  
-                    self.A = self.KMMgradient_A(B_old, A_old, batch, y_train_batch, alpha, Y_hat, beta_batch)
-                    
-                epoch_et = time.time()
-                print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")               
-                    
-                # TRAINING LOSS
-                train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
-                print("KMM Train Loss:   ", train_loss)
-
-                ## TESTING LOSS
-                test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
-                print("KMM Test Loss:    ", test_loss)
-                
-                ## MANUAL SET TESTING LOSS
-                manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
-                print("KMM Manual Set Loss:    ", manual_loss)
-                print()
-
-                losses_train.append(train_loss)
-                losses_test.append(test_loss)
-                losses_manual.append(manual_loss)
-                
-                train_class_error = self.metrics(X_train, self.y_train, self.A, self.B, self.N_train, 'KMMtrain', i)
-                
-                test_class_error = self.metrics(X_test, self.y_test, self.A, self.B, self.N_test, 'KMMtest', i)
-                
-                manual_class_error = self.metrics(X_manual, self.y_manual, self.A, self.B, self.N_manual, 'KMMmanual', i)
-                
-                
-                classerr_train.append(train_class_error)
-                classerr_test.append(test_class_error)
-                classerr_manual.append(manual_class_error)
-
-                print()
-                print("KMMTRAIN Classification Err: ", train_class_error)
-                #print("         Precision:          ", train_precision)
-                #print("         Recall:             ", train_recall)
-                #print("         F1:                 ", train_F1)
-
-                print("KMMTEST Classification Err:", test_class_error)
-                #print("         Precision:          ", test_precision)
-                #print("         Recall:             ", test_recall)
-                #print("         F1:                 ", test_F1)
-                
-                print()
-                print("KMMMANUAL Classification Err: ", manual_class_error)
-                #print("         Precision:          ", manual_precision)
-                #print("         Recall:             ", manual_recall)
-                #print("         F1:                 ", manual_F1)
-                
-                print("_____________________________________________________")
-                sys.stdout.flush()
-                
-                i += 1
-                
-            traintime_end = time.time()
-            print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
+        traintime_end = time.time()
+        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
             
     
     def train(self):
