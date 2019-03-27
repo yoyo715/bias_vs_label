@@ -69,7 +69,7 @@ def main():
     #KMMLR = 0.001
 
     SUBSET_VAL = 10000   # number of subset instances for self reported dataset
-    BATCHSIZE = 50      # number of instances in each batch
+    BATCHSIZE = 10      # number of instances in each batch
     
     KERNEL = args['kernel']
     
