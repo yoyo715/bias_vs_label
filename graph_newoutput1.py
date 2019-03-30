@@ -9,11 +9,11 @@ import os
 from matplotlib import pyplot as plt
 import numpy as np
 
-directory = './newkmm_1/old1/'
+directory = '../slurm_scripts/oldkmm/scripts/rbf/outfiles/'
 numfiles = len(os.listdir(directory))   # number of plots needed 
 
 epochs = [l for l in range(20)]
-fig, axs = plt.subplots(4, int(numfiles/2)+1, sharex=True, sharey=True)
+fig, axs = plt.subplots(4, int(numfiles/4)+1, sharex=True, sharey=True)
 
 axs = axs.ravel()
 i = 0
@@ -40,9 +40,9 @@ for filename in os.listdir(directory):
         test = np.array(test)
         man = np.array(man)
         
-        print(filename)
-        print(man)
-        print()
+        #print(filename)
+        #print(man)
+        #print()
     
         axs[i].plot(epochs, train, 'm', label="train")
         axs[i].plot(epochs, test, 'c', label="test")
