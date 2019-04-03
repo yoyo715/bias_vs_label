@@ -19,6 +19,9 @@ import os
 class Dictionary:
     def __init__(self, ngrams, mincount, bucket, run):
         self.run_number = run
+        self.ngrams = ngrams
+        self.mincount = mincount
+        self.bucket = bucket
         
         TETON = False    # WORKING ON TETON OR NOT
         if TETON == True:
@@ -36,22 +39,18 @@ class Dictionary:
             self.index_Rval = './indices_Rval/'
             self.index_Sval = './indices_Sval/'
             
-        
-        del self.file_train[0]
-        self.len_file_train = len(self.file_train)
+        del self.file_train[0]  # Blank line screws some things up
         
         print("- creating manual instances")
-        self.create_instances_and_labels_manset()
-
-        self.ngrams = ngrams
-        self.mincount = mincount
-        self.bucket = bucket
+        Rtest, Rval = self.split_Rtest_Rval(self.manual_set)
+        manual_instances, y_manual = self.create_instances_and_labels_manset(maual_subset)
 
         print("- creating train instances")
-        self.create_train_instances_and_labels()
+        train_instances, train_labels = self.create_instances_and_labels(train_subset)
         
         print("- creating testing instances")
-        self.create_test_instances_and_labels()
+        test_instances, test_labels = self.create_instances_and_labels(test_subset)
+    
         self.create_sets()
         self.create_bagngrams()
         self.create_test_bagngrams()
@@ -63,6 +62,16 @@ class Dictionary:
         self.create_manual_labels()
     
         self.nwords = self.train_bag_ngrams.shape[1]
+    
+    
+    def split_rand_subset_SFULL(self):
+        for filename in os.listdir(self.index_dir):
+            if '_'+str(self.run_number)+'.txt' in filename:
+                subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
+        
+        subset = subset.astype(int).tolist()  
+        sub = [self.file_train[i] for i in subset]
+        return sub
     
         
     def split_Strain_Sval(self, train_set):
@@ -76,33 +85,25 @@ class Dictionary:
         return strain, sval
     
     
-    def split_Rtest_Rval(self, train_set):
+    def split_Rtest_Rval(self, _set):
         for filename in os.listdir(self.index_Rval):
             subset = np.loadtxt(self.index_Rval+filename, dtype=np.object)
         
         subset = subset.astype(int).tolist()  
-        rval = [train_set[i] for i in subset]
-        rtest = [train_set[i] for i not in subset]
+        rval = [_set[i] for i in subset]
+        rtest = [_set[i] for i not in subset]
         return rtest, rval
         
         
     # adds each instance a separate element in list
     # each 'tweet' is separated by tab
-    def create_train_instances_and_labels(self):
+    def create_instances_and_labels(self, subset):
         words =  []
         labels = []
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
-        
-        
-        for filename in os.listdir(self.index_dir):
-            if '_'+str(self.run_number)+'.txt' in filename:
-                subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
-        
-        subset = subset.astype(int).tolist()  
-        sub = [self.file_train[i] for i in subset]
  
-        for x in sub[0:-1]:
+        for x in subset[0:-1]:
             inst = ''
             label = x[0:10]
         
@@ -131,65 +132,22 @@ class Dictionary:
         
             documents.append(inst)
 
-
         print("**** ", len(documents))
-        self.train_instances = documents
-        self.train_labels = labels
-        
-        
-    def create_test_instances_and_labels(self):
-        words =  []
-        labels = []
-        documents = []
-        whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
-
-        # loop through each instance in training data, gets labels
-        for x in self.file_test[0:-1]:
-            inst = ''
-            label = x[0:10]
-            
-            if label[0:9] != '__label__':
-                print("ERROR in label creation. label: ", label)
-                break
-            else:
-                labels.append(float(label[-1]))
-                
-            sent = ''
-            word = ''
-            for w in x[10:]:
-                if w in whitelist:
-                    if w == '\t':
-                        inst = inst + '\t' + sent
-                        sent = ''
-                        word = ''
-                    elif w != ' ':
-                        word = word + w
-                    else:
-                        if "http" not in word and word != "RT" and word != "rt":
-                            sent = sent + ' ' + word
-                            word = ''
-                        else:
-                            word = ''
-            
-            documents.append(inst)
-            
-        print("**** ", len(documents))
-        self.test_instances = documents
-        self.test_labels = labels
+        #self.train_instances = documents
+        #self.train_labels = labels
+        return documents, labels
         
         
     # this function creates the instances of the manually labeled (Kaggle) dataset
-    def create_instances_and_labels_manset(self):
+    def create_instances_and_labels_manset(self, manual_set):
         words =  []
         labels = []
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
         num = 0
-        
-        #print(self.manual_set[358])
     
         # loop through each instance in training data, gets labels
-        for x in self.manual_set[0:-1]:
+        for x in manual_set[0:-1]:
             if num != 361 and num != 360 and num != 359:
                 inst = ''
                 label = x[0:10]
@@ -220,10 +178,11 @@ class Dictionary:
             num += 1
         
         print("**** ", len(documents))
-        self.manual_instances = documents
-        self.y_manual = labels
+        #self.manual_instances = documents
+        #self.y_manual = labels
+        #self.n_manual_instances = len(self.manual_instances)
         
-        self.n_manual_instances = len(self.manual_instances)
+        return documents, labels
         
         
     def create_sets(self):
@@ -386,10 +345,6 @@ class Dictionary:
     
     def get_n_manual_instances(self):
         return self.n_manual_instances
-    
-    
-    def get_n_subset_instances(self):
-        return self.n_subset_instances
 
 
     def get_manual_set_labels(self):

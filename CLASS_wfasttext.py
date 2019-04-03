@@ -30,6 +30,8 @@ class wFastText:
         nwords = dictionary.get_nwords()
         nclasses = dictionary.get_nclasses()
         
+        print("######################## wFastText ########################")
+        
         print("TRIAL: ", dictionary.run_number)
         
         #initialize testing
