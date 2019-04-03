@@ -8,12 +8,9 @@
 """
 
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 import numpy as np
-import random, re
-import time
-import os
+import random, re, time, os
 
 
 class Dictionary:
@@ -39,29 +36,55 @@ class Dictionary:
             self.index_Rval = './indices_Rval/'
             self.index_Sval = './indices_Sval/'
             
-        del self.file_train[0]  # Blank line screws some things up
+        del self.file_train[0]  # Blank line causes problems
         
-        print("- creating manual instances")
-        Rtest, Rval = self.split_Rtest_Rval(self.manual_set)
-        manual_instances, y_manual = self.create_instances_and_labels_manset(maual_subset)
-
-        print("- creating train instances")
+        print("--------- creating train instances ---------")
+        train_subset = self.split_rand_subset_SFULL()
         train_instances, train_labels = self.create_instances_and_labels(train_subset)
+        x_strain, x_sval = self.split_Strain_Sval(train_instances)
+        y_strain, y_sval = self.split_Strain_Sval(train_labels)
+        self.n_strain = len(x_strain)
+        self.n_sval = len(x_sval)
+        print("x_strain: ", self.n_strain, " x_sval: ", self.n_sval)
+        print("y_strain: ", len(y_strain), " y_sval: ", len(y_sval))
+        print()
         
-        print("- creating testing instances")
-        test_instances, test_labels = self.create_instances_and_labels(test_subset)
-    
-        self.create_sets()
-        self.create_bagngrams()
-        self.create_test_bagngrams()
-        self.create_manual_bagngrams()
+        print("---------- creating manual instances ---------")
+        manual_instances, y_manual = self.create_instances_and_labels_manset(self.manual_set)
+        x_rtest, x_rval = self.split_Rtest_Rval(manual_instances)
+        y_rtest, y_rval = self.split_Rtest_Rval(y_manual)
+        self.n_rtest = len(x_rtest)
+        self.n_rval = len(x_rval)
+        print("x_rtest: ", self.n_rtest, " x_rval: ", self.n_rval)
+        print("y_rtest: ", len(y_rtest), " y_rval: ", len(y_rval))
+        print()
         
-        self.nclasses = len(set(self.train_labels))
-        self.create_train_labels()
-        self.create_test_labels()
-        self.create_manual_labels()
+        print("--------- creating testing instances ---------")
+        x_stest, y_stest = self.create_instances_and_labels(self.file_test)
+        self.n_stest = len(x_stest)
+        print("x_stest: ", self.n_stest)
+        print()
     
-        self.nwords = self.train_bag_ngrams.shape[1]
+    
+        # -----------------------------------------------------
+        
+        self.nclasses = len(set(train_labels))
+        
+        print("Creating bag-of-n-grams")
+        self.X_STRAIN = self.create_initial_bagngrams(x_strain)
+        self.X_SVAL = self.create_bagngrams(x_sval)
+        self.Y_STRAIN = self.create_label_vec(self.n_strain, self.nclasses, y_strain)
+        self.Y_SVAL = self.create_label_vec(self.n_sval, self.nclasses, y_sval)
+        
+        self.X_RTEST = self.create_bagngrams(x_rtest)
+        self.X_RVAL = self.create_bagngrams(x_rval)
+        self.Y_RTEST = self.create_label_vec(self.n_rtest, self.nclasses, y_rtest)
+        self.Y_RVAL = self.create_label_vec(self.n_rval, self.nclasses, y_rval)
+        
+        self.X_STEST = self.create_bagngrams(x_stest)
+        self.Y_STEST = self.create_label_vec(self.n_stest, self.nclasses, y_stest)
+    
+        self.nwords = self.X_STRAIN.shape[1]
     
     
     def split_rand_subset_SFULL(self):
@@ -81,7 +104,7 @@ class Dictionary:
         
         subset = subset.astype(int).tolist()  
         sval = [train_set[i] for i in subset]
-        strain = [train_set[i] for i not in subset]
+        strain = [element for i, element in enumerate(train_set) if i not in subset]
         return strain, sval
     
     
@@ -91,7 +114,7 @@ class Dictionary:
         
         subset = subset.astype(int).tolist()  
         rval = [_set[i] for i in subset]
-        rtest = [_set[i] for i not in subset]
+        rtest = [element for i, element in enumerate(_set) if i not in subset]
         return rtest, rval
         
         
@@ -132,9 +155,7 @@ class Dictionary:
         
             documents.append(inst)
 
-        print("**** ", len(documents))
-        #self.train_instances = documents
-        #self.train_labels = labels
+        print(len(documents), " total instances")
         return documents, labels
         
         
@@ -145,7 +166,7 @@ class Dictionary:
         documents = []
         whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
         num = 0
-    
+        
         # loop through each instance in training data, gets labels
         for x in manual_set[0:-1]:
             if num != 361 and num != 360 and num != 359:
@@ -177,24 +198,8 @@ class Dictionary:
                 documents.append(inst)
             num += 1
         
-        print("**** ", len(documents))
-        #self.manual_instances = documents
-        #self.y_manual = labels
-        #self.n_manual_instances = len(self.manual_instances)
-        
+        print(len(documents), " total manual instances")
         return documents, labels
-        
-        
-    def create_sets(self):
-        self.X_train = self.train_instances
-        self.X_test = self.test_instances
-        self.y_train = self.train_labels
-        self.y_test = self.test_labels
-        
-        self.n_train_instances = len(self.X_train)
-        self.n_test_instances = len(self.X_test)
-        self.n_train_labels = len(self.y_train)
-        self.n_test_labels = len(self.y_test)
     
     
     def words_and_char_ngrams(self, text):
@@ -208,147 +213,42 @@ class Dictionary:
                 numgrams -= 1
 
 
-    def create_bagngrams(self): 
+    def create_initial_bagngrams(self, x_train): 
         #self.vectorizer = CountVectorizer(ngram_range=(1,self.ngrams), min_df=self.mincount, max_features=self.bucket)
-        #data_features = self.vectorizer.fit_transform(self.X_train) 
+        #data_features = self.vectorizer.fit_transform(x_train) 
         
         #self.vectorizer = CountVectorizer(ngram_range=(1,1), min_df=self.mincount)
-        #data_features = self.vectorizer.fit_transform(self.X_train) 
+        #data_features = self.vectorizer.fit_transform(x_train) 
         
         #********
         self.vectorizer = CountVectorizer(analyzer=self.words_and_char_ngrams, ngram_range=(1,self.ngrams), max_features=self.bucket)
-        data_features = self.vectorizer.fit_transform(self.X_train)
+        data_features = self.vectorizer.fit_transform(x_train)
            
-        self.train_bag_ngrams = data_features
+        return data_features
         
         
+    def create_bagngrams(self, instances):
+        return self.vectorizer.transform(instances)    
+
+
+    def create_label_vec(self, ninstances, nclasses, y):
+        labels = np.zeros((ninstances, nclasses))
         
-    #creates a bagngrams for testing instances
-    def create_test_bagngrams(self): 
-        data_features = self.vectorizer.transform(self.X_test)    
-        self.test_bag_ngrams = data_features
-
-
-    # bagngrams for the manually labeled dataset
-    def create_manual_bagngrams(self):
-        data_features = self.vectorizer.transform(self.manual_instances)    
-        self.manual_test_bag_ngrams = data_features
-
-
-    # index 0: label 0
-    # index 1: label 1
-    def create_train_labels(self):
-        labels = np.zeros((self.n_train_instances, self.nclasses))
-        
-        self.train_males = 0
-        self.train_females = 0
+        n_males = 0
+        n_females = 0
         
         i = 0
         for label in labels:
-            if self.y_train[i] == 0:
+            if y[i] == 0:
                 label[0] = 1.0
-                self.train_males += 1
-            elif self.y_train[i] == 1.:
+                n_males += 1        #NOTE: need to double check 
+            elif y[i] == 1:
                 label[1] = 1.0
-                self.train_females += 1
+                n_females += 1      #NOTE: need to double check 
             
             i += 1
             
-        self.label_vec = labels
-    
-    
-    # index 0: label 0
-    # index 1: label 1
-    def create_test_labels(self):
-        labels = np.zeros((self.n_test_instances, self.nclasses))
-        #print("test labels shape:", labels.shape)
-        
-        self.test_males = 0
-        self.test_females = 0
-        
-        i = 0
-        for label in labels:
-            if self.y_test[i] == 0:
-                label[0] = 1.0
-                self.test_males += 1        #NOTE: need to double check 
-            elif self.y_test[i] == 1:
-                label[1] = 1.0
-                self.test_females += 1      #NOTE: need to double check 
-            
-            i += 1
-            
-        self.test_label_vec = labels
-        
-        
-    # index 0: label 0
-    # index 1: label 1
-    def create_manual_labels(self):
-        labels = np.zeros((self.n_manual_instances, self.nclasses))
-        #print("manual labels shape:", labels.shape)
-        
-        self.manual_males = 0
-        self.manual_females = 0
-        
-        i = 0
-        for label in labels:
-            if self.y_manual[i] == 0:
-                label[0] = 1.0
-                self.manual_males += 1        #NOTE: need to double check 
-            elif self.y_manual[i] == 1:
-                label[1] = 1.0
-                self.manual_females += 1      #NOTE: need to double check 
-            
-            i += 1
-            
-        self.manual_label_vec = labels
-
-
-    def get_nclasses(self):
-        return self.nclasses
-
-
-    def get_nlabels_eachclass_train(self):
-        return self.train_females, self.train_males
-    
-    
-    def get_nlabels_eachclass_test(self):
-        return self.test_females, self.test_males
-    
-    
-    def get_nlabels_eachclass_manual(self):
-        return self.manual_females, self.manual_males
-        
-    
-    def get_train_and_test(self):
-        return self.train_bag_ngrams, self.test_bag_ngrams, self.label_vec, self.test_label_vec
-    
-    
-    def get_trainset(self):
-        return self.train_bag_ngrams
-
-
-    def get_manual_testset(self):
-        return self.manual_test_bag_ngrams
-
-
-    def get_nwords(self):
-        return self.nwords
-
-
-    def get_n_train_instances(self):
-        return self.n_train_instances
- 
-    
-    def get_n_test_instances(self):
-        return self.n_test_instances
-    
-    
-    def get_n_manual_instances(self):
-        return self.n_manual_instances
-
-
-    def get_manual_set_labels(self):
-        return self.manual_label_vec
+        return labels #, n_males, n_females
     
     
     
