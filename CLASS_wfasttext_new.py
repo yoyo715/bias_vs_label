@@ -272,7 +272,10 @@ class wFastText_new:
             print()
             print("wFastText_new EPOCH: ", i)
             epoch_st = time.time()
-            
+
+            # linearly decaying lr alpha
+            alpha = self.LR * ( 1 - i / self.EPOCH)
+ 
             # NOTE: optimal KMM reweighting coefficient
             self.betas = self.create_optbeta()  
             
