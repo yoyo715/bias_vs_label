@@ -6,7 +6,7 @@
 
 """
 
-from CLASS_dictionary import Dictionary
+from CLASS_dictionary2 import Dictionary
 from CLASS_wfasttext_new import wFastText_new
 
 import argparse, time
@@ -30,12 +30,12 @@ def get_args():
 
 
 # model_version: 'original' or 'kmm;
-def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run):
+def create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run):
     print("starting dictionary creation") 
 
     # dictionary must be recreated each run to get different subsample each time
     start = time.time()
-    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
+    dictionary = Dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     end = time.time()
     print("dictionary took ", (end - start)/60.0, " time to create.")
     
@@ -73,7 +73,7 @@ def main():
     
     KERNEL = args['kernel']
     
-    dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, SUBSET_VAL, run)
+    dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     
     wfasttext = wFastText_new(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE, KERNEL)
     wfasttext.train_batch()
