@@ -301,6 +301,8 @@ class wFastText:
                 
             epoch_et = time.time()
             
+            
+            
             strain_loss = self.get_total_loss(self.A, self.B, X_strain, self.Y_STRAIN, self.N_strain)
             sval_loss = self.get_total_loss(self.A, self.B, X_sval, self.Y_SVAL, self.N_sval)
             rtest_loss = self.get_total_loss(self.A, self.B, X_rtest, self.Y_RTEST, self.N_rtest)

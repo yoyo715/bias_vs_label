@@ -110,7 +110,8 @@ class Dictionary:
     
     def split_Rtest_Rval(self, _set):
         for filename in os.listdir(self.index_Rval):
-            subset = np.loadtxt(self.index_Rval+filename, dtype=np.object)
+            if '_'+str(self.run_number)+'.txt' in filename:
+                subset = np.loadtxt(self.index_Rval+filename, dtype=np.object)
         
         subset = subset.astype(int).tolist()  
         rval = [_set[i] for i in subset]
