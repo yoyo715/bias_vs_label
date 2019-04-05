@@ -20,7 +20,7 @@ class Dictionary:
         self.mincount = mincount
         self.bucket = bucket
         
-        TETON = True    # WORKING ON TETON OR NOT
+        TETON = False    # WORKING ON TETON OR NOT
         if TETON == True:
             self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()     
             self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()       

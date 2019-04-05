@@ -33,7 +33,8 @@ class wFastText_new:
         nwords = dictionary.nwords
         nclasses = dictionary.nclasses
         
-        print("TRIAL: ", dictionary.run_number)
+        self.run_number = dictionary.run_number
+        print("TRIAL: ", self.run_number)
         
         # Initialize Self-labeled Training Sets
         self.X_STRAIN = dictionary.X_STRAIN
@@ -257,7 +258,7 @@ class wFastText_new:
                                    yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest):
         
         save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/new_wfasttext/'
-        fname = 'NEW_wfasttext_RUN'+str(self.run_number)+'_EPOCH'str(epoch)+'_'++'.pkl'
+        fname = 'NEW_wfasttext_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
         
         data =  {   'betas': betas,
                     'Y_STRAIN': Y_STRAIN,
@@ -272,7 +273,8 @@ class wFastText_new:
                     'yhat_stest': yhat_stest
                 }
         
-        output = open(save_dir+fname, 'wb')
+        #output = open(save_dir+fname, 'wb')
+        output = open(fname, 'wb')
         pickle.dump(data, output)
         output.close()
         
@@ -355,8 +357,8 @@ class wFastText_new:
                 A_old = self.A
                 
                 # Forward Propogation
-                #hidden = sparse.csr_matrix.dot(self.A, batch.T)
-                #a1 = normalize(hidden, axis=0, norm='l1')
+                hidden = sparse.csr_matrix.dot(self.A, batch.T)
+                a1 = normalize(hidden, axis=0, norm='l1')
                 #z2 = np.dot(self.B, a1)
                 #Y_hat = self.stable_softmax(z2)
                 
