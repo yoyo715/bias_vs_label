@@ -207,12 +207,31 @@ class wFastText:
         return A       
     
 
-    def get_class_err(self, X, Y, A, B, N):
+    #def get_class_err(self, X, Y, A, B, N):
+        ## get predicted classes
+        #hidden = sparse.csr_matrix.dot(A, X.T)        
+        #a1 = normalize(hidden, axis=0, norm='l1')
+        #z2 = np.dot(B, a1)
+        #Y_hat = self.stable_softmax(z2)
+        
+        ## compare to actual classes
+        #prediction_max = np.argmax(Y_hat, axis=0)
+        #true_label_max = np.argmax(Y, axis=1)
+        
+        #class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
+        
+        #print(confusion_matrix(true_label_max, prediction_max))
+        #print()
+                
+        #return class_error
+        
+        
+    def get_class_err(self, Y_hat, Y, N):
         # get predicted classes
-        hidden = sparse.csr_matrix.dot(A, X.T)        
-        a1 = normalize(hidden, axis=0, norm='l1')
-        z2 = np.dot(B, a1)
-        Y_hat = self.stable_softmax(z2)
+        #hidden = sparse.csr_matrix.dot(A, X.T)        
+        #a1 = normalize(hidden, axis=0, norm='l1')
+        #z2 = np.dot(B, a1)
+        #Y_hat = self.stable_softmax(z2)
         
         # compare to actual classes
         prediction_max = np.argmax(Y_hat, axis=0)
@@ -222,8 +241,40 @@ class wFastText:
         
         print(confusion_matrix(true_label_max, prediction_max))
         print()
-                
+        
         return class_error
+    
+    
+    def compute_yhat(self, A, B, X):
+        hidden = sparse.csr_matrix.dot(A, X.T)
+        a1 = normalize(hidden, axis=0, norm='l1')
+        z2 = np.dot(B, a1)
+        Y_hat = self.stable_softmax(z2)
+        return Y_hat
+    
+    
+    def save_betas_yhat_y(self, epoch, betas, Y_STRAIN, Y_SVAL, Y_RTEST, Y_RVAL, Y_STEST,
+                                   yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest):
+        
+        save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/old_wfasttext/'
+        fname = 'OLD_wfasttext_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
+        
+        data =  {   'betas': betas,
+                    'Y_STRAIN': Y_STRAIN,
+                    'Y_SVAL': Y_SVAL,
+                    'Y_RTEST': Y_RTEST,
+                    'Y_RVAL': Y_RVAL,
+                    'Y_STEST': Y_STEST,
+                    'yhat_strain': yhat_strain,
+                    'yhat_sval': yhat_sval,
+                    'yhat_rtest': yhat_rtest,
+                    'yhat_rval': yhat_rval,
+                    'yhat_stest': yhat_stest
+                }
+        
+        output = open(save_dir+fname, 'wb')
+        pickle.dump(data, output)
+        output.close()
         
 
     def train_batch(self):
@@ -250,11 +301,20 @@ class wFastText:
         print("INITIAL STest Loss:    ", stest_loss)
         print()
         
-        strain_class_error = self.get_class_err(X_strain, self.Y_STRAIN, self.A, self.B, self.N_strain)
-        sval_class_error = self.get_class_err(X_sval, self.Y_SVAL, self.A, self.B, self.N_sval)
-        rtest_class_error = self.get_class_err(X_rtest, self.Y_RTEST, self.A, self.B, self.N_rtest)
-        rval_class_error = self.get_class_err(X_rval, self.Y_RVAL, self.A, self.B, self.N_rval)
-        stest_class_error = self.get_class_err(X_stest, self.Y_STEST, self.A, self.B, self.N_stest)
+        yhat_strain = self.compute_yhat(self.A, self.B, X_strain)
+        strain_class_error = self.get_class_err(yhat_strain, self.Y_STRAIN, self.N_strain)
+        
+        yhat_sval = self.compute_yhat(self.A, self.B, X_sval)
+        sval_class_error = self.get_class_err(yhat_sval, self.Y_SVAL, self.N_sval)
+        
+        yhat_rtest = self.compute_yhat(self.A, self.B, X_rtest)
+        rtest_class_error = self.get_class_err(yhat_rtest, self.Y_RTEST, self.N_rtest)
+        
+        yhat_rval = self.compute_yhat(self.A, self.B, X_rval)
+        rval_class_error = self.get_class_err(yhat_rval, self.Y_RVAL, self.N_rval)
+        
+        yhat_stest = self.compute_yhat(self.A, self.B, X_stest)
+        stest_class_error = self.get_class_err(yhat_stest, self.Y_STEST, self.N_stest)
 
         print("INITIAL KMM_STRAIN Classification Err: ", strain_class_error)
         print("INITIAL KMM_SVAL Classification Err: ", sval_class_error)
@@ -301,8 +361,6 @@ class wFastText:
                 
             epoch_et = time.time()
             
-            
-            
             strain_loss = self.get_total_loss(self.A, self.B, X_strain, self.Y_STRAIN, self.N_strain)
             sval_loss = self.get_total_loss(self.A, self.B, X_sval, self.Y_SVAL, self.N_sval)
             rtest_loss = self.get_total_loss(self.A, self.B, X_rtest, self.Y_RTEST, self.N_rtest)
@@ -316,11 +374,20 @@ class wFastText:
             print("STest Loss:    ", stest_loss)
             print()
             
-            strain_class_error = self.get_class_err(X_strain, self.Y_STRAIN, self.A, self.B, self.N_strain)
-            sval_class_error = self.get_class_err(X_sval, self.Y_SVAL, self.A, self.B, self.N_sval)
-            rtest_class_error = self.get_class_err(X_rtest, self.Y_RTEST, self.A, self.B, self.N_rtest)
-            rval_class_error = self.get_class_err(X_rval, self.Y_RVAL, self.A, self.B, self.N_rval)
-            stest_class_error = self.get_class_err(X_stest, self.Y_STEST, self.A, self.B, self.N_stest)
+            yhat_strain = self.compute_yhat(self.A, self.B, X_strain)
+            strain_class_error = self.get_class_err(yhat_strain, self.Y_STRAIN, self.N_strain)
+            
+            yhat_sval = self.compute_yhat(self.A, self.B, X_sval)
+            sval_class_error = self.get_class_err(yhat_sval, self.Y_SVAL, self.N_sval)
+            
+            yhat_rtest = self.compute_yhat(self.A, self.B, X_rtest)
+            rtest_class_error = self.get_class_err(yhat_rtest, self.Y_RTEST, self.N_rtest)
+            
+            yhat_rval = self.compute_yhat(self.A, self.B, X_rval)
+            rval_class_error = self.get_class_err(yhat_rval, self.Y_RVAL, self.N_rval)
+            
+            yhat_stest = self.compute_yhat(self.A, self.B, X_stest)
+            stest_class_error = self.get_class_err(yhat_stest, self.Y_STEST, self.N_stest)
 
             print("KMM_STRAIN Classification Err: ", strain_class_error)
             print("KMM_SVAL Classification Err: ", sval_class_error)
@@ -328,6 +395,9 @@ class wFastText:
             print("KMM_RVAL Classification Err: ", rval_class_error)
             print("KMM_STEST Classification Err: ", stest_class_error)
             print()
+            
+            self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
+                                   yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
             
     
             print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")            

@@ -273,8 +273,7 @@ class wFastText_new:
                     'yhat_stest': yhat_stest
                 }
         
-        #output = open(save_dir+fname, 'wb')
-        output = open(fname, 'wb')
+        output = open(save_dir+fname, 'wb')
         pickle.dump(data, output)
         output.close()
         
@@ -359,10 +358,10 @@ class wFastText_new:
                 # Forward Propogation
                 hidden = sparse.csr_matrix.dot(self.A, batch.T)
                 a1 = normalize(hidden, axis=0, norm='l1')
-                #z2 = np.dot(self.B, a1)
-                #Y_hat = self.stable_softmax(z2)
+                z2 = np.dot(self.B, a1)
+                Y_hat = self.stable_softmax(z2)
                 
-                Y_hat = self.compute_yhat(self.A, self.B, batch)
+                #Y_hat = self.compute_yhat(self.A, self.B, batch)
         
                 # Back prop with alt optimization
                 self.B = self.KMMgradient_B(B_old, A_old, y_batch, alpha, a1, Y_hat, beta_batch)  
