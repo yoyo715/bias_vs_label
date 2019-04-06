@@ -9,7 +9,7 @@ import numpy as np
 from scipy import sparse, stats
 from sklearn.preprocessing import normalize
 from cvxopt import matrix, solvers
-import time, math, sys
+import time, math, sys, pickle
 
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
@@ -29,11 +29,12 @@ class wFastText:
         self.kmmB = kmmB
         self.BATCHSIZE = batchsize
         self.kernel = kernel
-        
+        self.run_number = dictionary.run_number  
+
         nwords = dictionary.nwords
         nclasses = dictionary.nclasses
         
-        print("TRIAL: ", dictionary.run_number)
+        print("TRIAL: ", self.run_number)
         
         # Initialize Self-labeled Training Sets
         self.X_STRAIN = dictionary.X_STRAIN
