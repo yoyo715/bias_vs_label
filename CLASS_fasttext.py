@@ -22,6 +22,8 @@ class FastText:
         print()
         print("######################## FastText ########################")
         
+        self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/fasttext/'
+        
         self.LR = learning_rate
         self.EPOCH = EPOCH
         self.BATCHSIZE = batchsize
@@ -110,7 +112,7 @@ class FastText:
         a1 = normalize(hidden, axis=0, norm='l1')
         z2 = np.dot(B, a1)
         
-        Y_hat = stable_softmax(z2)
+        Y_hat = self.stable_softmax(z2)
         loglike = np.log(Y_hat)
         
         loss = -np.multiply(y, loglike.T)  # need to multiply element wise here
@@ -149,7 +151,6 @@ class FastText:
     def save_yhat_y(self, epoch, Y_STRAIN, Y_SVAL, Y_RTEST, Y_RVAL, Y_STEST,
                                    yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest):
         
-        save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/fasttext/'
         fname = 'fasttext_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
         
         data =  {  'Y_STRAIN': Y_STRAIN,
@@ -164,7 +165,7 @@ class FastText:
                     'yhat_stest': yhat_stest
                 }
         
-        output = open(save_dir+fname, 'wb')
+        output = open(self.save_dir+fname, 'wb')
         pickle.dump(data, output)
         output.close()
     

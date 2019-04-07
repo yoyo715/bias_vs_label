@@ -24,6 +24,8 @@ class wFastText:
         print()
         print("######################## wFastText ########################")
         
+        self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/old_wfasttext/'
+        
         self.LR = learning_rate
         self.EPOCH = EPOCH
         self.kmmB = kmmB
@@ -118,7 +120,7 @@ class wFastText:
             
         if kern == 'lin':
             K = np.dot(Z, Z.T) 
-            K = K.todense() #+ self.lin_c  
+            K = K.todense()
             kappa = np.sum(np.dot(Z, X.T)*float(nz)/float(nx),axis=1)
         elif kern == 'rbf':
             K=sk.rbf_kernel(Z, Z)
@@ -231,8 +233,6 @@ class wFastText:
     
     def save_betas_yhat_y(self, epoch, betas, Y_STRAIN, Y_SVAL, Y_RTEST, Y_RVAL, Y_STEST,
                                    yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest):
-        
-        save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/old_wfasttext/'
         fname = 'OLD_wfasttext_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
         
         data =  {   'betas': betas,
@@ -248,7 +248,7 @@ class wFastText:
                     'yhat_stest': yhat_stest
                 }
         
-        output = open(save_dir+fname, 'wb')
+        output = open(self.save_dir+fname, 'wb')
         pickle.dump(data, output)
         output.close()
         
@@ -387,103 +387,3 @@ class wFastText:
         print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
             
     
-    def train(self):
-        losses_train = []
-        losses_test = []
-        losses_manual = []
-
-        classerr_train = []
-        classerr_test = []
-        classerr_manual = []
-
-        print()
-        print()
-        
-        X_train = normalize(self.X_train, axis=1, norm='l1')
-        X_test = normalize(self.X_test, axis=1, norm='l1')
-        X_manual = normalize(self.X_manual, axis=1, norm='l1')
-        
-        traintime_start = time.time()
-        for i in range(self.EPOCH):
-            epoch_st = time.time()
-            print()
-            print("wFastText EPOCH: ", i)
-            
-            # linearly decaying lr alpha
-            alpha = self.LR * ( 1 - i / self.EPOCH)
-            
-            l = 0
-            
-            for x in X_train:
-                label = self.y_train[l]
-                beta = self.betas[l]
-                
-                B_old = self.B
-                A_old = self.A
-                
-                # Forward Propogation
-                hidden = sparse.csr_matrix.dot(self.A, x.T)
-                a1 = normalize(hidden, axis=0, norm='l1')
-                z2 = np.dot(self.B, a1)
-                Y_hat = self.stable_softmax(z2)
-        
-                # Back prop with alt optimization
-                self.B = self.KMMgradient_B(B_old, A_old, label, alpha, a1, Y_hat, beta)  
-                self.A = self.KMMgradient_A(B_old, A_old, x, label, alpha, Y_hat, beta)
-
-            epoch_et = time.time()
-            print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")
-
-            # TRAINING LOSS
-            train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
-            print("KMM Train:   ", train_loss)
-
-            ## TESTING LOSS
-            test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
-            print("KMM Test:    ", test_loss)
-            
-            ## MANUAL SET TESTING LOSS
-            manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
-            print("KMM Manual:    ", manual_loss)
-            print()
-
-            losses_train.append(train_loss)
-            losses_test.append(test_loss)
-            losses_manual.append(manual_loss)
-            
-            train_class_error = self.metrics(X_train, self.y_train, self.A, self.B, self.N_train, 'KMMtrain', i)
-            
-            test_class_error = self.metrics(X_test, self.y_test, self.A, self.B, self.N_test, 'KMMtest', i)
-            
-            manual_class_error = self.metrics(X_manual, self.y_manual, self.A, self.B, self.N_manual, 'KMMmanual', i)
-            
-            
-            classerr_train.append(train_class_error)
-            classerr_test.append(test_class_error)
-            classerr_manual.append(manual_class_error)
-
-            print()
-            print("KMMTRAIN Classification Err: ", train_class_error)
-            #print("         Precision:          ", train_precision)
-            #print("         Recall:             ", train_recall)
-            #print("         F1:                 ", train_F1)
-
-            print("KMMTEST Classification Err:", test_class_error)
-            #print("         Precision:          ", test_precision)
-            #print("         Recall:             ", test_recall)
-            #print("         F1:                 ", test_F1)
-            
-            print("KMMMANUAL Classification Err: ", manual_class_error)
-            #print("         Precision:          ", manual_precision)
-            #print("         Recall:             ", manual_recall)
-            #print("         F1:                 ", manual_F1)
-            
-            print("_____________________________________________________")
-            sys.stdout.flush()
-            
-            
-            i += 1
-            
-        traintime_end = time.time()
-        print("~~~~KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
-        
