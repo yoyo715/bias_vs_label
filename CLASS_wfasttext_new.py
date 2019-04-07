@@ -207,33 +207,9 @@ class wFastText_new:
         A = np.subtract(A_old, gradient) 
         
         return A       
-
     
-    #def get_class_err(self, X, Y, A, B, N):
-        ## get predicted classes
-        #hidden = sparse.csr_matrix.dot(A, X.T)        
-        #a1 = normalize(hidden, axis=0, norm='l1')
-        #z2 = np.dot(B, a1)
-        #Y_hat = self.stable_softmax(z2)
-        
-        ## compare to actual classes
-        #prediction_max = np.argmax(Y_hat, axis=0)
-        #true_label_max = np.argmax(Y, axis=1)
-        
-        #class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
-        
-        #print(confusion_matrix(true_label_max, prediction_max))
-        #print()
-        
-        #return class_error
     
-    def get_class_err(self, Y_hat, Y, N):
-        # get predicted classes
-        #hidden = sparse.csr_matrix.dot(A, X.T)        
-        #a1 = normalize(hidden, axis=0, norm='l1')
-        #z2 = np.dot(B, a1)
-        #Y_hat = self.stable_softmax(z2)
-        
+    def get_class_err(self, Y_hat, Y, N):        
         # compare to actual classes
         prediction_max = np.argmax(Y_hat, axis=0)
         true_label_max = np.argmax(Y, axis=1)
@@ -360,9 +336,7 @@ class wFastText_new:
                 a1 = normalize(hidden, axis=0, norm='l1')
                 z2 = np.dot(self.B, a1)
                 Y_hat = self.stable_softmax(z2)
-                
-                #Y_hat = self.compute_yhat(self.A, self.B, batch)
-        
+                        
                 # Back prop with alt optimization
                 self.B = self.KMMgradient_B(B_old, A_old, y_batch, alpha, a1, Y_hat, beta_batch)  
                 self.A = self.KMMgradient_A(B_old, A_old, batch, y_batch, alpha, Y_hat, beta_batch)

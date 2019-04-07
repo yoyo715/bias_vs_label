@@ -59,16 +59,9 @@ def main():
 
     # adjust these
     EPOCH=20
-    LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
     KMMLR = float(args['learning_rate'])
     B = float(args['b_val'])
-    
-    #KMMLR = 0.015   #0.014         #0.015 pretty good
-    #KMMLR = 0.0001
-    #KMMLR = 0.001
-
     BATCHSIZE = 10      # number of instances in each batch
-    
     KERNEL = args['kernel']
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)

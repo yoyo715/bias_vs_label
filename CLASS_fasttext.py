@@ -169,7 +169,7 @@ class FastText:
         output.close()
     
     
-    def train_batch():
+    def train_batch(self):
         print()
         print()
         print("Batch Training, BATCHSIZE:", self.BATCHSIZE)
@@ -301,7 +301,7 @@ class FastText:
         print("FastText model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
         
 
-    def train():
+    def train(self):
         losses_train = []
         losses_test = []
         losses_manual = []
