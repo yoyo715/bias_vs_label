@@ -1,13 +1,13 @@
-# MAIN_ALL.py
+# MAIN_FT.py
 
 
 """
-
-
+    Main script to run the fasttext model
+    
 """
 
 from CLASS_dictionary2 import Dictionary
-from CLASS_wfasttext_new import wFastText_new
+from CLASS_fasttext import FastText
 
 import argparse, time
 import numpy as np
@@ -20,10 +20,7 @@ def get_args():
     parser.add_argument('-r', "--run", action='store', help="trial number", required=True)
     
     parser.add_argument('-l', "--learning_rate", action='store', help="KMM Learning Rate", required=True)
-    
-    parser.add_argument('-b', "--b_val", action='store', help="KMM B value", required=True)
 
-    parser.add_argument('-k', '--kernel', action='store', help='KMM Kernel', required=True)
     args = vars(parser.parse_args())
 
     return args
@@ -58,25 +55,14 @@ def main():
     MAXN=3
     BUCKET=1000000
 
-    # adjust these
     EPOCH=20
-    LR= 0.007       #0.008                 #0.007            # 0.008 good for fasttext
-    KMMLR = float(args['learning_rate'])
-    B = float(args['b_val'])
-    
-    #KMMLR = 0.015   #0.014         #0.015 pretty good
-    #KMMLR = 0.0001
-    #KMMLR = 0.001
-
-    SUBSET_VAL = 10000   # number of subset instances for self reported dataset
+    LR = float(args['learning_rate'])
     BATCHSIZE = 10      # number of instances in each batch
-    
-    KERNEL = args['kernel']
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     
-    wfasttext = wFastText_new(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE, KERNEL)
-    wfasttext.train_batch()
+    fasttext = FastText(dictionary, LR, DIM, EPOCH, BATCHSIZE)
+    fasttext.train_batch()
     
     
     
