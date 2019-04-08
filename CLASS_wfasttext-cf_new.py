@@ -1,9 +1,16 @@
 #CLASS_wfasttext-cf_new.py
 
-import  os, sys, math, time
-import  numpy as  np 
-import scipy as sp
-from cvxopt import matrix, solvers, spmatrix, sparse, mul
+import numpy as np
+from scipy import sparse, stats
+from sklearn.preprocessing import normalize
+from cvxopt import matrix, solvers
+import time, math, sys, pickle
+
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+from sklearn.preprocessing import normalize
+from sklearn.metrics import confusion_matrix
+import sklearn.metrics.pairwise as sk
 
 """
     wFastText-cf:
@@ -31,8 +38,8 @@ class wFastText_cf_new:
         self.kernel = kernel
         self.run_number = dictionary.run_number  
         
-        nwords = dictionary.get_nwords()
-        nclasses = dictionary.get_nclasses()
+        nwords = dictionary.nwords
+        nclasses = dictionary.nclasses
                 
         print("TRIAL: ", self.run_number)
         
@@ -221,50 +228,8 @@ class wFastText_cf_new:
         
         return A      
     
-    # function to return prediction error, precision, recall, F1 score
-    def metrics(self, X, Y, A, B, N, test, epoch):
-        # get predicted classes
-        hidden = sparse.csr_matrix.dot(A, X.T)        
-        a1 = normalize(hidden, axis=0, norm='l1')
-        z2 = np.dot(B, a1)
-        Y_hat = self.stable_softmax(z2)
-
-        # compare to actual classes
-        prediction_max = np.argmax(Y_hat, axis=0)
-        true_label_max = np.argmax(Y, axis=1)
-
         
-        class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
-        class_acc = np.sum(true_label_max == prediction_max.T) * 1.0 / N
-        
-        if ( class_error + class_acc ) != 1:
-            print("ERROR in computing class errror")
-        
-        #print(confusion_matrix(true_label_max, prediction_max))
-
-        true_neg, false_pos, false_neg, true_pos = confusion_matrix(true_label_max, prediction_max, labels=[0,1]).ravel()
-        
-        # Compute fpr, tpr, thresholds and roc auc
-        fpr, tpr, thresholds = roc_curve(true_label_max, prediction_max)
-        roc_auc = auc(fpr, tpr)
-        
-        #print("AUC score: ", roc_auc)
-        #print()
-
-        precision = true_pos / (true_pos + false_pos)           # true pos rate (TRP)
-        recall = true_pos / (true_pos + false_neg)              # 
-        F1 = 2 * ((precision * recall) / (precision + recall))
-
-
-        return class_error #, precision, recall, F1, roc_auc, fpr, tpr
-    
-    def get_class_err(self, X, Y, A, B, N):
-        # get predicted classes
-        hidden = sparse.csr_matrix.dot(A, X.T)        
-        a1 = normalize(hidden, axis=0, norm='l1')
-        z2 = np.dot(B, a1)
-        Y_hat = self.stable_softmax(z2)
-        
+    def get_class_err(self, Y_hat, Y, N):        
         # compare to actual classes
         prediction_max = np.argmax(Y_hat, axis=0)
         true_label_max = np.argmax(Y, axis=1)
@@ -274,9 +239,38 @@ class wFastText_cf_new:
         print(confusion_matrix(true_label_max, prediction_max))
         print()
         
-        #class_acc = np.sum(true_label_max == prediction_max.T) * 1.0 / N
-        
         return class_error
+    
+    
+    def compute_yhat(self, A, B, X):
+        hidden = sparse.csr_matrix.dot(A, X.T)
+        a1 = normalize(hidden, axis=0, norm='l1')
+        z2 = np.dot(B, a1)
+        Y_hat = self.stable_softmax(z2)
+        return Y_hat
+    
+    
+    def save_betas_yhat_y(self, epoch, betas, Y_STRAIN, Y_SVAL, Y_RTEST, Y_RVAL, Y_STEST,
+                                   yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest):
+        
+        fname = 'NEW_wfasttext_cf_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
+        
+        data =  {   'betas': betas,
+                    'Y_STRAIN': Y_STRAIN,
+                    'Y_SVAL': Y_SVAL,
+                    'Y_RTEST': Y_RTEST,
+                    'Y_RVAL': Y_RVAL,
+                    'Y_STEST': Y_STEST,
+                    'yhat_strain': yhat_strain,
+                    'yhat_sval': yhat_sval,
+                    'yhat_rtest': yhat_rtest,
+                    'yhat_rval': yhat_rval,
+                    'yhat_stest': yhat_stest
+                }
+        
+        output = open(self.save_dir+fname, 'wb')
+        pickle.dump(data, output)
+        output.close()
        
        
     def train_batch(self):
@@ -284,35 +278,50 @@ class wFastText_cf_new:
         print()
         print("Batch Training, BATCHSIZE:", self.BATCHSIZE)
 
-        X_train = normalize(self.X_train, axis=1, norm='l1')
-        X_test = normalize(self.X_test, axis=1, norm='l1')
-        X_manual = normalize(self.X_manual, axis=1, norm='l1')
+        X_strain = normalize(self.X_STRAIN, axis=1, norm='l1')
+        X_sval = normalize(self.X_SVAL, axis=1, norm='l1')
+        X_rtest = normalize(self.X_RTEST, axis=1, norm='l1')
+        X_rval = normalize(self.X_RVAL, axis=1, norm='l1')
+        X_stest = normalize(self.X_STEST, axis=1, norm='l1')
         
-        traintime_start = time.time()
+        strain_loss = self.get_total_loss(self.A, self.B, X_strain, self.Y_STRAIN, self.N_strain)
+        sval_loss = self.get_total_loss(self.A, self.B, X_sval, self.Y_SVAL, self.N_sval)
+        rtest_loss = self.get_total_loss(self.A, self.B, X_rtest, self.Y_RTEST, self.N_rtest)
+        rval_loss = self.get_total_loss(self.A, self.B, X_rval, self.Y_RVAL, self.N_rval)
+        stest_loss = self.get_total_loss(self.A, self.B, X_stest, self.Y_STEST, self.N_stest)
         
-        # TRAINING LOSS
-        train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
-        print("INITIAL KMM Train Loss:   ", train_loss)
-
-        ## TESTING LOSS
-        test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
-        print("INITIAL KMM Test Loss:    ", test_loss)
-        
-        ## MANUAL SET TESTING LOSS
-        manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
-        print("INITIAL KMM Manual Set Loss:    ", manual_loss)
+        print("INITIAL STrain Loss:   ", strain_loss)
+        print("INITIAL SVal Loss:   ", sval_loss)
+        print("INITIAL RTest Loss:    ", rtest_loss)
+        print("INITIAL RVal Loss:    ", rval_loss)
+        print("INITIAL STest Loss:    ", stest_loss)
         print()
         
-        train_class_error = self.get_class_err(X_train, self.y_train, self.A, self.B, self.N_train)
-        test_class_error = self.get_class_err(X_test, self.y_test, self.A, self.B, self.N_test)
-        manual_class_error = self.get_class_err(X_manual, self.y_manual, self.A, self.B, self.N_manual)
+        yhat_strain = self.compute_yhat(self.A, self.B, X_strain)
+        strain_class_error = self.get_class_err(yhat_strain, self.Y_STRAIN, self.N_strain)
+        
+        yhat_sval = self.compute_yhat(self.A, self.B, X_sval)
+        sval_class_error = self.get_class_err(yhat_sval, self.Y_SVAL, self.N_sval)
+        
+        yhat_rtest = self.compute_yhat(self.A, self.B, X_rtest)
+        rtest_class_error = self.get_class_err(yhat_rtest, self.Y_RTEST, self.N_rtest)
+        
+        yhat_rval = self.compute_yhat(self.A, self.B, X_rval)
+        rval_class_error = self.get_class_err(yhat_rval, self.Y_RVAL, self.N_rval)
+        
+        yhat_stest = self.compute_yhat(self.A, self.B, X_stest)
+        stest_class_error = self.get_class_err(yhat_stest, self.Y_STEST, self.N_stest)
 
-        print("INITIAL KMMTRAIN Classification Err: ", train_class_error)
-        print("INITIAL KMMTEST Classification Err:", test_class_error)
-        print("INITIAL KMMMANUAL Classification Err: ", manual_class_error)
+        print("INITIAL KMM_STRAIN Classification Err: ", strain_class_error)
+        print("INITIAL KMM_SVAL Classification Err: ", sval_class_error)
+        print("INITIAL KMM_RTEST Classification Err: ", rtest_class_error)
+        print("INITIAL KMM_RVAL Classification Err: ", rval_class_error)
+        print("INITIAL KMM_STEST Classification Err: ", stest_class_error)
+        print()
             
         print("_____________________________________________________")
         
+        traintime_start = time.time()
         for i in range(self.EPOCH):
             print()
             print("wFastText-cf_new EPOCH: ", i)
@@ -327,13 +336,13 @@ class wFastText_cf_new:
             alpha = self.LR * ( 1 - i / self.EPOCH)
             
             # Shuffle data
-            batch_indices = np.random.permutation(self.N_train)
-            X_train_batch = X_train.tocsr()[batch_indices]
-            y_train_batch = self.y_train[batch_indices]
+            batch_indices = np.random.permutation(self.N_strain)
+            X_strain_batch = X_strain.tocsr()[batch_indices]
+            y_train_batch = self.Y_STRAIN[batch_indices]
             betas = self.betas[batch_indices]
 
-            for j in range(0, self.N_train, self.BATCHSIZE):                
-                batch = X_train_batch[j:j+self.BATCHSIZE]
+            for j in range(0, self.N_strain, self.BATCHSIZE):                
+                batch = X_strain_batch[j:j+self.BATCHSIZE]
                 y_batch = y_train_batch[j:j+self.BATCHSIZE]
                 beta_batch = betas[j:j+self.BATCHSIZE]
 
@@ -351,31 +360,48 @@ class wFastText_cf_new:
                 self.A = self.KMMgradient_A(B_old, A_old, batch, y_batch, alpha, Y_hat, beta_batch)
                 
             epoch_et = time.time()
+            
+            strain_loss = self.get_total_loss(self.A, self.B, X_strain, self.Y_STRAIN, self.N_strain)
+            sval_loss = self.get_total_loss(self.A, self.B, X_sval, self.Y_SVAL, self.N_sval)
+            rtest_loss = self.get_total_loss(self.A, self.B, X_rtest, self.Y_RTEST, self.N_rtest)
+            rval_loss = self.get_total_loss(self.A, self.B, X_rval, self.Y_RVAL, self.N_rval)
+            stest_loss = self.get_total_loss(self.A, self.B, X_stest, self.Y_STEST, self.N_stest)
+            
+            print("STrain Loss:   ", strain_loss)
+            print("SVal Loss:   ", sval_loss)
+            print("RTest Loss:    ", rtest_loss)
+            print("RVal Loss:    ", rval_loss)
+            print("STest Loss:    ", stest_loss)
+            print()
+            
+            yhat_strain = self.compute_yhat(self.A, self.B, X_strain)
+            strain_class_error = self.get_class_err(yhat_strain, self.Y_STRAIN, self.N_strain)
+            
+            yhat_sval = self.compute_yhat(self.A, self.B, X_sval)
+            sval_class_error = self.get_class_err(yhat_sval, self.Y_SVAL, self.N_sval)
+            
+            yhat_rtest = self.compute_yhat(self.A, self.B, X_rtest)
+            rtest_class_error = self.get_class_err(yhat_rtest, self.Y_RTEST, self.N_rtest)
+            
+            yhat_rval = self.compute_yhat(self.A, self.B, X_rval)
+            rval_class_error = self.get_class_err(yhat_rval, self.Y_RVAL, self.N_rval)
+            
+            yhat_stest = self.compute_yhat(self.A, self.B, X_stest)
+            stest_class_error = self.get_class_err(yhat_stest, self.Y_STEST, self.N_stest)
+
+            print("KMM_STRAIN Classification Err: ", strain_class_error)
+            print("KMM_SVAL Classification Err: ", sval_class_error)
+            print("KMM_RTEST Classification Err: ", rtest_class_error)
+            print("KMM_RVAL Classification Err: ", rval_class_error)
+            print("KMM_STEST Classification Err: ", stest_class_error)
+            print()
+            
+            self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
+                                   yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
+            
+    
             print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")            
             print()
-                
-            # TRAINING LOSS
-            train_loss = self.get_total_loss(self.A, self.B, X_train, self.y_train, self.N_train)
-            print("KMM Train Loss:   ", train_loss)
-
-            ## TESTING LOSS
-            test_loss = self.get_total_loss(self.A, self.B, X_test, self.y_test, self.N_test)
-            print("KMM Test Loss:    ", test_loss)
-            
-            ## MANUAL SET TESTING LOSS
-            manual_loss = self.get_total_loss(self.A, self.B, X_manual, self.y_manual, self.N_manual)
-            print("KMM Manual Set Loss:    ", manual_loss)
-            
-            train_class_error = self.get_class_err(X_train, self.y_train, self.A, self.B, self.N_train)
-            test_class_error = self.get_class_err(X_test, self.y_test, self.A, self.B, self.N_test)
-            manual_class_error = self.get_class_err(X_manual, self.y_manual, self.A, self.B, self.N_manual)
-
-            print()
-            print("KMMTRAIN Classification Err: ", train_class_error)
-            print("KMMTEST Classification Err:", test_class_error)
-            print("KMMMANUAL Classification Err: ", manual_class_error)
-
-            
             print("_____________________________________________________")
             sys.stdout.flush()
             
