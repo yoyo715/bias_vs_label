@@ -19,7 +19,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Enter trial number and Learning Rate')
     parser.add_argument('-r', "--run", action='store', help="trial number", required=True)
     
-    parser.add_argument('-l', "--learning_rate", action='store', help="KMM Learning Rate", required=True)
+    parser.add_argument('-l', "--learning_rate", action='store', help="Learning Rate", required=True)
 
     args = vars(parser.parse_args())
 

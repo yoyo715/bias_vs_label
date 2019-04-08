@@ -139,6 +139,17 @@ class FastText:
         
         return A    
     
+    def get_class_err(self, Y_hat, Y, N):        
+        # compare to actual classes
+        prediction_max = np.argmax(Y_hat, axis=0)
+        true_label_max = np.argmax(Y, axis=1)
+        
+        class_error = np.sum(true_label_max != prediction_max.T) * 1.0 / N
+        
+        print(confusion_matrix(true_label_max, prediction_max))
+        print()
+        
+        return class_error
     
     def compute_yhat(self, A, B, X):
         hidden = sparse.csr_matrix.dot(A, X.T)
