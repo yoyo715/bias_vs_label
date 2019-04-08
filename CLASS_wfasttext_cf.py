@@ -17,7 +17,7 @@ from cvxopt import matrix, solvers, spmatrix, sparse, mul
 
 
 class wFastText_cf:
-    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB0, kmmB1 batchsize, kernel):
+    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmR0, kmmR1, batchsize, kernel):
         print()
         print("######################## wFastText-cf ########################")
         
@@ -25,14 +25,14 @@ class wFastText_cf:
         
         self.LR = learning_rate
         self.EPOCH = EPOCH
-        self.kmmB0 = kmmB0
-        self.kmmB1 = kmmB1
+        self.kmmR0 = kmmR0
+        self.kmmR1 = kmmR1
         self.BATCHSIZE = batchsize
         self.kernel = kernel
         self.run_number = dictionary.run_number  
         
-        nwords = dictionary.get_nwords()
-        nclasses = dictionary.get_nclasses()
+        nwords = dictionary.nwords
+        nclasses = dictionary.nclasses
                 
         print("TRIAL: ", self.run_number)
         
@@ -97,8 +97,8 @@ class wFastText_cf:
         start = time.time()
         
         #################### wFastText-cf METHOD #####################        
-        opt_beta = self.kernel_mean_matching(self.X_RTEST, self.X_STRAIN, self.Y_STRAIN
-                                             kern=self.kernel, B0=self.kmmB0, B1=self.kmmB1, eps=None)
+        opt_beta = self.kernel_mean_matching(self.X_RTEST, self.X_STRAIN, self.Y_STRAIN,
+                                             kern=self.kernel, B0=self.kmmR0, B1=self.kmmR1, eps=None)
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
