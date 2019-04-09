@@ -105,7 +105,7 @@ class wFastText_cf_new:
         Z = sparse.csr_matrix.dot(self.A, self.X_STRAIN.T)
         
         #################### wFastText-cf METHOD #####################
-        opt_beta = self.kernel_mean_matching(X.T, Z.T, self.y_train, 
+        opt_beta = self.kernel_mean_matching(X.T, Z.T, self.Y_STRAIN, 
                                             kern=self.kernel, 
                                             B0=self.kmmB0, B1=self.kmmB1, eps=None)      
                 
