@@ -24,7 +24,7 @@ import sklearn.metrics.pairwise as sk
 
 
 class wFastText_cf_new:
-    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB0, kmmB1 batchsize, kernel):
+    def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB0, kmmB1, batchsize, kernel):
         print()
         print("######################## wFastText-cf_new ########################")
         
@@ -107,7 +107,7 @@ class wFastText_cf_new:
         #################### wFastText-cf METHOD #####################
         opt_beta = self.kernel_mean_matching(X.T, Z.T, self.y_train, 
                                             kern=self.kernel, 
-                                            self.kmmB0, self.kmmB1, eps=None)      
+                                            B0=self.kmmB0, B1=self.kmmB1, eps=None)      
                 
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")

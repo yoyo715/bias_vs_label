@@ -7,7 +7,7 @@
 """
 
 from CLASS_dictionary2 import Dictionary
-from CLASS_wfasttext-cf_new import wFastText_cf_new
+from CLASS_wfasttext_cf_new import wFastText_cf_new
 
 import argparse, time
 import numpy as np
@@ -20,9 +20,8 @@ def get_args():
     parser.add_argument('-r', "--run", action='store', help="trial number", required=True)
     
     parser.add_argument('-l', "--learning_rate", action='store', help="KMM Learning Rate", required=True)
-    
-    parser.add_argument('-b', "--b_val_zero", action='store', help="KMM B0 value", required=True)
-    parser.add_argument('-r', "--b_val_one", action='store', help="KMM B1 value", required=True)
+    parser.add_argument('-b', "--r_val_zero", action='store', help="KMM B0 value", required=True)
+    parser.add_argument('-q', "--r_val_one", action='store', help="KMM B1 value", required=True)
 
     parser.add_argument('-k', '--kernel', action='store', help='KMM Kernel', required=True)
 
@@ -63,17 +62,16 @@ def main():
     # adjust these
     EPOCH=20
     KMMLR = float(args['learning_rate'])
-    B = float(args['b_val'])
     BATCHSIZE = 10      # number of instances in each batch
     KERNEL = args['kernel']
     
-    kmmb0 = args['b_val_zero']
-    kmmb1 = args['b_val_one']
+    kmmb0 = args['r_val_zero']
+    kmmb1 = args['r_val_one']
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     
-    wfasttext-cf = wFastText_cf_new(dictionary, KMMLR, DIM, EPOCH, kmmb0, kmmb1, BATCHSIZE, KERNEL)
-    wfasttext-cf.train_batch()
+    wfasttext_cf = wFastText_cf_new(dictionary, KMMLR, DIM, EPOCH, kmmb0, kmmb1, BATCHSIZE, KERNEL)
+    wfasttext_cf.train_batch()
     
     
 if __name__ == '__main__':
