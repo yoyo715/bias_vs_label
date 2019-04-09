@@ -65,8 +65,8 @@ def main():
     BATCHSIZE = 10      # number of instances in each batch
     KERNEL = args['kernel']
     
-    kmmb0 = args['r_val_zero']
-    kmmb1 = args['r_val_one']
+    kmmb0 = float(args['r_val_zero'])
+    kmmb1 = float(args['r_val_one'])
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     
