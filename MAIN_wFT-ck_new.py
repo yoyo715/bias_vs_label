@@ -7,7 +7,7 @@
 """
 
 from CLASS_dictionary2 import Dictionary
-from CLASS_wfasttext-ck_new import wFastText_ck_new
+from CLASS_wfasttext_ck_new import wFastText_ck_new
 
 import argparse, time
 import numpy as np
@@ -69,13 +69,13 @@ def main():
     BATCHSIZE = 10      # number of instances in each batch
     KERNEL = args['kernel']
     
-    r_female = args['rfemale']
-    r_male = args['rmale']
+    r_female = float(args['rfemale'])
+    r_male = float(args['rmale'])
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     
-    wfasttext-ck = wFastText_ck_new(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE, KERNEL, r_female, r_male)
-    wfasttext-ck.train_batch()
+    wfasttext_ck = wFastText_ck_new(dictionary, KMMLR, DIM, EPOCH, B, BATCHSIZE, KERNEL, r_female, r_male)
+    wfasttext_ck.train_batch()
     
     
     

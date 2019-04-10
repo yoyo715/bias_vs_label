@@ -1,4 +1,4 @@
-#CLASS_wfasttext-ck.py
+#CLASS_wfasttext-ck_new.py
 
 import numpy as np
 from scipy import sparse, stats
@@ -24,12 +24,12 @@ import sklearn.metrics.pairwise as sk
 """
 
 
-class wFastText_ck:
+class wFastText_ck_new:
     def __init__(self, dictionary, learning_rate, DIM, EPOCH, kmmB, batchsize, kernel, r_female, r_male):
         print()
-        print("######################## wFastText-ck ########################")
+        print("######################## wFastText-ck_new ########################")
         
-        self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/old_wfasttext-ck/'
+        self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/new_wfasttext-ck/'
         
         self.LR = learning_rate
         self.EPOCH = EPOCH
@@ -38,9 +38,9 @@ class wFastText_ck:
         self.kernel = kernel
         self.run_number = dictionary.run_number  
         
-        self.r_female = self.r_female   #0.5
-        self.r_male = self.r_male       #2.0
-        
+        self.r_female = r_female   #0.5
+        self.r_male = r_male       #2.0
+    
         nwords = dictionary.nwords
         nclasses = dictionary.nclasses
         
@@ -97,16 +97,7 @@ class wFastText_ck:
         self.B = np.zeros((B_m, B_n))
 
         sys.stdout.flush()
-        
-        ####### wFastText-ck METHOD: ######
-        self.betas = create_optbeta()       # NOTE: optimal KMM reweighting coefficient
-        
-        true_label_max = np.argmax(self.Y_STRAIN, axis=1)
-    
-        self.betas[true_label_max==1] *= self.r_female
-        self.betas[true_label_max==0] *= self.r_male
-        
-        sys.stdout.flush()
+
         
         
 ###########################################################################################################
@@ -116,12 +107,23 @@ class wFastText_ck:
         
         start = time.time()
         
-        opt_beta = self.kernel_mean_matching(self.X_RTEST, self.X_STRAIN, kern=self.kernel, B=self.kmmB, eps=None)
+        X = sparse.csr_matrix.dot(self.A, self.X_RTEST.T)
+        Z = sparse.csr_matrix.dot(self.A, self.X_STRAIN.T)
+        
+        opt_beta = self.kernel_mean_matching(X.T, Z.T, kern=self.kernel, B=self.kmmB, eps=None)
+        
+        ####### wFastText-ck METHOD: ######
+        true_label_max = np.argmax(self.Y_STRAIN, axis=1)
+        
+        opt_beta[true_label_max==1] *= self.r_female
+        opt_beta[true_label_max==0] *= self.r_male
         
         end = time.time()
         print("Beta took ", (end - start)/60.0, " minutes to optimize.")
         print("About Beta: ")
         print(stats.describe(opt_beta))
+        print()
+        sys.stdout.flush()
         
         return opt_beta
       
@@ -249,7 +251,7 @@ class wFastText_ck:
     
     def save_betas_yhat_y(self, epoch, betas, Y_STRAIN, Y_SVAL, Y_RTEST, Y_RVAL, Y_STEST,
                                    yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest):
-        fname = 'OLD_wfasttext_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
+        fname = 'NEW_wfasttext_cf_RUN'+self.run_number+'_EPOCH'+str(epoch)+'.pkl'
         
         data =  {   'betas': betas,
                     'Y_STRAIN': Y_STRAIN,
@@ -267,7 +269,7 @@ class wFastText_ck:
         output = open(self.save_dir+fname, 'wb')
         pickle.dump(data, output)
         output.close()
-          
+        
         
     def train_batch(self):
         print()
@@ -318,14 +320,19 @@ class wFastText_ck:
         print("_____________________________________________________")
         
         traintime_start = time.time()
+        
         for i in range(self.EPOCH):
             print()
-            print("wFastText EPOCH: ", i)
-            
+            print("wFastText-ck_new EPOCH: ", i)
             epoch_st = time.time()
 
             # linearly decaying lr alpha
             alpha = self.LR * ( 1 - i / self.EPOCH)
+ 
+            # NOTE: optimal KMM reweighting coefficient
+            self.betas = self.create_optbeta()  
+            
+            print("starting training with new betas")
             
             # Shuffle data
             batch_indices = np.random.permutation(self.N_strain)
@@ -346,7 +353,7 @@ class wFastText_ck:
                 a1 = normalize(hidden, axis=0, norm='l1')
                 z2 = np.dot(self.B, a1)
                 Y_hat = self.stable_softmax(z2)
-        
+                        
                 # Back prop with alt optimization
                 self.B = self.KMMgradient_B(B_old, A_old, y_batch, alpha, a1, Y_hat, beta_batch)  
                 self.A = self.KMMgradient_A(B_old, A_old, batch, y_batch, alpha, Y_hat, beta_batch)
@@ -366,6 +373,7 @@ class wFastText_ck:
             print("STest Loss:    ", stest_loss)
             print()
             
+            
             yhat_strain = self.compute_yhat(self.A, self.B, X_strain)
             strain_class_error = self.get_class_err(yhat_strain, self.Y_STRAIN, self.N_strain)
             
@@ -381,6 +389,7 @@ class wFastText_ck:
             yhat_stest = self.compute_yhat(self.A, self.B, X_stest)
             stest_class_error = self.get_class_err(yhat_stest, self.Y_STEST, self.N_stest)
 
+
             print("KMM_STRAIN Classification Err: ", strain_class_error)
             print("KMM_SVAL Classification Err: ", sval_class_error)
             print("KMM_RTEST Classification Err: ", rtest_class_error)
@@ -388,9 +397,9 @@ class wFastText_ck:
             print("KMM_STEST Classification Err: ", stest_class_error)
             print()
             
+            
             self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
                                    yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
-            
     
             print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")            
             print()
@@ -400,7 +409,6 @@ class wFastText_ck:
             i += 1
             
         traintime_end = time.time()
-        print("KMM model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
-            
-    
-    
+        print("wFastText-ck_new model took ", (traintime_end - traintime_start)/60.0, " minutes to train")
+        
+        
