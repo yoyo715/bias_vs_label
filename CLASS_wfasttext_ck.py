@@ -388,8 +388,8 @@ class wFastText_ck:
             print("KMM_STEST Classification Err: ", stest_class_error)
             print()
             
-            self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
-                                   yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
+            #self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
+                                   #yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
             
     
             print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")            
