@@ -10,8 +10,10 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 #directory_new = '../slurm_scripts/newkmm/rbf/'
-#directory_new = '../slurm_scripts/fasttext/ft/'
-directory_new = '../slurm_scripts/old_wft_cf/hypers/'
+directory_new = '../slurm_scripts/fasttext/ft/'
+#directory_new = '../slurm_scripts/old_wft_cf/hypers/'
+#directory_new = '../slurm_scripts/old_wft_ck/hypers/'
+#directory_new = '../slurm_scripts/new_wft_ck/hypers/'
 
 directory_old = '../slurm_scripts/oldkmm/rbf/'
 #numfiles = len(os.listdir(directory_old))   # number of plots needed 
