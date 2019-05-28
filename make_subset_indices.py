@@ -14,19 +14,30 @@ numfiles = 20
             #f.write("%s\n" % item)
             
             
-for i in range(numfiles):
-    l = random.sample(range(0, max_), NUMINST)
-    fname = 'R_val_'+str(i)+'.txt'
+#for i in range(numfiles):
+    #l = random.sample(range(0, max_), NUMINST)
+    #fname = 'R_val_'+str(i)+'.txt'
     
-    with open('./indices_Rval/'+fname, 'w') as f:
-        for item in l:
-            f.write("%s\n" % item)
+    #with open('./indices_Rval/'+fname, 'w') as f:
+        #for item in l:
+            #f.write("%s\n" % item)
             
             
-            
+NUMINST = 100
+max_ = 500
+        
 #l = random.sample(range(0, max_), NUMINST)
-#fname = 'R_val.txt'
+#fname = 'R_val_RACE.txt'
     
-#with open('./indices_Rval/'+fname, 'w') as f:
+#with open('./indices_Rval_RACE/'+fname, 'w') as f:
     #for item in l:
         #f.write("%s\n" % item)
+
+            
+for i in range(numfiles):
+    l = random.sample(range(0, max_), NUMINST)
+    fname = 'R_val_RACE_'+str(i)+'.txt'
+    
+    with open('./indices_Rval_RACE/'+fname, 'w') as f:
+        for item in l:
+            f.write("%s\n" % item)
