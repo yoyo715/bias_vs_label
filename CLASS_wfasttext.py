@@ -194,6 +194,8 @@ class wFastText:
         
     # finds gradient of B and returns an up
     def KMMgradient_B(self, B, A, label, alpha, hidden, Y_hat, beta):    
+        print(np.subtract(Y_hat.T, label).shape, Y_hat.shape, label.shape)
+        
         first = np.multiply(beta.T, np.subtract(Y_hat.T, label).T)
         gradient = alpha *  np.dot(first, hidden.T)
         B_new = np.subtract(B, gradient)

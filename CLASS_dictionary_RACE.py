@@ -24,11 +24,20 @@ class Dictionary:
         TETON = False
         #TETON = True    # WORKING ON TETON OR NOT
         if TETON == True:
-            self.raw_file_aa = open('../../TwitterAAE-UD-v1/aa250_gold.conllu', encoding='utf8').read()
-            self.raw_file_wh = open('../../TwitterAAE-UD-v1/wh250_gold.conllu', encoding='utf8').read()
+            self.raw_file_aa = open('./TwitterAAE-UD-v1/aa250_gold.conllu', encoding='utf8').read()
+            self.raw_file_wh = open('./TwitterAAE-UD-v1/wh250_gold.conllu', encoding='utf8').read()
+            self.index_dir = './indices_RACE/'  
+            self.index_Rval = './indices_Rval_RACE/'
+            self.index_Sval = './indices_Sval_RACE/'
         else:
-            self.raw_file_aa = open('../../TwitterAAE-UD-v1/aa250_gold.conllu', encoding='utf8').read()
-            self.raw_file_wh = open('../../TwitterAAE-UD-v1/wh250_gold.conllu', encoding='utf8').read()
+            self.file_train = open('../../../simple-queries-master_RACE/data/twitter_race_1.train',
+                                   encoding='utf8').readlines()
+            self.file_test = open('../../../simple-queries-master_RACE/data/twitter_race_1.test', 
+                                  encoding='utf8').readlines() 
+            
+            self.raw_file_aa = open('./TwitterAAE-UD-v1/aa250_gold.conllu', encoding='utf8').read()
+            self.raw_file_wh = open('./TwitterAAE-UD-v1/wh250_gold.conllu', encoding='utf8').read()
+            
             self.index_dir = './indices_RACE/'  
             self.index_Rval = './indices_Rval_RACE/'
             self.index_Sval = './indices_Sval_RACE/'
@@ -40,20 +49,19 @@ class Dictionary:
         raw_wh_labels = [0.0] * len(raw_wh)
         
         
-        #print("--------- creating train instances ---------")
+        print("--------- creating train instances ---------")
         #train_subset = self.split_rand_subset_SFULL()
-        #train_instances, train_labels = self.create_instances_and_labels(train_subset)
-        #x_strain, x_sval = self.split_Strain_Sval(train_instances)
-        #y_strain, y_sval = self.split_Strain_Sval(train_labels)
-        #self.n_strain = len(x_strain)
-        #self.n_sval = len(x_sval)
-        #print("x_strain: ", self.n_strain, " x_sval: ", self.n_sval)
-        #print("y_strain: ", len(y_strain), " y_sval: ", len(y_sval))
-        #print()
+        train_instances, train_labels = self.create_instances_and_labels(self.file_train)
+        x_strain, x_sval = self.split_Strain_Sval(train_instances)
+        y_strain, y_sval = self.split_Strain_Sval(train_labels)
+        self.n_strain = len(x_strain)
+        self.n_sval = len(x_sval)
+        print("x_strain: ", self.n_strain, " x_sval: ", self.n_sval)
+        print("y_strain: ", len(y_strain), " y_sval: ", len(y_sval))
+        print()
         
         print("---------- creating manual instances ---------")
         manual_instances, y_manual = self.combine_manual_race(raw_aa, raw_wh, raw_aa_labels, raw_wh_labels)
-        #manual_instances, y_manual = self.create_instances_and_labels_manset(self.manual_set)
         x_rtest, x_rval = self.split_Rtest_Rval(manual_instances)
         y_rtest, y_rval = self.split_Rtest_Rval(y_manual)
         self.n_rtest = len(x_rtest)
@@ -62,32 +70,32 @@ class Dictionary:
         print("y_rtest: ", len(y_rtest), " y_rval: ", len(y_rval))
         print()
         
-        #print("--------- creating testing instances ---------")
-        #x_stest, y_stest = self.create_instances_and_labels(self.file_test)
-        #self.n_stest = len(x_stest)
-        #print("x_stest: ", self.n_stest)
-        #print()
+        print("--------- creating testing instances ---------")
+        x_stest, y_stest = self.create_instances_and_labels(self.file_test)
+        self.n_stest = len(x_stest)
+        print("x_stest: ", self.n_stest)
+        print()
     
     
-        ## -----------------------------------------------------
+        # -----------------------------------------------------
         
-        #self.nclasses = len(set(train_labels))
+        self.nclasses = len(set(train_labels))
         
-        #print("Creating bag-of-n-grams")
-        #self.X_STRAIN = self.create_initial_bagngrams(x_strain)
-        #self.X_SVAL = self.create_bagngrams(x_sval)
-        #self.Y_STRAIN = self.create_label_vec(self.n_strain, self.nclasses, y_strain)
-        #self.Y_SVAL = self.create_label_vec(self.n_sval, self.nclasses, y_sval)
+        print("Creating bag-of-n-grams")
+        self.X_STRAIN = self.create_initial_bagngrams(x_strain)
+        self.X_SVAL = self.create_bagngrams(x_sval)
+        self.Y_STRAIN = self.create_label_vec(self.n_strain, self.nclasses, y_strain)
+        self.Y_SVAL = self.create_label_vec(self.n_sval, self.nclasses, y_sval)
         
-        #self.X_RTEST = self.create_bagngrams(x_rtest)
-        #self.X_RVAL = self.create_bagngrams(x_rval)
-        #self.Y_RTEST = self.create_label_vec(self.n_rtest, self.nclasses, y_rtest)
-        #self.Y_RVAL = self.create_label_vec(self.n_rval, self.nclasses, y_rval)
+        self.X_RTEST = self.create_bagngrams(x_rtest)
+        self.X_RVAL = self.create_bagngrams(x_rval)
+        self.Y_RTEST = self.create_label_vec(self.n_rtest, self.nclasses, y_rtest)
+        self.Y_RVAL = self.create_label_vec(self.n_rval, self.nclasses, y_rval)
         
-        #self.X_STEST = self.create_bagngrams(x_stest)
-        #self.Y_STEST = self.create_label_vec(self.n_stest, self.nclasses, y_stest)
+        self.X_STEST = self.create_bagngrams(x_stest)
+        self.Y_STEST = self.create_label_vec(self.n_stest, self.nclasses, y_stest)
     
-        #self.nwords = self.X_STRAIN.shape[1]
+        self.nwords = self.X_STRAIN.shape[1]
     
     
     def convert_format(self, raw_file):
@@ -159,69 +167,11 @@ class Dictionary:
             else:
                 labels.append(float(label[-1]))
             
-            sent = ''
-            word = ''
-            for w in x[10:]:
-                if w in whitelist:
-                    if w == '\t':
-                        inst = inst + '\t' + sent
-                        sent = ''
-                        word = ''
-                    elif w != ' ':
-                        word = word + w
-                    else:
-                        if "http" not in word and word != "RT" and word != "rt":
-                            sent = sent + ' ' + word
-                            word = ''
-                        else:
-                            word = ''
+            inst = x[10:]
         
             documents.append(inst)
 
         print(len(documents), " total instances")
-        return documents, labels
-        
-        
-    # this function creates the instances of the manually labeled (Kaggle) dataset
-    def create_instances_and_labels_manset(self, manual_set):
-        words =  []
-        labels = []
-        documents = []
-        whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 \t \n')
-        num = 0
-        
-        # loop through each instance in training data, gets labels
-        for x in manual_set[0:-1]:
-            if num != 361 and num != 360 and num != 359:
-                inst = ''
-                label = x[0:10]
-                if label[0:9] != '__label__':
-                    print("ERROR in manual label creation. Label: ", label)
-                    break
-                else:
-                    labels.append(float(label[-1]))
-                    
-                sent = ''
-                word = ''
-                for w in x[10:]:
-                    if w in whitelist:
-                        if w == '\t':
-                            inst = inst + '\t' + sent
-                            sent = ''
-                            word = ''
-                        elif w != ' ':
-                            word = word + w
-                        else:
-                            if "http" not in word and word != "RT" and word != "rt":
-                                sent = sent + ' ' + word
-                                word = ''
-                            else:
-                                word = ''
-                
-                documents.append(inst)
-            num += 1
-        
-        print(len(documents), " total manual instances")
         return documents, labels
     
     

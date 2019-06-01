@@ -23,8 +23,8 @@ numfiles = 20
             #f.write("%s\n" % item)
             
             
-NUMINST = 100
-max_ = 500
+NUMINST = 1274
+max_ = 6370
         
 #l = random.sample(range(0, max_), NUMINST)
 #fname = 'R_val_RACE.txt'
@@ -36,8 +36,8 @@ max_ = 500
             
 for i in range(numfiles):
     l = random.sample(range(0, max_), NUMINST)
-    fname = 'R_val_RACE_'+str(i)+'.txt'
+    fname = 'S_val_RACE_'+str(i)+'.txt'
     
-    with open('./indices_Rval_RACE/'+fname, 'w') as f:
+    with open('./indices_Sval_RACE/'+fname, 'w') as f:
         for item in l:
             f.write("%s\n" % item)

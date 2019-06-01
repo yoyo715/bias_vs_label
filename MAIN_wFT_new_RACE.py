@@ -6,7 +6,7 @@
 
 """
 
-from CLASS_dictionary2 import Dictionary
+from CLASS_dictionary_RACE import Dictionary
 from CLASS_wfasttext_new import wFastText_new
 
 import argparse, time

@@ -61,8 +61,8 @@ def main():
     
     dictionary = create_dictionary(WORDGRAMS, MINCOUNT, BUCKET, run)
     
-    #fasttext = FastText(dictionary, LR, DIM, EPOCH, BATCHSIZE)
-    #fasttext.train_batch()
+    fasttext = FastText(dictionary, LR, DIM, EPOCH, BATCHSIZE)
+    fasttext.train_batch()
     
     
     

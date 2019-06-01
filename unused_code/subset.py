@@ -9,7 +9,7 @@ dataset = open('../cleaned_combined_FULL.txt', 'r').readlines()
 
 random.shuffle(dataset)
 
-subset = open('../cleaned_test_subset.txt', 'w')
+subset = open('../SUBSET.txt', 'w')
 
 
 i = 0
