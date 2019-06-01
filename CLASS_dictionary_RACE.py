@@ -26,8 +26,10 @@ class Dictionary:
         if TETON == True:
             self.file_train = open('/project/lsrtwitter/mcooley3/data/twitter_race_1.train',encoding='utf8').readlines()
             self.file_test = open('/project/lsrtwitter/mcooley3/data/twitter_race_1.test',encoding='utf8').readlines() 
-            self.raw_file_aa = open('./TwitterAAE-UD-v1/aa250_gold.conllu', encoding='utf8').read()
-            self.raw_file_wh = open('./TwitterAAE-UD-v1/wh250_gold.conllu', encoding='utf8').read()
+            self.raw_file_aa = open('/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/TwitterAAE-UD-v1/aa250_gold.conllu', 
+                                    encoding='utf8').read()
+            self.raw_file_wh = open('/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/TwitterAAE-UD-v1/wh250_gold.conllu', 
+                                    encoding='utf8').read()
             self.index_dir = './indices_RACE/'  
             self.index_Rval = './indices_Rval_RACE/'
             self.index_Sval = './indices_Sval_RACE/'
