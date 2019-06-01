@@ -30,9 +30,8 @@ class Dictionary:
                                     encoding='utf8').read()
             self.raw_file_wh = open('/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/TwitterAAE-UD-v1/wh250_gold.conllu', 
                                     encoding='utf8').read()
-            self.index_dir = './indices_RACE/'  
-            self.index_Rval = './indices_Rval_RACE/'
-            self.index_Sval = './indices_Sval_RACE/'
+            self.index_Rval = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices_Rval_RACE/'
+            self.index_Sval = '/project/lsrtwitter/mcooley3/bias_vs_labelefficiency/indices_Sval_RACE/'
         else:
             self.file_train = open('../../../simple-queries-master_RACE/data/twitter_race_1.train',
                                    encoding='utf8').readlines()
@@ -41,8 +40,7 @@ class Dictionary:
             
             self.raw_file_aa = open('./TwitterAAE-UD-v1/aa250_gold.conllu', encoding='utf8').read()
             self.raw_file_wh = open('./TwitterAAE-UD-v1/wh250_gold.conllu', encoding='utf8').read()
-            
-            self.index_dir = './indices_RACE/'  
+              
             self.index_Rval = './indices_Rval_RACE/'
             self.index_Sval = './indices_Sval_RACE/'
             
@@ -54,7 +52,6 @@ class Dictionary:
         
         
         print("--------- creating train instances ---------")
-        #train_subset = self.split_rand_subset_SFULL()
         train_instances, train_labels = self.create_instances_and_labels(self.file_train)
         x_strain, x_sval = self.split_Strain_Sval(train_instances)
         y_strain, y_sval = self.split_Strain_Sval(train_labels)
@@ -119,16 +116,6 @@ class Dictionary:
         full_man_race_labels = raw_aa_labels + raw_wh_labels
         
         return full_man_race, full_man_race_labels
-        
-            
-    def split_rand_subset_SFULL(self):
-        for filename in os.listdir(self.index_dir):
-            if '_'+str(self.run_number)+'.txt' in filename:
-                subset = np.loadtxt(self.index_dir+filename, dtype=np.object)
-        
-        subset = subset.astype(int).tolist()  
-        sub = [self.file_train[i] for i in subset]
-        return sub
     
         
     def split_Strain_Sval(self, train_set):
