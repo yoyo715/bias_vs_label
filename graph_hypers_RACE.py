@@ -166,12 +166,82 @@ def plot_wft():
     plt.show()
     
     
+    
+def get_wft_cf_averaged(r0, r1):
+    directory = '../slurm_scripts/RACE/new_wft_cf/hypers/'
+    
+    print("********* R0: ", r0, " R1: ", r1)
+    train_all = []
+    test_all = []
+    man_all = []
+    for filename in os.listdir(directory):
+        if ('_R0'+str(r0)+'_' in filename) and ('_R1'+str(r1)+'_' in filename) :
+            with open(directory+filename,"r") as f:
+                print(filename)
+                train = []
+                test = []
+                man = []
+                
+                content = f.readlines()
+                for line in content:
+                    if "SVAL Classification" in line:
+                        val = float(line.split()[-1])
+                        train.append(val)
+                    if "STEST Classification" in line:
+                        val = float(line.split()[-1])
+                        test.append(val)
+                    if "RVAL Classification" in line:
+                        val = float(line.split()[-1])
+                        man.append(val)
+                train_all.append(train)
+                test_all.append(test)
+                man_all.append(man)
+                        
+    train_all = np.array(train_all)
+    test_all = np.array(test_all)
+    man_all = np.array(man_all)
+    return np.mean(train_all, axis=0), np.mean(test_all, axis=0), np.mean(man_all, axis=0)
+
+
+def plot_wft_cf():
+    numfiles = 9
+
+    epochs = [l for l in range(21)]
+    fig, axs = plt.subplots(3, int(numfiles/3), sharex=True, sharey=True)
+    axs = axs.ravel()
+    
+    R0 = [2.0, 4.0, 5.0]
+    R1 = [4.0, 8.0, 10.0]
+    
+    i = 0
+    for r0 in R0:
+        r1 = R1[i]
+        
+        train, test, man = get_wft_cf_averaged(r0, r1)
+        
+        axs[i].plot(epochs, train, 'm', label="train")
+        axs[i].plot(epochs, test, 'c', label="test")
+        axs[i].plot(epochs, man, 'g', label="manual")
+    
+        #axs[i].axhline(y = best_value, linewidth=2, color = 'red')
+        axs[i].axhline(y = 0.45, linewidth=2, color = 'red')
+        axs[i].set_title(str(r0)+' '+str(r1))
+        
+        axs[i].set_ylabel('classification error')
+        axs[i].set_xlabel('epoch')
+        #axs[i].legend(loc='upper left')
+        
+        i += 1
+
+
+    plt.suptitle('race ft')
+    plt.show()
 
 
 if __name__ == '__main__':
-    #plot_ft()
-    plot_wft()
-        
+    plot_ft()
+    #plot_wft()
+    #plot_wft_cf()
     
                 
         

@@ -57,6 +57,9 @@ class Dictionary:
         y_strain, y_sval = self.split_Strain_Sval(train_labels)
         self.n_strain = len(x_strain)
         self.n_sval = len(x_sval)
+        
+        # lm = {'w': 0, 'b': 1, 'W': 0, 'B': 1}
+        print("Num 0 instances (w): ", train_labels.count(0), " Num 1 instances (aa): ", train_labels.count(1))
         print("x_strain: ", self.n_strain, " x_sval: ", self.n_sval)
         print("y_strain: ", len(y_strain), " y_sval: ", len(y_sval))
         print()
@@ -74,6 +77,7 @@ class Dictionary:
         print("--------- creating testing instances ---------")
         x_stest, y_stest = self.create_instances_and_labels(self.file_test)
         self.n_stest = len(x_stest)
+        print("Num 0 instances (w): ", y_stest.count(0), " Num 1 instances (aa): ", y_stest.count(1))
         print("x_stest: ", self.n_stest)
         print()
     
