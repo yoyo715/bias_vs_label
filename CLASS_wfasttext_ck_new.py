@@ -29,7 +29,8 @@ class wFastText_ck_new:
         print()
         print("######################## wFastText-ck_new ########################")
         
-        self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/new_wfasttext-ck/'
+        #self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/new_wfasttext-ck/'
+        self.save_dir = '/project/lsrtwitter/mcooley3/RACE_JUNE_2019_exps/new_wfasttext-ck/'
         
         self.LR = learning_rate
         self.EPOCH = EPOCH
@@ -398,8 +399,8 @@ class wFastText_ck_new:
             print()
             
             
-            self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
-                                   yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
+            #self.save_betas_yhat_y(i, self.betas, self.Y_STRAIN, self.Y_SVAL, self.Y_RTEST, self.Y_RVAL, self.Y_STEST,
+                                   #yhat_strain, yhat_sval, yhat_rtest, yhat_rval, yhat_stest)
     
             print("~~~~Epoch took ", (epoch_et - epoch_st)/60.0, " minutes")            
             print()

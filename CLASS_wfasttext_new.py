@@ -24,7 +24,8 @@ class wFastText_new:
         print()
         print("######################## wFastText_new ########################")
         
-        self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/new_wfasttext/'
+        #self.save_dir = '/project/lsrtwitter/mcooley3/APRIL_2019_exps/new_wfasttext/'
+        self.save_dir = '/project/lsrtwitter/mcooley3/RACE_JUNE_2019_exps/new_wfasttext/'
         
         self.LR = learning_rate
         self.EPOCH = EPOCH
