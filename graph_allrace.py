@@ -18,66 +18,89 @@ import numpy as np
 #old_wft_cf_dir = '../slurm_scripts/old_wft_cf/REAL/'
 #old_wft_ck_dir = '../slurm_scripts/old_wft_ck/REAL/'
 
-ft_dir = '../slurm_scripts/RACE/fasttext/real/'
+ft_dir = '../slurm_scripts/RACE/fasttext/real_lr0.15/'
+ft2_dir = '../slurm_scripts/RACE/fasttext/real_lr0.015/'
 wft_dir = '../slurm_scripts/RACE/new_wft/real/'
 
 
 #dirs = [ft_dir, new_wft_dir, new_wft_cf_dir, new_wft_ck_dir, old_wft_dir, old_wft_cf_dir, old_wft_ck_dir]
 #dirs = [ft_dir, new_wft_dir, old_wft_dir, new_wft_ck_dir]
 #dirs = [ft_dir, new_wft_dir, new_wft_ck_dir]
-dirs = [ft_dir, wft_dir]
+dirs = [ft2_dir, wft_dir]
 
 
 epochs = [l for l in range(20)]
 
 
-def get_avg(d):
-    all_train = []
-    all_test = []
-    all_man = []
+def get_avg_validation(d):
+    all_strain = []
+    all_sval = []
+    all_stest = []
+    all_rval = []
+    all_rtest = []
     
     for filename in os.listdir(d):
         with open(d+filename,"r") as f:
-            train = []
-            test = []
-            man = []
+            strain = []
+            sval = []
+            stest = []
+            rval = []
+            rtest = []
             
             content = f.readlines()
             for line in content:
+                if "STRAIN Classification" in line:
+                    val = float(line.split()[-1])
+                    strain.append(val)
                 if "SVAL Classification" in line:
                     val = float(line.split()[-1])
-                    train.append(val)
+                    sval.append(val)
                 if "STEST Classification" in line:
                     val = float(line.split()[-1])
-                    test.append(val)
+                    stest.append(val)
                 if "RVAL Classification" in line:
                     val = float(line.split()[-1])
-                    man.append(val)
+                    rval.append(val)
+                if "RTEST Classification" in line:
+                    val = float(line.split()[-1])
+                    rtest.append(val)
                     
-            train = np.array(train)
-            test = np.array(test)
-            man = np.array(man)
+            strain = np.array(strain)
+            sval = np.array(sval)
+            stest = np.array(stest)
+            rval = np.array(rval)
+            rtest = np.array(rtest)
             
-        all_train.append(train)
-        all_test.append(test)
-        all_man.append(man)
+        all_strain.append(strain)
+        all_sval.append(sval)
+        all_stest.append(stest)
+        all_rval.append(rval)
+        all_rtest.append(rtest)
         
-    all_train = np.array(all_train)
-    all_test = np.array(all_test)
-    all_man = np.array(all_man)
+    all_strain = np.array(all_strain)
+    all_sval = np.array(all_sval)
+    all_stest = np.array(all_stest)
+    all_rval = np.array(all_rval)
+    all_rtest = np.array(all_rtest)
     
-    return np.mean(all_train, axis=0), np.mean(all_test, axis=0), np.mean(all_man, axis=0), \
-           np.std(all_train, axis=0), np.std(all_test, axis=0), np.std(all_man, axis=0)
-        
+    return np.mean(all_strain, axis=0), np.mean(all_sval, axis=0), np.mean(all_stest, axis=0), \
+           np.mean(all_rval, axis=0), np.mean(all_rtest, axis=0), \
+           np.std(all_strain, axis=0), np.std(all_sval, axis=0), np.std(all_stest, axis=0), \
+           np.std(all_rval, axis=0), np.std(all_rtest, axis=0)
+       
 
 def get_stats():
     for d in dirs:
         print(d)
-        train, test, man, train_std, test_std, man_std = get_avg(d)
+        strain, sval, stest, rval, rtest, strain_std, sval_std, stest_std, rval_std, rtest_std = get_avg_validation(d)
         
-        print("Train: ", train[-1], train_std[-1])
-        print("Test: ", test[-1], test_std[-1])
-        print("Man: ", man[-1], man_std[-1])
+        print("Validation: ")
+        print("Strain: ", strain[-1], strain_std[-1])
+        print("Sval: ", sval[-1], sval_std[-1])
+        print("Stest: ", stest[-1], stest_std[-1])
+        print("Rval: ", rval[-1], rval_std[-1])
+        print("Rtest: ", rtest[-1], rtest_std[-1])
+        print()
         
         print()
 
@@ -88,37 +111,22 @@ def plot():
     markers = ['*', '^', 's']
     
     for d in dirs:
-        train, test, man, train_std, test_std, man_std = get_avg(d)
+        strain, sval, stest, rval, rtest, strain_std, sval_std, stest_std, rval_std, rtest_std = get_avg_validation(d)
         
         if '_wft/' in d:
             m = markers[0]
             lab = 'wft'
-        elif '_wft_cf/' in d:
-            m = markers[1]
-            lab = 'wft-cf'
-        elif '_wft_ck/' in d:
-            m = markers[2]
-            lab = 'wft-ck'
-    
-        if "old" in d:
-            #plt.plot(epochs, train, 'm', label="train", linestyle='--', marker=m)
-            #plt.plot(epochs, test, 'c',linestyle='--', marker=m, label = 'old '+lab, markersize=12)
-            #plt.plot(epochs, man, 'g', linestyle='--', marker=m, label = 'old '+lab, markersize=12)
-            pass
-        elif "new" in d:
-            #plt.plot(epochs, train[1:], 'm', label= "SL-Train Set "+lab,  marker=m,)
-            #plt.plot(epochs, test, 'c', marker=m, label = 'new '+ lab, markersize=12)
-            #plt.plot(epochs, man, 'g', marker=m, label = 'new '+ lab, markersize=12)
-            
-            #plt.plot(epochs, test[1:], 'c', label = "SL-Test Set "+lab, marker=m,)
-            plt.plot(epochs, man[1:], 'g', label = "Ran-Test Set "+lab, marker=m)
-        
-        else:
-            #plt.plot(epochs, train, 'm', label="FT SL-Train Set", marker=m)
-            #plt.plot(epochs, train[1:], 'm', label="FT SL-Train Set", linestyle='--',)
-            #plt.plot(epochs, test, 'c', linestyle='--', label="original")
-            plt.plot(epochs, test[1:], 'c', label="FT SL-Test Set", linestyle='--',)
-            plt.plot(epochs, man[1:], 'g', label = 'Ran-Test Set ft', linestyle='--',)
+
+        if "_wft" in d: # wft
+            plt.plot(epochs, sval[1:], 'm', label="sval "+lab, marker=m)
+            plt.plot(epochs, stest[1:], 'c', label = 'stest '+lab, marker=m)
+            plt.plot(epochs, rval[1:], 'g', label = "rval "+lab, marker=m)
+            plt.plot(epochs, rtest[1:], 'g', label = "rtest "+lab, marker=m, linestyle='--',)
+        else: # ft
+            plt.plot(epochs, sval[1:], 'm', label="sval ft")
+            plt.plot(epochs, stest[1:], 'c', label = 'stest ft')
+            plt.plot(epochs, rval[1:], 'g', label = "rval ft")
+            plt.plot(epochs, rtest[1:], 'g', label = "rtest ft", linestyle='--',)
         i += 1
 
             
@@ -130,10 +138,11 @@ def plot():
     plt.legend(loc='upper right', prop={'size': 12})
     #plt.title('Classification Error Comparision')
     #plt.title("Classification Error of FastText, wFastText, wFastText-ck", fontsize=18)
-    plt.title("Classification Error of FastText", fontsize=18)
+    plt.title("Classification Error on Race Datasets", fontsize=18)
     plt.show()
     
 
 if __name__ == '__main__':
     get_stats()
+    plot()
         

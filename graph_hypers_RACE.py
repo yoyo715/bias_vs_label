@@ -34,13 +34,15 @@ def get_ft_averaged(lr):
     print("********* LR: ",lr)
     train_all = []
     test_all = []
-    man_all = []
+    rval_all = []
+    rtest_all = []
     for filename in os.listdir(directory):
         if '_LR'+str(lr)+'_' in filename:
             with open(directory+filename,"r") as f:
                 train = []
                 test = []
-                man = []
+                rval = []
+                rtest = []
                 
                 content = f.readlines()
                 for line in content:
@@ -52,34 +54,44 @@ def get_ft_averaged(lr):
                         test.append(val)
                     if "RVAL Classification" in line:
                         val = float(line.split()[-1])
-                        man.append(val)
+                        rval.append(val)
+                    if "RTEST Classification" in line:
+                        val = float(line.split()[-1])
+                        rtest.append(val)
                 train_all.append(train)
                 test_all.append(test)
-                man_all.append(man)
+                rval_all.append(rval)
+                rtest_all.append(rtest)
                         
     train_all = np.array(train_all)
     test_all = np.array(test_all)
-    man_all = np.array(man_all)
-    return np.mean(train_all, axis=0), np.mean(test_all, axis=0), np.mean(man_all, axis=0)
+    rval_all = np.array(rval_all)
+    rtest_all = np.array(rtest_all)
+    return np.mean(train_all, axis=0), np.mean(test_all, axis=0), \
+           np.mean(rval_all, axis=0), np.mean(rtest_all, axis=0)
+
 
 
 def plot_ft():
-    numfiles = 10
+    numfiles = 16
 
     epochs = [l for l in range(21)]
     fig, axs = plt.subplots(3, int(numfiles/3), sharex=True, sharey=True)
     axs = axs.ravel()
 
-    lrs = [0.01, 0.015, 0.02, 0.04, 0.08, 0.1, 0.15]
+    lrs = [0.01, 0.015, 0.02, 0.04, 0.08, 0.1, 0.15, 0.20, 0.22, 0.25, 0.3, 0.35, 0.4]
     i = 0
     for lr in lrs:
-        train, test, man = get_ft_averaged(lr)
+        train, test, rval, rtest = get_ft_averaged(lr)
         
         axs[i].plot(epochs, train, 'm', label="train")
         axs[i].plot(epochs, test, 'c', label="test")
-        axs[i].plot(epochs, man, 'g', label="manual")
+        axs[i].plot(epochs, rval, 'g', label="rval")
+        axs[i].plot(epochs, rtest, 'g', linestyle='--', label="rtest")
     
         #axs[i].axhline(y = best_value, linewidth=2, color = 'red')
+        axs[i].axhline(y = 0.45, linewidth=2, color = 'red')
+        axs[i].axhline(y = 0.47, linewidth=2, color = 'red')
         axs[i].set_title(lr)
         
         axs[i].set_ylabel('classification error')
@@ -145,14 +157,16 @@ def plot_wft():
     i = 0
     for lr in lrs:
         for b in B:
-            train, test, man = get_wft_averaged(lr, b)
-            
+            train, test, rval, rtest = get_ft_averaged(lr)
+        
             axs[i].plot(epochs, train, 'm', label="train")
             axs[i].plot(epochs, test, 'c', label="test")
-            axs[i].plot(epochs, man, 'g', label="manual")
+            axs[i].plot(epochs, rval, 'g', label="rval")
+            axs[i].plot(epochs, rtest, 'g', linestyle='--', label="rtest")
         
             #axs[i].axhline(y = best_value, linewidth=2, color = 'red')
             axs[i].axhline(y = 0.45, linewidth=2, color = 'red')
+            axs[i].axhline(y = 0.47, linewidth=2, color = 'red')
             axs[i].set_title(str(lr)+' '+str(b))
             
             axs[i].set_ylabel('classification error')
@@ -162,7 +176,7 @@ def plot_wft():
             i += 1
 
 
-    plt.suptitle('race ft')
+    plt.suptitle('race wft')
     plt.show()
     
     

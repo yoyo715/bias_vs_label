@@ -38,6 +38,7 @@ class Dictionary:
             self.index_Sval = './indices_Sval/'
             
         del self.file_train[0]  # Blank line causes problems
+        print(len(self.file_train), len(self.file_test), len(self.manual_set))
         
         print("--------- creating train instances ---------")
         train_subset = self.split_rand_subset_SFULL()
