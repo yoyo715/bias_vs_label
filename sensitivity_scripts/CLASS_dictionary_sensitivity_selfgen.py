@@ -22,8 +22,8 @@ class Dictionary:
         
         self.sensitivity_file = sensitivity_file
         
-        #TETON = False
-        TETON = True    # WORKING ON TETON OR NOT
+        TETON = False
+        #TETON = True    # WORKING ON TETON OR NOT
         if TETON == True:
             self.file_train = open('/project/lsrtwitter/mcooley3/data/query_gender.train', encoding='utf8').readlines()     
             self.file_test = open('/project/lsrtwitter/mcooley3/data/query_gender.test', encoding='utf8').readlines()       
@@ -43,8 +43,8 @@ class Dictionary:
         
         print("--------- creating train instances ---------")
         train_subset = self.split_rand_subset_SFULL()
-        self.train_instances, self.train_labels = self.create_instances_and_labels(train_subset)
-        x_strain, x_sval = self.split_Strain_Sval(self.train_instances)
+        train_instances, train_labels = self.create_instances_and_labels(train_subset)
+        x_strain, x_sval = self.split_Strain_Sval(train_instances)
         y_strain, y_sval = self.split_Strain_Sval(train_labels)
         
         x_strain, y_strain = self.split_sensitivity()         # ***************************************
@@ -97,10 +97,11 @@ class Dictionary:
     # ****************************************************
     def split_sensitivity(self):
         subset = np.loadtxt(self.sensitivity_file, dtype=np.object)
+        train_instances, train_labels = self.create_instances_and_labels(self.file_train)
                 
         subset = subset.astype(int).tolist()  
-        x_sub = [self.train_instances[i] for i in subset]
-        y_sub = [self.train_labels[i] for i in subset]
+        x_sub = [train_instances[i] for i in subset]
+        y_sub = [train_labels[i] for i in subset]
         
         return x_sub, y_sub
     
