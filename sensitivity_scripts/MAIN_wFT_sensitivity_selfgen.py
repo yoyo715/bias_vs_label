@@ -6,7 +6,7 @@
 
 """
 
-from CLASS_dictionary_sensitivity_rangen import Dictionary
+from CLASS_dictionary_sensitivity_selfgen import Dictionary
 from CLASS_wfasttext_new import wFastText_new
 
 import argparse, time
