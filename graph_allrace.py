@@ -115,18 +115,20 @@ def plot():
         
         if '_wft/' in d:
             m = markers[0]
-            lab = 'wft'
+            #lab = 'wft'
+            lab='RoFastText'
 
         if "_wft" in d: # wft
-            plt.plot(epochs, sval[1:], 'm', label="sval "+lab, marker=m)
-            plt.plot(epochs, stest[1:], 'c', label = 'stest '+lab, marker=m)
-            plt.plot(epochs, rval[1:], 'g', label = "rval "+lab, marker=m)
-            plt.plot(epochs, rtest[1:], 'g', label = "rtest "+lab, marker=m, linestyle='--',)
+            #plt.plot(epochs, sval[1:], 'm', label="sval "+lab, marker=m)
+            #plt.plot(epochs, stest[1:], 'c', label = 'stest '+lab, marker=m)
+            #plt.plot(epochs, rval[1:], 'g', label = "rval "+lab, marker=m)
+            #plt.plot(epochs, rtest[1:], 'g', label = "Random Set Test "+lab, marker=m)
+            pass
         else: # ft
-            plt.plot(epochs, sval[1:], 'm', label="sval ft")
-            plt.plot(epochs, stest[1:], 'c', label = 'stest ft')
-            plt.plot(epochs, rval[1:], 'g', label = "rval ft")
-            plt.plot(epochs, rtest[1:], 'g', label = "rtest ft", linestyle='--',)
+            plt.plot(epochs, sval[1:], 'm', label="Self-Labeled Set Train FastText")
+            plt.plot(epochs, stest[1:], 'c', label = 'Self-Labeled Set Test FastText')
+            #plt.plot(epochs, rval[1:], 'g', label = "rval FastText")
+            plt.plot(epochs, rtest[1:], 'g', label = "Random Set Test FastText", linestyle='--',)
         i += 1
 
             
@@ -143,6 +145,6 @@ def plot():
     
 
 if __name__ == '__main__':
-    get_stats()
+    #get_stats()
     plot()
         

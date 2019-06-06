@@ -23,10 +23,16 @@ self_gender_ss_dir  = [10,     1062,  2113,  3165,  4216,  5268,  5794,  6845,  
 self_race_dir = '../slurm_scripts/sensitivity_analysis/wft/self_race/out/'
 self_race_ss_dirs  = [10,    1347,  1882,  2416,  277,   3218,  3753,  4288,  4823,  545, 1079,  1614,  2149,  2684,  2951,  3486,  4021,  4555,  5090,  812]
 
+vary_k_race_dir = '../slurm_scripts/sensitivity_analysis/wft/vary_k_race/out/'
+vary_k_race_ss_dirs = [10, 20, 30, 40, 50]
+
+vary_k_gender_dir = '../slurm_scripts/sensitivity_analysis/wft/vary_k_gender/out/'
+vary_k_gender_ss_dirs = [10, 20, 30, 40, 50]
+
 
 ###################
-ss_dirss = sorted(self_race_ss_dirs, key=int)
-dir_ = self_race_dir
+ss_dirss = sorted(self_gender_ss_dir, key=int)
+dir_ = self_gender_dir
 ###################
 
 
@@ -40,6 +46,7 @@ def get_avg(d, ss_vals):
     
     for filename in os.listdir(d):
         if 'size'+str(ss_vals)+'.txt' in filename:
+        #if 'DIM'+str(ss_vals)+'.txt' in filename:
             with open(d+filename,"r") as f:
                 
                 train = []
@@ -146,6 +153,7 @@ def get_stats():
         
         print()
 
+
 def plot():
     full_test = []
     full_man = []
@@ -161,15 +169,18 @@ def plot():
         full_man.append(man)
             
     
-    plt.plot(ss_dirs, full_test, 'c', label="")
-    plt.plot(ss_dirs, full_man, 'g', label = 'Ran')
+    plt.plot(ss_dirs, full_test, 'c', label="Self-Reported Test")
+    plt.plot(ss_dirs, full_man, 'g', label = 'Random Test')
 
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
 
-    plt.ylabel('Classification Error', fontsize=16)
-    plt.xlabel('Subset Size', fontsize=16)
-    plt.legend(loc='upper right', prop={'size': 12})
+    plt.ylabel('Classification Error', fontsize=15)
+    plt.xlabel('Subset Size', fontsize=14)
+    #plt.xlabel('Latent Dimension Size', fontsize=14)
+    #plt.title('Classification Error vs. Latent Dimension Size', fontsize=14)
+    plt.title('Classification Error vs. Subset Size', fontsize=14)
+    plt.legend(loc=(0.08,0.15), prop={'size': 12}),
     plt.show()
     
                 
